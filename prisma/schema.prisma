@@ -23,10 +23,17 @@ model User {
   isTwoFactorEnabled    Boolean                 @default(false)
   twoFactorConfirmation TwoFactorConfirmation[]
   image                 String?
-  accounts              Account[]
-  events                Events[]
-  orders                Orders[]
-  organizations         OrganizationMember[]
+
+  // Organization context
+  hasCompletedOnboarding Boolean       @default(false)
+  organizationId         String?       @db.Uuid
+  organization           Organization? @relation("UserOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
+
+  accounts                Account[]
+  events                  Events[]
+  participations          EventParticipation[]
+  organizationMemberships OrganizationMember[]
+  sentInvites             PendingInvite[]      @relation("InvitedBy")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -102,27 +109,52 @@ model TwoFactorConfirmation {
   @@unique([userId])
 }
 
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+  INVITE_ONLY
+}
+
+enum EventType {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
 model Events {
-  id             String        @id @default(uuid()) @db.Uuid
-  title          String
-  description    String
-  location       String
-  image          String?
-  startDateTime  DateTime      @default(now())
-  endDateTime    DateTime      @default(now())
-  price          String?
-  isFree         Boolean       @default(false)
-  url            String?
-  organizationId String?       @db.Uuid
-  categoryId     String        @db.Uuid
-  category       Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  Orders         Orders[]
-  userId         String?       @db.Uuid
-  User           User?         @relation(fields: [userId], references: [id])
+  id            String   @id @default(uuid()) @db.Uuid
+  title         String
+  description   String
+  location      String
+  image         String?
+  startDateTime DateTime @default(now())
+  endDateTime   DateTime @default(now())
+  price         String?
+  isFree        Boolean  @default(false)
+  url           String?
+
+  // Event metadata
+  visibility    EventVisibility @default(PUBLIC)
+  eventType     EventType       @default(OFFLINE)
+  maxAttendees  Int?
+  attendeeCount Int             @default(0)
+
+  // Relationships
+  organizationId String?              @db.Uuid
+  categoryId     String               @db.Uuid
+  category       Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  organization   Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  participations EventParticipation[]
+  userId         String?              @db.Uuid
+  User           User?                @relation(fields: [userId], references: [id])
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([organizationId])
+  @@index([categoryId])
+  @@index([startDateTime])
+  @@index([visibility])
 }
 
 model Category {
@@ -136,21 +168,36 @@ model Category {
   @@unique([label])
 }
 
+enum OrganizationSize {
+  STARTUP
+  SME
+  ENTERPRISE
+}
+
 model Organization {
-  id          String   @id @default(uuid()) @db.Uuid
+  id          String            @id @default(uuid()) @db.Uuid
   name        String
-  industryId  String   @db.Uuid
-  industry    Industry @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  industryId  String            @db.Uuid
+  industry    Industry          @relation(fields: [industryId], references: [id], onDelete: Cascade)
   description String?
   website     String?
   logo        String?
-  createdBy   String   @db.Uuid
+  location    String?
+  size        OrganizationSize? @default(STARTUP)
+  isVerified  Boolean           @default(false)
+  createdBy   String            @db.Uuid
 
-  members OrganizationMember[]
-  events  Events[]
+  members        OrganizationMember[]
+  events         Events[]
+  participations EventParticipation[]
+  users          User[]               @relation("UserOrganization")
+  pendingInvites PendingInvite[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([industryId])
+  @@index([createdBy])
 }
 
 model OrganizationMember {
@@ -168,19 +215,52 @@ model OrganizationMember {
   @@unique([userId, organizationId])
 }
 
-model Orders {
-  id          String  @id @default(uuid()) @db.Uuid
-  stripeId    String?
-  totalAmount String
-  eventId     String  @db.Uuid
-  buyerId     String  @db.Uuid
-  event       Events  @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  buyer       User    @relation(fields: [buyerId], references: [id], onDelete: Cascade)
+enum ParticipationStatus {
+  REGISTERED
+  ATTENDED
+  CANCELLED
+  WAITLISTED
+}
+
+// Renamed from Orders to better reflect B2B participation model
+model EventParticipation {
+  id String @id @default(uuid()) @db.Uuid
+
+  // Event reference
+  eventId String @db.Uuid
+  event   Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  // Organization participation (primary for B2B)
+  organizationId String?       @db.Uuid
+  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  // User who registered (can be on behalf of organization)
+  userId String @db.Uuid
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Participation details
+  status ParticipationStatus @default(REGISTERED)
+
+  // Payment info (for paid events)
+  stripeId    String? @unique
+  totalAmount String?
+  isPaid      Boolean @default(false)
+
+  // Metadata
+  registeredAt DateTime  @default(now())
+  attendedAt   DateTime?
+  cancelledAt  DateTime?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  @@unique([stripeId])
+  // Ensure one participation per user per event
+  @@unique([eventId, userId])
+  // For B2B: one participation per org per event (when org is specified)
+  @@unique([eventId, organizationId])
+  @@index([userId])
+  @@index([organizationId])
+  @@index([status])
 }
 
 model Industry {
@@ -192,4 +272,69 @@ model Industry {
   updatedAt DateTime @updatedAt
 
   @@unique([label])
+}
+
+enum InviteStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  FAILED
+  EXPIRED
+}
+
+model PendingInvite {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  email          String
+  role           OrganizationRole
+  invitedBy      String           @db.Uuid
+  token          String           @unique
+  status         InviteStatus     @default(PENDING)
+  attempts       Int              @default(0)
+  maxAttempts    Int              @default(3)
+  lastAttempt    DateTime?
+  error          String?
+  expiresAt      DateTime
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter      User         @relation("InvitedBy", fields: [invitedBy], references: [id])
+
+  @@index([status, createdAt])
+  @@index([token])
+  @@index([email])
+}
+
+enum JobType {
+  SEND_INVITE_EMAIL
+  SEND_NOTIFICATION
+  SEND_EVENT_REMINDER
+  GENERATE_REPORT
+  CLEANUP_DATA
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+model JobQueue {
+  id          String    @id @default(uuid()) @db.Uuid
+  type        JobType
+  payload     Json
+  status      JobStatus @default(PENDING)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3)
+  scheduledAt DateTime  @default(now())
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status, scheduledAt])
+  @@index([type, status])
 }

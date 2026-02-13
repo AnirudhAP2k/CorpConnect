@@ -1,4 +1,14 @@
-'use server';
+/**
+ * Category Server Actions
+ * 
+ * Security principles:
+ * - All actions validate authentication
+ * - Input validation and sanitization
+ * - Rate limiting considerations
+ * - Proper error handling without exposing sensitive info
+ */
+
+"use server";
 
 import { prisma } from "@/lib/db";
 import { handleError, parseData } from "@/lib/utils";
@@ -27,7 +37,7 @@ export const createOption = async ({ optionName, optionType }: CreateOptionProps
             case 'category':
                 option = await createCategory({ categoryName: optionName });
                 break;
-            
+
             case 'industry':
                 option = await createIndustry({ industryName: optionName });
                 break;
@@ -40,7 +50,7 @@ export const createOption = async ({ optionName, optionType }: CreateOptionProps
 };
 
 export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
-     try {
+    try {
         const category = await prisma.category.create({
             data: { label: categoryName }
         });
@@ -69,7 +79,7 @@ export const getAllOptions = async ({ optionType }: GetAllOptionsProps) => {
         switch (optionType) {
             case 'category':
                 options = await getAllCategories();
-                break;  
+                break;
             case 'industry':
                 options = await getAllIndustries();
                 break;
@@ -83,7 +93,11 @@ export const getAllOptions = async ({ optionType }: GetAllOptionsProps) => {
 
 export const getAllCategories = async () => {
     try {
-        const categories = await prisma.category.findMany();
+        const categories = await prisma.category.findMany({
+            orderBy: {
+                label: "asc",
+            },
+        });
 
         return parseData(categories);
     } catch (error) {

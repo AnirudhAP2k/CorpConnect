@@ -15,8 +15,18 @@ export const publicRoutes = [
 
 export const protectedRoutes = [
     '/events/create',
-    '/profile'
+    '/profile',
+    '/organizations/:id',
+    '/organizations/:id/members',
+    '/organizations/:id/events',
+    '/organizations/:id/events/:eventId',
+    '/organizations/:id/members/:memberId',
+    '/organizations/:id/events/:eventId/invites',
 ];
 
+export const apiAuthRoutes = "/api/auth";
 
-export const apiAuthRoutes = "/api/auth"; 
+export const onboardingRoutes = [
+    '/onboarding'
+];
+

@@ -6,19 +6,36 @@ import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest) => {
     try {
         const data = await req.json();
-        
+
         const validated = EventSubmitSchema.safeParse(data);
-        
+
         if (!validated.success) {
-            return NextResponse.json({ error: "Invalid event information" }, { status: 400 });
+            return NextResponse.json(
+                { error: "Invalid event information", details: validated.error.errors },
+                { status: 400 }
+            );
         }
-        
-        const { imageUrl, ...restData } = validated.data;
+
+        const { imageUrl, organizationId, ...restData } = validated.data;
+
+        // Verify organization exists
+        const organization = await prisma.organization.findUnique({
+            where: { id: organizationId },
+        });
+
+        if (!organization) {
+            return NextResponse.json(
+                { error: "Organization not found" },
+                { status: 404 }
+            );
+        }
 
         const event = await prisma.events.create({
             data: {
                 ...restData,
                 image: imageUrl,
+                organizationId,
+                attendeeCount: 0, // Initialize to 0
             }
         });
 
@@ -26,7 +43,12 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ error: "Event creation failed" }, { status: 400 });
         }
 
-        return NextResponse.json({ message: "Event creation successful!", event: event.id }, { status: 200 });
+        revalidatePath('/events');
+
+        return NextResponse.json(
+            { message: "Event created successfully!", eventId: event.id },
+            { status: 200 }
+        );
     } catch (error: any) {
         console.error("Event creation error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });

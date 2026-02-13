@@ -274,3 +274,34 @@ body {
 .react-datepicker__time-list-item--selected {
   background-color: #624cf5 !important;
 }
+
+/* ========================================== REACT-DAY-PICKER STYLES */
+.rdp-container {
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.rdp-container .rdp {
+  margin: 0;
+  font-size: 0.875rem;
+}
+
+.rdp-container .rdp-months {
+  width: 100%;
+}
+
+.rdp-container .rdp-month {
+  width: 100%;
+}
+
+.rdp-container .rdp-table {
+  max-width: 100%;
+}
+
+.rdp-container .rdp-caption {
+  font-size: 0.875rem;
+}
+
+.rdp-container .rdp-day {
+  font-size: 0.75rem;
+}

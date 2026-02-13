@@ -7,9 +7,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const POST = async (req: NextRequest) => {
     try {
         const data = await req.json();
-        
+
         const validated = OrganizationSubmitSchema.safeParse(data);
-        
+
         if (!validated.success) {
             return NextResponse.json({ error: "Invalid organization information" }, { status: 400 });
         }
@@ -28,7 +28,7 @@ export const POST = async (req: NextRequest) => {
                 logo: logoUrl,
                 createdBy: userId,
                 industry: {
-                    connect: { id: restData.industry }
+                    connect: { id: restData.industryId }
                 }
             }
         });

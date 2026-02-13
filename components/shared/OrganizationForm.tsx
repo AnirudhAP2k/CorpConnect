@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { OrganizationCreateSchema } from "@/lib/validation";
 import { z } from "zod";
-import axios from "axios";
+import { useRouter } from "next/navigation";
+import { handleUpload } from "@/lib/file-uploader";
 
 import {
   Form,
@@ -13,84 +14,133 @@ import {
   FormItem,
   FormControl,
   FormMessage,
+  FormLabel,
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import Dropdown from "@/components/shared/Dropdown";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import FileUploader from "@/components/shared/FileUploader";
 import { FormErrors } from "@/components/FormErrors";
 import { FormSuccess } from "@/components/FormSuccess";
-import { useRouter } from "next/navigation";
+import axios from "axios";
+import Dropdown from "@/components/shared/Dropdown";
 
 interface OrganizationFormProps {
   userId: string;
-  type: "Create" | "Update"
+  type: "Create" | "Update";
+  industries: { id: string; label: string }[];
+  initialData?: any;
+  organizationId?: string;
 }
 
-const OrganizationForm = ({ userId }: OrganizationFormProps) => {
+const OrganizationForm = ({
+  userId,
+  type,
+  industries,
+  initialData,
+  organizationId,
+}: OrganizationFormProps) => {
   const router = useRouter();
-  const [errors, setErrors] = useState("");
+  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isPending, startTransition] = useTransition();
 
   const form = useForm<z.infer<typeof OrganizationCreateSchema>>({
     resolver: zodResolver(OrganizationCreateSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       name: "",
-      industry: "",
+      industryId: "",
       description: "",
       website: "",
+      location: "",
+      size: undefined,
       logo: null,
     },
   });
 
-  const onSubmit = async (
-    values: z.infer<typeof OrganizationCreateSchema>
-  ) => {
-    setErrors("");
+  const onSubmit = async (values: z.infer<typeof OrganizationCreateSchema>) => {
+    setError("");
     setSuccess("");
 
-    let logoUrl = "";
+    startTransition(async () => {
+      try {
+        let logoUrl = initialData?.logo || "";
 
-    if (files.length > 0) {
-      const upload = await fetch("/api/upload", {
-        method: "POST",
-        body: files[0],
-      });
+        // Upload logo if new file provided
+        if (files.length > 0) {
+          const { imageUrl } = await handleUpload(files);
 
-      const data = await upload.json();
-      logoUrl = data.url;
-    }
+          if (!imageUrl) {
+            throw new Error("Failed to upload logo");
+          }
 
-    try {
-      const res = await axios.post("/api/organizations", {
-        ...values,
-        logo: logoUrl,
-        userId,
-      });
+          logoUrl = imageUrl;
+        }
 
-      setSuccess("Organization created successfully");
-      router.push(`/dashboard`);
+        // Prepare data for API
+        const apiData = {
+          name: values.name,
+          industryId: values.industryId,
+          description: values.description,
+          website: values.website,
+          location: values.location,
+          size: values.size,
+          logo: logoUrl,
+        };
 
-    } catch (error: any) {
-      setErrors(error?.response?.data?.message || "Something went wrong");
-    }
+        let response;
+
+        if (type === "Create") {
+          response = await axios.post("/api/organizations", apiData);
+        } else {
+          response = await axios.put(`/api/organizations/${organizationId}`, apiData);
+        }
+
+        if (!response.data.success) {
+          throw new Error(response.data.error || "Operation failed");
+        }
+
+        setSuccess(response.data.message);
+
+        setTimeout(() => {
+          if (type === "Create") {
+            router.push("/dashboard");
+          } else {
+            router.push(`/organizations/${organizationId}`);
+          }
+          router.refresh();
+        }, 1000);
+      } catch (err: any) {
+        setError(err?.message || "Something went wrong");
+      }
+    });
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-
         {/* Organization Name */}
         <FormField
           control={form.control}
           name="name"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Organization Name *</FormLabel>
               <FormControl>
-                <Input placeholder="Organization name" {...field} />
+                <Input
+                  placeholder="Enter organization name"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -99,19 +149,69 @@ const OrganizationForm = ({ userId }: OrganizationFormProps) => {
 
         {/* Industry */}
         <FormField
-            control={form.control}
-            name="industry"
-            render={({ field }) => (
-                <FormItem className="w-full">
-                    <Dropdown
-                        onChangeHandler={field.onChange}
-                        value={field.value}
-                        type="industry"
-                    >
-                    </Dropdown>
-                    <FormMessage />
-                </FormItem>
-            )}
+          control={form.control}
+          name="industryId"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Industry *</FormLabel>
+              <FormControl>
+                <Dropdown
+                  onChangeHandler={field.onChange}
+                  value={field.value}
+                  disabled={isPending}
+                  type="industry"
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Organization Size */}
+        <FormField
+          control={form.control}
+          name="size"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Organization Size</FormLabel>
+              <Select
+                onValueChange={field.onChange}
+                defaultValue={field.value}
+                disabled={isPending}
+              >
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select organization size" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="STARTUP">Startup (1-50 employees)</SelectItem>
+                  <SelectItem value="SME">SME (51-500 employees)</SelectItem>
+                  <SelectItem value="ENTERPRISE">Enterprise (500+ employees)</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Location */}
+        <FormField
+          control={form.control}
+          name="location"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Location</FormLabel>
+              <FormControl>
+                <Input
+                  placeholder="City, Country"
+                  {...field}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
         />
 
         {/* Description */}
@@ -120,11 +220,13 @@ const OrganizationForm = ({ userId }: OrganizationFormProps) => {
           name="description"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Description</FormLabel>
               <FormControl>
                 <Textarea
-                  placeholder="Short description"
-                  className="h-28"
+                  placeholder="Tell us about your organization..."
+                  className="h-28 resize-none"
                   {...field}
+                  disabled={isPending}
                 />
               </FormControl>
               <FormMessage />
@@ -138,8 +240,13 @@ const OrganizationForm = ({ userId }: OrganizationFormProps) => {
           name="website"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Website</FormLabel>
               <FormControl>
-                <Input placeholder="Website (optional)" {...field} />
+                <Input
+                  placeholder="https://example.com"
+                  {...field}
+                  disabled={isPending}
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -152,6 +259,7 @@ const OrganizationForm = ({ userId }: OrganizationFormProps) => {
           name="logo"
           render={({ field }) => (
             <FormItem>
+              <FormLabel>Organization Logo</FormLabel>
               <FormControl>
                 <FileUploader
                   image={field.value}
@@ -164,11 +272,17 @@ const OrganizationForm = ({ userId }: OrganizationFormProps) => {
           )}
         />
 
-        <FormErrors message={errors} />
+        <FormErrors message={error} />
         <FormSuccess message={success} />
 
-        <Button type="submit" className="w-full">
-          Create Organization
+        <Button type="submit" className="w-full" disabled={isPending}>
+          {isPending
+            ? type === "Create"
+              ? "Creating..."
+              : "Updating..."
+            : type === "Create"
+              ? "Create Organization"
+              : "Update Organization"}
         </Button>
       </form>
     </Form>

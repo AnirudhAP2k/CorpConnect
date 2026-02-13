@@ -40,66 +40,91 @@ export const SetNewPasswordSchema = z.object({
     path: ["confirmPassword"],
 });
 
-export const EventCreateSchema = z.object({
+const EventBaseSchema = z.object({
     title: z.string().min(3, {
-        message: "Title should be atlest 3 characters"
-    }).max(20, {
-        message: "Title should be atmost 20 characters"
+        message: "Title should be at least 3 characters"
+    }).max(100, {
+        message: "Title should be at most 100 characters"
     }),
     description: z.string().min(5, {
-        message: "Description should be atlest 5 characters"
-    }).max(400, {
-        message: "Description should be atmost 400 characters"
+        message: "Description should be at least 5 characters"
+    }).max(1000, {
+        message: "Description should be at most 1000 characters"
     }),
     location: z.string().min(3, {
-        message: "Location should be atlest 3 characters"
-    }).max(100, {
-        message: "Location should be atmost 100 characters"
+        message: "Location should be at least 3 characters"
+    }).max(200, {
+        message: "Location should be at most 200 characters"
     }),
     image: z.instanceof(File, { message: "An image file is required." })
         .nullable()
         .optional(),
     startDateTime: z.date(),
     endDateTime: z.date(),
-    categoryId: z.string(),
+    categoryId: z.string().uuid({
+        message: "Please select a category"
+    }),
     price: z.string(),
     isFree: z.boolean(),
-    url: z.string().url(),
+    url: z.string().url({
+        message: "Please enter a valid URL"
+    }).optional().or(z.literal("")),
+
+    // Enhanced fields
+    visibility: z.enum(["PUBLIC", "PRIVATE", "INVITE_ONLY"], {
+        message: "Please select event visibility"
+    }).default("PUBLIC"),
+    eventType: z.enum(["ONLINE", "OFFLINE", "HYBRID"], {
+        message: "Please select event type"
+    }).default("OFFLINE"),
+    maxAttendees: z.number().int().positive({
+        message: "Capacity must be a positive number"
+    }).optional(),
 });
 
-export const EventSubmitSchema = EventCreateSchema.omit({ image: true }).extend({
+export const EventCreateSchema = EventBaseSchema.refine(
+    (data) => data.endDateTime > data.startDateTime,
+    {
+        message: "End date must be after start date",
+        path: ["endDateTime"],
+    }
+);
+
+export const EventSubmitSchema = EventBaseSchema.omit({ image: true }).extend({
     userId: z.string(),
+    organizationId: z.string().uuid(),
     imageUrl: z.string(),
     startDateTime: z.string().transform((str) => new Date(str)),
     endDateTime: z.string().transform((str) => new Date(str)),
 });
 
 export const OrganizationCreateSchema = z.object({
-    name: z.string().min(3, {
-        message: "Name should be atlest 3 characters"
-    }).max(20, {
-        message: "Name should be atmost 20 characters"
+    name: z.string().min(2, {
+        message: "Organization name must be at least 2 characters"
+    }).max(100, {
+        message: "Organization name must be at most 100 characters"
     }),
-    industry: z.string().min(3, {
-        message: "Industry should be atlest 3 characters"
-    }).max(20, {
-        message: "Industry should be atmost 20 characters"
+    industryId: z.string().uuid({
+        message: "Please select an industry"
     }),
     description: z.string().min(5, {
-        message: "Description should be atlest 5 characters"
-    }).max(400, {
-        message: "Description should be atmost 400 characters"
-    }),
-    website: z.string().url(),
+        message: "Description should be at least 5 characters"
+    }).max(500, {
+        message: "Description should be at most 500 characters"
+    }).optional(),
+    website: z.string().url({
+        message: "Please enter a valid website URL"
+    }).optional().or(z.literal("")),
+    location: z.string().max(100, {
+        message: "Location should be at most 100 characters"
+    }).optional(),
+    size: z.enum(["STARTUP", "SME", "ENTERPRISE"]).optional(),
     logo: z.instanceof(File, { message: "An image file is required." })
         .nullable()
         .optional(),
 });
 
-
 export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: true }).extend({
     userId: z.string(),
     logoUrl: z.string(),
-    startDateTime: z.string().transform((str) => new Date(str)),
-    endDateTime: z.string().transform((str) => new Date(str)),
 });
