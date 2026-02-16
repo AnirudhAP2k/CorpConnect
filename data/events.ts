@@ -9,7 +9,6 @@
  */
 
 import { prisma } from "@/lib/db";
-import { OrganizationRole, OrganizationSize } from "@prisma/client";
 
 /**
  * Get event by ID with optional member filtering
