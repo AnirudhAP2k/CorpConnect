@@ -7,13 +7,13 @@
   - [x] Auto-assign creator as OWNER role (handled in data layer)
   - [x] Redirect to dashboard after org creation
   - [x] Update middleware to force onboarding
-- [ ] Organization management
-  - [ ] Organization profile page
-  - [ ] Edit organization details
-  - [ ] Upload organization logo (Cloudinary integration exists)
-  - [ ] View organization members
-- [ ] Organization membership
-  - [ ] Invite members to organization (email invites)
+- [x] Organization management
+  - [x] Organization profile page
+  - [x] Edit organization details
+  - [x] Upload organization logo (Cloudinary integration exists)
+  - [x] View organization members
+- [x] Organization membership
+  - [x] Invite members to organization (email invites)
   - [ ] Accept/decline invitations
   - [ ] Manage member roles (OWNER, ADMIN, MEMBER)
   - [ ] Remove members from organization
@@ -37,11 +37,11 @@
   - [x] Filter by category, date, location
   - [x] Search events by title/description
   - [x] Event detail page
-  - [ ] My organization's events page
-- [ ] Event management
-  - [ ] Edit event details
-  - [ ] Cancel/delete events
-  - [ ] View event participants
+  - [x] My organization's events page
+- [x] Event management
+  - [x] Edit event details
+  - [x] Delete events with confirmation
+  - [ ] View event participants (in detail page)
   - [ ] Event analytics (basic view count)
 
 ## Phase 3: Participation Flow
