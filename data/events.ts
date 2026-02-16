@@ -147,3 +147,131 @@ export async function getAllEvents(where: any, pagination: number) {
     }
 }
 
+export async function getEventByIdWithMemberCheck(id: string, userId: string) {
+    try {
+        const event = await prisma.events.findUnique({
+            where: { id },
+            include: {
+                organization: {
+                    include: {
+                        members: {
+                            where: { userId },
+                        },
+                    },
+                },
+            },
+        });
+
+        return event;
+    } catch (error) {
+        console.error("Error fetching event:", error);
+        throw error;
+    }
+};
+
+export async function getHostEvents(id: string) {
+    try {
+        const events = await prisma.events.findMany({
+            where: {
+                organizationId: id,
+                startDateTime: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                category: true,
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo: true,
+                    },
+                },
+            },
+            orderBy: {
+                startDateTime: "asc",
+            },
+        });
+
+        return events;
+    } catch (error) {
+        console.error("Error fetching host events:", error);
+        throw error;
+    }
+};
+
+export async function getAttendedEvents(id: string) {
+    try {
+        const events = await prisma.events.findMany({
+            where: {
+                participations: {
+                    some: {
+                        organizationId: id,
+                    },
+                },
+                startDateTime: {
+                    gte: new Date(),
+                },
+            },
+            include: {
+                category: true,
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo: true,
+                    },
+                },
+            },
+            orderBy: {
+                startDateTime: "asc",
+            },
+        });
+
+        return events;
+    } catch (error) {
+        console.error("Error fetching attended events:", error);
+        throw error;
+    }
+}
+
+export async function getPastEvents(id: string) {
+    try {
+        const events = await prisma.events.findMany({
+            where: {
+                OR: [
+                    { organizationId: id },
+                    {
+                        participations: {
+                            some: {
+                                organizationId: id,
+                            },
+                        },
+                    },
+                ],
+                endDateTime: {
+                    lt: new Date(),
+                },
+            },
+            include: {
+                category: true,
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo: true,
+                    },
+                },
+            },
+            orderBy: {
+                endDateTime: "desc",
+            },
+            take: 20, // Limit past events
+        });
+
+        return events;
+    } catch (error) {
+        console.error("Error fetching past events:", error);
+        throw error;
+    }
+}
