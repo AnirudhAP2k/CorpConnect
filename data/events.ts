@@ -200,7 +200,7 @@ export async function getHostEvents(id: string) {
     }
 };
 
-export async function getAttendedEvents(id: string) {
+export async function getAttendingEvents(id: string) {
     try {
         const events = await prisma.events.findMany({
             where: {
