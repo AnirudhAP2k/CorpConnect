@@ -8,12 +8,12 @@ import { z } from 'zod';
 import axios from 'axios';
 import { Input } from '@/components/ui/input';
 import {
-Form,
-FormControl,
-FormField,
-FormItem,
-FormLabel,
-FormMessage
+    Form,
+    FormControl,
+    FormField,
+    FormItem,
+    FormLabel,
+    FormMessage
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import { FormErrors } from "@/components/FormErrors";
@@ -36,9 +36,25 @@ interface EventsFormProps {
     type: "Create" | "Update"
     organizationId?: string
     organizationName?: string
+    eventId?: string
+    initialData?: {
+        title: string
+        description: string
+        location: string
+        startDateTime: Date
+        endDateTime: Date
+        categoryId: string
+        price: string
+        isFree: boolean
+        url: string
+        visibility: "PUBLIC" | "PRIVATE" | "INVITE_ONLY"
+        eventType: "ONLINE" | "OFFLINE" | "HYBRID"
+        maxAttendees?: number
+        image: string | null
+    }
 }
 
-const EventsForm = ({ userId, type, organizationId, organizationName }: EventsFormProps) => {
+const EventsForm = ({ userId, type, organizationId, organizationName, eventId, initialData }: EventsFormProps) => {
     const [errors, setErrors] = useState("");
     const [success, setSuccess] = useState("");
     const [files, setFiles] = useState<File[]>([]);
@@ -47,7 +63,21 @@ const EventsForm = ({ userId, type, organizationId, organizationName }: EventsFo
 
     const form = useForm<z.infer<typeof EventCreateSchema>>({
         resolver: zodResolver(EventCreateSchema),
-        defaultValues: {
+        defaultValues: initialData ? {
+            title: initialData.title,
+            description: initialData.description,
+            location: initialData.location,
+            image: null, // File object, not URL
+            startDateTime: new Date(initialData.startDateTime),
+            endDateTime: new Date(initialData.endDateTime),
+            categoryId: initialData.categoryId,
+            price: initialData.price,
+            isFree: initialData.isFree,
+            url: initialData.url || "",
+            visibility: initialData.visibility,
+            eventType: initialData.eventType,
+            maxAttendees: initialData.maxAttendees,
+        } : {
             title: "",
             description: "",
             location: "",
@@ -68,7 +98,8 @@ const EventsForm = ({ userId, type, organizationId, organizationName }: EventsFo
         setErrors("");
         setSuccess("");
 
-        if (files.length === 0) {
+        // For edit mode, image is optional if initialData has image
+        if (files.length === 0 && !initialData?.image) {
             setErrors("Please upload an image");
             return;
         }
@@ -78,11 +109,15 @@ const EventsForm = ({ userId, type, organizationId, organizationName }: EventsFo
             return;
         }
 
-        const { imageUrl } = await handleUpload(files);
-
-        if (!imageUrl) {
-            setErrors("Image upload failed");
-            return;
+        // Upload new image or use existing
+        let imageUrl = initialData?.image || "";
+        if (files.length > 0) {
+            const uploadResult = await handleUpload(files);
+            if (!uploadResult.imageUrl) {
+                setErrors("Image upload failed");
+                return;
+            }
+            imageUrl = uploadResult.imageUrl;
         }
 
         const finalValues = { ...values, userId, organizationId, imageUrl };
@@ -98,6 +133,22 @@ const EventsForm = ({ userId, type, organizationId, organizationName }: EventsFo
                     setSuccess(response.data.message);
                     form.reset();
                     router.push(`/events/${response.data.eventId}`);
+                })
+                .catch((error: any) => {
+                    const errMessage = error.response?.data?.error || error.message;
+                    setErrors(errMessage);
+                });
+        } else if (type === "Update" && eventId) {
+            await axios
+                .put(`/api/events/${eventId}`, finalValues, {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                })
+                .then((response) => {
+                    setSuccess(response.data.message);
+                    router.push(`/events/${eventId}`);
+                    router.refresh();
                 })
                 .catch((error: any) => {
                     const errMessage = error.response?.data?.error || error.message;
