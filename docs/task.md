@@ -14,14 +14,14 @@
   - [x] View organization members
 - [x] Organization membership
   - [x] Invite members to organization (email invites)
-  - [ ] Accept/decline invitations
-  - [ ] Manage member roles (OWNER, ADMIN, MEMBER)
-  - [ ] Remove members from organization
-- [ ] Organization switcher
-  - [ ] Display current active organization in navbar
-  - [ ] Dropdown to switch between user's organizations
-  - [ ] Store active org in session/cookie
-  - [ ] Update context when switching orgs
+  - [x] Accept/decline invitations
+  - [x] Manage member roles (OWNER, ADMIN, MEMBER)
+  - [x] Remove members from organization
+- [x] Organization switcher
+  - [x] Display current active organization in navbar
+  - [x] Dropdown to switch between user's organizations
+  - [x] Store active org in database (activeOrganizationId)
+  - [x] Update context when switching orgs
 
 ## Phase 2: Event Module
 - [x] Event creation
