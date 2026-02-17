@@ -75,7 +75,7 @@ const EditEventPage = async ({ params }: EditEventPageProps) => {
                 <EventsForm
                     userId={userId}
                     type="Update"
-                    eventId={params.id}
+                    eventId={id}
                     organizationId={event.organizationId || undefined}
                     organizationName={event.organization?.name}
                     initialData={initialData}
