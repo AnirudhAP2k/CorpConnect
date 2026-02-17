@@ -12,6 +12,8 @@ interface MembersManagementPageProps {
 const MembersManagementPage = async ({ params }: MembersManagementPageProps) => {
     const session = await auth();
     const userId = session?.user?.id;
+    const data = await params;
+    const { id } = data;
 
     if (!userId) {
         redirect("/login");
@@ -21,7 +23,7 @@ const MembersManagementPage = async ({ params }: MembersManagementPageProps) => 
     let organization;
     try {
         const response = await axios.get(
-            `/api/organizations/${params.id}`,
+            `/api/organizations/${id}`,
         );
 
         if (response.status !== 200) {
@@ -39,12 +41,12 @@ const MembersManagementPage = async ({ params }: MembersManagementPageProps) => 
     );
 
     if (!currentUserMembership || !["OWNER", "ADMIN"].includes(currentUserMembership.role)) {
-        redirect(`/organizations/${params.id}`);
+        redirect(`/organizations/${id}`);
     }
 
     return (
         <MembersManagementClient
-            organizationId={params.id}
+            organizationId={id}
             initialMembers={organization.members}
             currentUserRole={currentUserMembership.role}
         />
