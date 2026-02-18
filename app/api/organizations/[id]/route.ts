@@ -106,10 +106,10 @@ export const GET = async (
 // PUT /api/organizations/[id] - Update organization
 export const PUT = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const organizationId = params.id;
+        const { id: organizationId } = await params;
         const data = await req.json();
 
         const validated = OrganizationUpdateSchema.safeParse(data);
@@ -184,10 +184,10 @@ export const PUT = async (
 // DELETE /api/organizations/[id] - Delete organization (OWNER only)
 export const DELETE = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const organizationId = params.id;
+        const { id: organizationId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;

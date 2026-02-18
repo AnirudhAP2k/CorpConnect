@@ -4,16 +4,15 @@ import MembersManagementClient from "@/components/shared/MembersManagementClient
 import axios from "axios";
 
 interface MembersManagementPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const MembersManagementPage = async ({ params }: MembersManagementPageProps) => {
     const session = await auth();
     const userId = session?.user?.id;
-    const data = await params;
-    const { id } = data;
+    const { id } = await params;
 
     if (!userId) {
         redirect("/login");

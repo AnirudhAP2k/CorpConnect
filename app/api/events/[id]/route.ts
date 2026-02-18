@@ -10,10 +10,10 @@ import { getEventByIdWithMemberCheck } from "@/data/events";
 // PUT /api/events/[id] - Update event
 export const PUT = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const eventId = params.id;
+        const { id: eventId } = await params;
         const data = await req.json();
 
         const session = await auth();
@@ -82,10 +82,10 @@ export const PUT = async (
 // DELETE /api/events/[id] - Delete event
 export const DELETE = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const eventId = params.id;
+        const { id: eventId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;

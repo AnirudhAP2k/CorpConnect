@@ -5,9 +5,9 @@ import { getAllIndustries } from "@/data/organization";
 import axios from "axios";
 
 interface EditOrganizationPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
@@ -18,11 +18,12 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
         redirect("/login");
     }
 
-    // Fetch organization data
+    const { id } = await params;
+
     let organization;
     try {
         const response = await axios.get(
-            `/api/organizations/${params.id}`,
+            `/api/organizations/${id}`,
         );
 
         if (response.status !== 200) {
@@ -40,7 +41,7 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
     );
 
     if (!currentUserMembership || !["OWNER", "ADMIN"].includes(currentUserMembership.role)) {
-        redirect(`/organizations/${params.id}`);
+        redirect(`/organizations/${id}`);
     }
 
     const industries = await getAllIndustries();
@@ -70,7 +71,7 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
                     type="Update"
                     industries={industries}
                     initialData={initialData}
-                    organizationId={params.id}
+                    organizationId={id}
                 />
             </div>
         </>

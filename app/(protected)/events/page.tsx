@@ -10,13 +10,13 @@ import { Category } from "@prisma/client";
 import DateRangeFilter from "@/components/shared/DateRangeFilter";
 
 interface EventsPageProps {
-    searchParams: {
+    searchParams: Promise<{
         category?: string;
         search?: string;
         type?: string;
         fromDate?: string;
         toDate?: string;
-    };
+    }>;
 }
 
 const EventsPage = async ({ searchParams }: EventsPageProps) => {

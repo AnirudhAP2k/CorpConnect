@@ -13,10 +13,10 @@ const AddMemberSchema = z.object({
 // POST /api/organizations/[id]/members - Invite member to organization
 export const POST = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const organizationId = params.id;
+        const { id: organizationId } = await params;
         const data = await req.json();
 
         const validated = AddMemberSchema.safeParse(data);

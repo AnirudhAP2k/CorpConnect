@@ -6,10 +6,10 @@ import { revalidatePath } from "next/cache";
 // POST /api/invitations/[id]/accept - Accept invitation
 export const POST = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const invitationId = params.id;
+        const { id: invitationId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;

@@ -11,10 +11,10 @@ const UpdateMemberRoleSchema = z.object({
 // PUT /api/organizations/[id]/members/[memberId] - Update member role
 export const PUT = async (
     req: NextRequest,
-    { params }: { params: { id: string; memberId: string } }
+    { params }: { params: Promise<{ id: string; memberId: string }> }
 ) => {
     try {
-        const { id: organizationId, memberId } = params;
+        const { id: organizationId, memberId } = await params;
         const data = await req.json();
 
         const validated = UpdateMemberRoleSchema.safeParse(data);
@@ -127,10 +127,10 @@ export const PUT = async (
 // DELETE /api/organizations/[id]/members/[memberId] - Remove member
 export const DELETE = async (
     req: NextRequest,
-    { params }: { params: { id: string; memberId: string } }
+    { params }: { params: Promise<{ id: string; memberId: string }> }
 ) => {
     try {
-        const { id: organizationId, memberId } = params;
+        const { id: organizationId, memberId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;

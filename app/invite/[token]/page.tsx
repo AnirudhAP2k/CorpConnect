@@ -7,18 +7,20 @@ import { CheckCircle2, XCircle, Clock } from "lucide-react";
 import Link from "next/link";
 
 interface InvitePageProps {
-    params: {
+    params: Promise<{
         token: string;
-    };
+    }>;
 }
 
 const InvitePage = async ({ params }: InvitePageProps) => {
     const session = await auth();
     const userId = session?.user?.id;
 
+    const { token } = await params;
+
     // Fetch invite by token
     const invite = await prisma.pendingInvite.findUnique({
-        where: { token: params.token },
+        where: { token },
         include: {
             organization: true,
             inviter: true,
@@ -103,7 +105,7 @@ const InvitePage = async ({ params }: InvitePageProps) => {
     // User must be logged in to accept invite
     if (!userId) {
         // Redirect to login with return URL
-        redirect(`/login?callbackUrl=/invite/${params.token}`);
+        redirect(`/login?callbackUrl=/invite/${token}`);
     }
 
     // Check if user's email matches the invite
