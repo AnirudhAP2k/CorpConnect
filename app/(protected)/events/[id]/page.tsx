@@ -7,21 +7,32 @@ import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign } from "luci
 import { format } from "date-fns";
 import Link from "next/link";
 import { getEventById } from "@/data/events";
+import { prisma } from "@/lib/db";
+import JoinEventButton from "@/components/shared/JoinEventButton";
+import CancelParticipationButton from "@/components/shared/CancelParticipationButton";
+import EventParticipantsPanel from "@/components/shared/EventParticipantsPanel";
 
 interface EventDetailPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const EventDetailPage = async ({ params }: EventDetailPageProps) => {
     const session = await auth();
     const userId = session?.user?.id;
 
-    const data = await params;
-    const { id } = data;
+    const { id } = await params;
 
     const event = await getEventById(id);
+
+    // Get user's active organization for participation
+    const activeOrgId = userId
+        ? (await prisma.user.findUnique({
+            where: { id: userId },
+            select: { activeOrganizationId: true },
+        }))?.activeOrganizationId
+        : null;
 
     if (!event) {
         notFound();
@@ -30,7 +41,7 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
     // Check visibility permissions
     if (event.visibility === "PRIVATE") {
         if (!userId) {
-            redirect(`/login?callbackUrl=/events/${params.id}`);
+            redirect(`/login?callbackUrl=/events/${id}`);
         }
 
         // Check if user is member of the organization
@@ -51,7 +62,7 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
 
     if (event.visibility === "INVITE_ONLY") {
         if (!userId) {
-            redirect(`/login?callbackUrl=/events/${params.id}`);
+            redirect(`/login?callbackUrl=/events/${id}`);
         }
 
         // Check if user is invited (has participation record)
@@ -223,43 +234,13 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                             </div>
                         </div>
 
-                        {/* Attendees (if user is participant or host) */}
-                        {(userParticipation || isHost) && event.participations.length > 0 && (
-                            <div className="bg-white rounded-lg border border-gray-200 p-6">
-                                <h2 className="text-2xl font-bold mb-4">
-                                    Attendees ({event.participations.length})
-                                </h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                    {event.participations.map((participation) => (
-                                        <div
-                                            key={participation.id}
-                                            className="flex items-center gap-3 p-3 rounded-lg border border-gray-100"
-                                        >
-                                            {participation.organization?.logo ? (
-                                                <Image
-                                                    src={participation.organization.logo}
-                                                    alt={participation.organization.name}
-                                                    width={40}
-                                                    height={40}
-                                                    className="rounded-full"
-                                                />
-                                            ) : (
-                                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center">
-                                                    <span className="font-semibold text-primary-600">
-                                                        {participation.organization?.name.charAt(0) || participation.user.name?.charAt(0)}
-                                                    </span>
-                                                </div>
-                                            )}
-                                            <div>
-                                                <p className="font-medium">{participation.user.name}</p>
-                                                {participation.organization && (
-                                                    <p className="text-sm text-gray-600">{participation.organization.name}</p>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
+                        {/* Attendees panel (visible to host or registered attendees) */}
+                        {(userParticipation || isHost) && (
+                            <EventParticipantsPanel
+                                participants={event.participations as any}
+                                isHost={!!isHost}
+                                totalCount={event.attendeeCount}
+                            />
                         )}
                     </div>
 
@@ -268,49 +249,33 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                         {/* Action Card */}
                         <div className="bg-white rounded-lg border border-gray-200 p-6 sticky top-4">
                             {userParticipation ? (
-                                <div>
-                                    <Badge className="bg-green-100 text-green-700 mb-4">
-                                        ✓ You're Registered
+                                <div className="space-y-3">
+                                    <Badge className="bg-green-100 text-green-700 w-full justify-center py-1.5">
+                                        ✓ You&apos;re Registered
                                     </Badge>
-                                    <form action={`/api/events/${event.id}/participate`} method="DELETE">
-                                        <Button variant="outline" className="w-full" type="submit">
-                                            Cancel Registration
-                                        </Button>
-                                    </form>
+                                    <CancelParticipationButton
+                                        eventId={event.id}
+                                        eventTitle={event.title}
+                                    />
                                 </div>
-                            ) : (
-                                <div>
-                                    {isFull ? (
-                                        <div>
-                                            <Badge variant="destructive" className="mb-2">Event Full</Badge>
-                                            <p className="text-sm text-gray-600">
-                                                This event has reached maximum capacity
-                                            </p>
-                                        </div>
-                                    ) : userId ? (
-                                        <form action={`/api/events/${event.id}/participate`} method="POST">
-                                            <Button className="w-full" size="lg" type="submit">
-                                                Join Event
-                                            </Button>
-                                        </form>
-                                    ) : (
-                                        <Link href={`/login?callbackUrl=/events/${event.id}`}>
-                                            <Button className="w-full" size="lg">
-                                                Login to Join
-                                            </Button>
-                                        </Link>
-                                    )}
-                                </div>
-                            )}
-
-                            {isHost && (
-                                <div className="mt-4 pt-4 border-t border-gray-200">
+                            ) : isHost ? (
+                                <div className="space-y-2">
+                                    <Badge className="bg-purple-100 text-purple-700 w-full justify-center py-1.5">
+                                        You&apos;re the Host
+                                    </Badge>
                                     <Link href={`/events/${event.id}/edit`}>
                                         <Button variant="outline" className="w-full">
                                             Edit Event
                                         </Button>
                                     </Link>
                                 </div>
+                            ) : (
+                                <JoinEventButton
+                                    eventId={event.id}
+                                    isFull={isFull}
+                                    isLoggedIn={!!userId}
+                                    activeOrganizationId={activeOrgId}
+                                />
                             )}
                         </div>
 
