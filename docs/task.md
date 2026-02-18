@@ -45,16 +45,16 @@
   - [ ] Event analytics (basic view count)
 
 ## Phase 3: Participation Flow
-- [ ] Event participation
-  - [ ] Join/RSVP to events
-  - [ ] Save event for later
-  - [ ] Cancel participation
-  - [ ] Participation history for users
-  - [ ] Participation history for organizations
-- [ ] Event interactions
-  - [ ] Track which orgs attended which events
+- [x] Event participation
+  - [x] Join/RSVP to events (JoinEventButton + /api/events/[id]/participate POST)
+  - [ ] Save event for later (requires new DB table — deferred)
+  - [x] Cancel participation (CancelParticipationButton + DELETE endpoint)
+  - [x] Participation history for users (/my-events page with tabs)
+  - [ ] Participation history for organizations (org events page covers attending tab)
+- [x] Event interactions
+  - [x] Track which orgs attended which events (organizationId on EventParticipation)
   - [ ] Build relationship graph data
-  - [ ] Store participation metadata (timestamp, status)
+  - [x] Store participation metadata (timestamp, status, registeredAt, attendedAt)
 
 ## Phase 4: Dashboard
 - [ ] Organization dashboard
