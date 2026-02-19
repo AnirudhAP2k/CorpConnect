@@ -56,30 +56,39 @@
   - [ ] Build relationship graph data
   - [x] Store participation metadata (timestamp, status, registeredAt, attendedAt)
 
-## Phase 4: Dashboards 🚧
-- [/] Schema update
-  - [/] Add `isAppAdmin` boolean to User model (migration required)
-- [ ] Organization dashboard (/organizations/[id]/dashboard)
-  - [ ] Stats header: events hosted, events attending, members, revenue
-  - [ ] Upcoming hosted events list
-  - [ ] Upcoming attending events list
-  - [ ] Recent activity feed (participations across org's events)
-  - [ ] Revenue widget (sum of EventParticipation.totalAmount)
-  - [ ] AI-ready placeholder panel (smart recommendations — Phase 6)
-- [ ] User dashboard upgrade (/dashboard)
-  - [ ] Replace static zeros with live getUserDashboardStats()
-  - [ ] Upcoming events list (first 3)
-  - [ ] Recommended events (same-industry events not yet joined)
-- [ ] Admin dashboard (/admin/*)
-  - [ ] Middleware protection for /admin/* routes
-  - [ ] Admin layout with sidebar navigation
-  - [ ] Overview page: platform stats (users, orgs, events, participations)
-  - [ ] Revenue overview: platform-wide totals by org and by month
-  - [ ] Organizations list page (paginated, searchable)
-  - [ ] Users list page (paginated, searchable)
-  - [ ] Events list page (platform-wide)
-  - [ ] Job queue health page (status counts, error messages)
-  - [ ] AI integration panel placeholder
+## Phase 4: Dashboards ✅
+- [x] Schema update
+  - [x] Add `isAppAdmin` boolean to User model (applied via `prisma db push`)
+- [x] Organization dashboard (/organizations/[id]/dashboard)
+  - [x] Stats header: events hosted, events attending, members, revenue
+  - [x] Upcoming hosted events list
+  - [x] Upcoming attending events list
+  - [x] Recent activity feed (participations across org's events)
+  - [x] Revenue widget (sum of EventParticipation.totalAmount)
+  - [x] AI-ready placeholder panel (smart recommendations — Phase 7)
+- [x] User dashboard upgrade (/dashboard)
+  - [x] Replace static zeros with live getUserDashboardStats()
+  - [x] Upcoming events list (first 5)
+  - [x] Recommended events (same-industry events not yet joined)
+  - [x] Organizations panel with dashboard quick-links
+  - [x] Admin console button for isAppAdmin users
+- [x] Admin dashboard (/admin/*)
+  - [x] isAppAdmin gate in layout (redirect non-admins to /dashboard)
+  - [x] Admin layout with sidebar navigation
+  - [x] Overview page: platform stats (users, orgs, events, participations)
+  - [x] Revenue overview: platform-wide totals by org and by month
+  - [x] Organizations list page (paginated, searchable)
+  - [x] Users list page (paginated, searchable, with org membership + admin badge)
+  - [x] Events list page (platform-wide, with type/visibility badges)
+  - [x] Job queue health page (status counts, error messages)
+  - [x] AI integration placeholder
+- [x] Shared components
+  - [x] StatCard component (stat card with icon and optional trend)
+  - [x] EventRow component (compact event list item)
+  - [x] RevenueWidget component (bar chart + top items)
+- [x] Auth updates
+  - [x] isAppAdmin persisted in JWT token and session
+  - [x] next-auth.d.ts ExtendedUser type updated
 
 ## Phase 5: Data Collection for Future AI 📋
 - [ ] Analytics tracking
@@ -143,7 +152,7 @@
   - [x] Add Event visibility and type fields
   - [x] Add Organization size and location fields
   - [x] Add participation status tracking
-  - [ ] Add `isAppAdmin` to User model (Phase 4)
+  - [x] Add `isAppAdmin` to User model (Phase 4 ✅)
   - [ ] Add pgvector extension (Phase 7)
   - [ ] Add tag system tables (Phase 5)
 - [ ] Database optimizations
@@ -152,7 +161,7 @@
 - [x] Data access layer
   - [x] Organization data layer with security
   - [x] Event participation data layer
-  - [ ] Dashboard data layer (Phase 4)
+  - [x] Dashboard data layer (Phase 4 ✅ — 10 functions in data/dashboard.ts)
 - [x] Server actions
   - [x] Organization actions with validation
   - [x] Event participation actions
