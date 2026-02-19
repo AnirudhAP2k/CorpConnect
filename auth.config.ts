@@ -5,6 +5,7 @@ import type { NextAuthConfig } from "next-auth"
 import { LoginSchema } from "@/lib/validation";
 import { getUserByEmail } from "@/data/user";
 import bcrypt from "bcryptjs";
+import { OrganizationRole } from "@prisma/client";
 
 export default {
     providers: [
@@ -42,4 +43,22 @@ export default {
             }
         }),
     ],
+    callbacks: {
+        async session({ session, token }) {
+            if (token.sub && session.user) {
+                session.user.id = token.sub;
+            }
+
+            if (token.role && session.user) {
+                session.user.role = token.role as OrganizationRole;
+            }
+
+            if (session.user) {
+                session.user.isAppAdmin = (token.isAppAdmin as boolean) ?? false;
+                session.user.hasCompletedOnboarding = (token.hasCompletedOnboarding as boolean) ?? false;
+            }
+
+            return session;
+        },
+    },
 } satisfies NextAuthConfig
