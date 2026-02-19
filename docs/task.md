@@ -66,6 +66,7 @@
   - [ ] Personal event calendar
   - [ ] Saved events
   - [ ] Recommended events (basic, non-AI initially)
+- [ ] Admin dashboard
 
 ## Phase 5: Data Collection for Future AI
 - [ ] Analytics tracking
