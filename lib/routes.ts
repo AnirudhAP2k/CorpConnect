@@ -30,3 +30,10 @@ export const onboardingRoutes = [
     '/onboarding'
 ];
 
+export const adminRoutes = [
+    '/admin/dashboard',
+    '/admin/organizations',
+    '/admin/users',
+    '/admin/events',
+    '/admin/jobs',
+];
