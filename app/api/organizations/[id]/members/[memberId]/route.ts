@@ -11,10 +11,10 @@ const UpdateMemberRoleSchema = z.object({
 // PUT /api/organizations/[id]/members/[memberId] - Update member role
 export const PUT = async (
     req: NextRequest,
-    { params }: { params: { id: string; memberId: string } }
+    { params }: { params: Promise<{ id: string; memberId: string }> }
 ) => {
     try {
-        const { id: organizationId, memberId } = params;
+        const { id: organizationId, memberId } = await params;
         const data = await req.json();
 
         const validated = UpdateMemberRoleSchema.safeParse(data);
@@ -49,6 +49,40 @@ export const PUT = async (
             );
         }
 
+        // Get member to update
+        const memberToUpdate = await prisma.organizationMember.findUnique({
+            where: { id: memberId },
+        });
+
+        if (!memberToUpdate) {
+            return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
+
+        // Prevent changing own role
+        if (memberToUpdate.userId === userId) {
+            return NextResponse.json(
+                { error: "You cannot change your own role" },
+                { status: 400 }
+            );
+        }
+
+        // If changing from OWNER, ensure there's at least one other OWNER
+        if (memberToUpdate.role === "OWNER" && validated.data.role !== "OWNER") {
+            const ownerCount = await prisma.organizationMember.count({
+                where: {
+                    organizationId,
+                    role: "OWNER",
+                },
+            });
+
+            if (ownerCount <= 1) {
+                return NextResponse.json(
+                    { error: "Cannot demote the last owner. Promote another member to owner first." },
+                    { status: 400 }
+                );
+            }
+        }
+
         // Update member role
         const member = await prisma.organizationMember.update({
             where: {
@@ -69,6 +103,11 @@ export const PUT = async (
             },
         });
 
+        // Revalidate paths
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath(`/organizations/${organizationId}/members`);
+        revalidatePath(`/organizations/${organizationId}`);
+
         return NextResponse.json(
             {
                 message: "Member role updated successfully",
@@ -88,10 +127,10 @@ export const PUT = async (
 // DELETE /api/organizations/[id]/members/[memberId] - Remove member
 export const DELETE = async (
     req: NextRequest,
-    { params }: { params: { id: string; memberId: string } }
+    { params }: { params: Promise<{ id: string; memberId: string }> }
 ) => {
     try {
-        const { id: organizationId, memberId } = params;
+        const { id: organizationId, memberId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;
@@ -100,18 +139,18 @@ export const DELETE = async (
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        // Only OWNER can remove members
+        // Only OWNER or ADMIN can remove members
         const requesterMembership = await prisma.organizationMember.findFirst({
             where: {
                 organizationId,
                 userId,
-                role: "OWNER",
+                role: { in: ["OWNER", "ADMIN"] },
             },
         });
 
         if (!requesterMembership) {
             return NextResponse.json(
-                { error: "Only organization owners can remove members" },
+                { error: "Only owners and admins can remove members" },
                 { status: 403 }
             );
         }
@@ -123,6 +162,14 @@ export const DELETE = async (
 
         if (!memberToRemove) {
             return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
+
+        // Prevent removing self
+        if (memberToRemove.userId === userId) {
+            return NextResponse.json(
+                { error: "You cannot remove yourself. Transfer ownership first if you want to leave." },
+                { status: 400 }
+            );
         }
 
         // Prevent removing the last OWNER
@@ -155,6 +202,11 @@ export const DELETE = async (
             where: { id: memberToRemove.userId },
             data: { organizationId: null },
         });
+
+        // Revalidate paths
+        const { revalidatePath } = await import("next/cache");
+        revalidatePath(`/organizations/${organizationId}/members`);
+        revalidatePath(`/organizations/${organizationId}`);
 
         return NextResponse.json(
             { message: "Member removed successfully" },

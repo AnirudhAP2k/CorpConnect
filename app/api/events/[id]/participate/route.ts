@@ -6,10 +6,10 @@ import { revalidatePath } from "next/cache";
 // POST /api/events/[id]/participate - Join event
 export const POST = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const eventId = params.id;
+        const { id: eventId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;
@@ -23,7 +23,7 @@ export const POST = async (
             where: { id: userId },
             select: {
                 id: true,
-                organizationId: true,
+                activeOrganizationId: true,
             },
         });
 
@@ -62,7 +62,7 @@ export const POST = async (
 
         // Check visibility permissions
         if (event.visibility === "PRIVATE") {
-            const isMember = event.organization?.members.length || 0 > 0;
+            const isMember = (event.organization?.members.length || 0) > 0;
             if (!isMember) {
                 return NextResponse.json(
                     { error: "This event is only for organization members" },
@@ -79,13 +79,17 @@ export const POST = async (
             );
         }
 
+        // Get organizationId from request body or fall back to user's active org
+        const body = await req.json().catch(() => ({}));
+        const organizationId = body.organizationId ?? user.activeOrganizationId;
+
         // Create participation
         await prisma.$transaction(async (tx) => {
             await tx.eventParticipation.create({
                 data: {
                     eventId,
                     userId,
-                    organizationId: user.organizationId,
+                    organizationId,
                     status: "REGISTERED",
                 },
             });
@@ -102,6 +106,7 @@ export const POST = async (
         });
 
         revalidatePath(`/events/${eventId}`);
+        revalidatePath("/my-events");
 
         return NextResponse.json(
             { message: "Successfully joined event!" },
@@ -119,10 +124,10 @@ export const POST = async (
 // DELETE /api/events/[id]/participate - Leave event
 export const DELETE = async (
     req: NextRequest,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) => {
     try {
-        const eventId = params.id;
+        const { id: eventId } = await params;
 
         const session = await auth();
         const userId = session?.user?.id;
@@ -163,6 +168,7 @@ export const DELETE = async (
         });
 
         revalidatePath(`/events/${eventId}`);
+        revalidatePath("/my-events");
 
         return NextResponse.json(
             { message: "Successfully left event" },

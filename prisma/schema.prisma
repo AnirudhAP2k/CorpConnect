@@ -1,49 +1,39 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-enum OrganizationRole {
-  OWNER
-  ADMIN
-  MEMBER
-}
-
 model User {
-  id                    String                  @id @default(uuid()) @db.Uuid
-  name                  String?
-  email                 String?
-  password              String?
-  role                  OrganizationRole?       @default(MEMBER)
-  emailVerified         DateTime?
-  isTwoFactorEnabled    Boolean                 @default(false)
-  twoFactorConfirmation TwoFactorConfirmation[]
-  image                 String?
-
-  // Organization context
-  hasCompletedOnboarding Boolean       @default(false)
-  organizationId         String?       @db.Uuid
-  organization           Organization? @relation("UserOrganization", fields: [organizationId], references: [id], onDelete: SetNull)
-
+  id                      String                 @id @default(uuid()) @db.Uuid
+  name                    String?
+  email                   String?                @unique
+  password                String?
+  role                    OrganizationRole?      @default(MEMBER)
+  emailVerified           DateTime?
+  isTwoFactorEnabled      Boolean                @default(false)
+  image                   String?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  hasCompletedOnboarding  Boolean                @default(false)
+  organizationId          String?                @db.Uuid
+  activeOrganizationId    String?                @db.Uuid
   accounts                Account[]
-  events                  Events[]
   participations          EventParticipation[]
+  events                  Events[]
   organizationMemberships OrganizationMember[]
-  sentInvites             PendingInvite[]      @relation("InvitedBy")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([email])
+  twoFactorConfirmation   TwoFactorConfirmation?
+  pendingInvites          PendingInvite[]        @relation("InvitedBy")
+  organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
+  activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
 }
 
 model Account {
-  id                String  @id @default(uuid()) @db.Uuid
-  userId            String  @db.Uuid()
+  id                String   @id @default(uuid()) @db.Uuid
+  userId            String   @db.Uuid
   type              String
   provider          String
   providerAccountId String
@@ -54,10 +44,9 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
 }
@@ -67,7 +56,6 @@ model VerificationToken {
   email     String
   token     String   @unique
   expiresAt DateTime
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -79,7 +67,6 @@ model PasswordResetToken {
   email     String
   token     String
   expiresAt DateTime
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -91,7 +78,6 @@ model TwoFactorToken {
   email     String
   token     String
   expiresAt DateTime
-
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -99,57 +85,37 @@ model TwoFactorToken {
 }
 
 model TwoFactorConfirmation {
-  id     String @id @default(uuid()) @db.Uuid
-  userId String @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @unique @db.Uuid
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([userId])
-}
-
-enum EventVisibility {
-  PUBLIC
-  PRIVATE
-  INVITE_ONLY
-}
-
-enum EventType {
-  ONLINE
-  OFFLINE
-  HYBRID
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Events {
-  id            String   @id @default(uuid()) @db.Uuid
-  title         String
-  description   String
-  location      String
-  image         String?
-  startDateTime DateTime @default(now())
-  endDateTime   DateTime @default(now())
-  price         String?
-  isFree        Boolean  @default(false)
-  url           String?
-
-  // Event metadata
-  visibility    EventVisibility @default(PUBLIC)
-  eventType     EventType       @default(OFFLINE)
-  maxAttendees  Int?
-  attendeeCount Int             @default(0)
-
-  // Relationships
+  id             String               @id @default(uuid()) @db.Uuid
+  title          String
+  description    String
+  location       String
+  image          String?
+  startDateTime  DateTime             @default(now())
+  endDateTime    DateTime             @default(now())
+  price          String?
+  isFree         Boolean              @default(false)
+  url            String?
   organizationId String?              @db.Uuid
   categoryId     String               @db.Uuid
+  userId         String?              @db.Uuid
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  visibility     EventVisibility      @default(PUBLIC)
+  eventType      EventType            @default(OFFLINE)
+  maxAttendees   Int?
+  attendeeCount  Int                  @default(0)
+  participations EventParticipation[]
   category       Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   organization   Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  participations EventParticipation[]
-  userId         String?              @db.Uuid
   User           User?                @relation(fields: [userId], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([organizationId])
   @@index([categoryId])
@@ -158,43 +124,33 @@ model Events {
 }
 
 model Category {
-  id     String   @id @default(uuid()) @db.Uuid
-  label  String
-  events Events[]
-
+  id        String   @id @default(uuid()) @db.Uuid
+  label     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-
-  @@unique([label])
-}
-
-enum OrganizationSize {
-  STARTUP
-  SME
-  ENTERPRISE
+  events    Events[]
 }
 
 model Organization {
-  id          String            @id @default(uuid()) @db.Uuid
-  name        String
-  industryId  String            @db.Uuid
-  industry    Industry          @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  description String?
-  website     String?
-  logo        String?
-  location    String?
-  size        OrganizationSize? @default(STARTUP)
-  isVerified  Boolean           @default(false)
-  createdBy   String            @db.Uuid
-
-  members        OrganizationMember[]
-  events         Events[]
+  id             String               @id @default(uuid()) @db.Uuid
+  name           String
+  description    String?
+  website        String?
+  createdBy      String               @db.Uuid
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  industryId     String               @db.Uuid
+  logo           String?
+  location       String?
+  size           OrganizationSize?    @default(STARTUP)
+  isVerified     Boolean              @default(false)
   participations EventParticipation[]
+  events         Events[]
+  industry       Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  members        OrganizationMember[]
   users          User[]               @relation("UserOrganization")
+  activeUsers    User[]               @relation("UserActiveOrganization")
   pendingInvites PendingInvite[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 
   @@index([industryId])
   @@index([createdBy])
@@ -205,59 +161,33 @@ model OrganizationMember {
   userId         String           @db.Uuid
   organizationId String           @db.Uuid
   role           OrganizationRole @default(MEMBER)
-
-  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, organizationId])
 }
 
-enum ParticipationStatus {
-  REGISTERED
-  ATTENDED
-  CANCELLED
-  WAITLISTED
-}
-
-// Renamed from Orders to better reflect B2B participation model
 model EventParticipation {
-  id String @id @default(uuid()) @db.Uuid
+  id             String              @id @default(uuid()) @db.Uuid
+  stripeId       String?             @unique(map: "Orders_stripeId_key")
+  totalAmount    String?
+  eventId        String              @db.Uuid
+  userId         String              @db.Uuid
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  organizationId String?             @db.Uuid
+  status         ParticipationStatus @default(REGISTERED)
+  isPaid         Boolean             @default(false)
+  registeredAt   DateTime            @default(now())
+  attendedAt     DateTime?
+  cancelledAt    DateTime?
+  event          Events              @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  organization   Organization?       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  // Event reference
-  eventId String @db.Uuid
-  event   Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  // Organization participation (primary for B2B)
-  organizationId String?       @db.Uuid
-  organization   Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  // User who registered (can be on behalf of organization)
-  userId String @db.Uuid
-  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  // Participation details
-  status ParticipationStatus @default(REGISTERED)
-
-  // Payment info (for paid events)
-  stripeId    String? @unique
-  totalAmount String?
-  isPaid      Boolean @default(false)
-
-  // Metadata
-  registeredAt DateTime  @default(now())
-  attendedAt   DateTime?
-  cancelledAt  DateTime?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Ensure one participation per user per event
   @@unique([eventId, userId])
-  // For B2B: one participation per org per event (when org is specified)
-  @@unique([eventId, organizationId])
   @@index([userId])
   @@index([organizationId])
   @@index([status])
@@ -265,21 +195,10 @@ model EventParticipation {
 
 model Industry {
   id           String         @id @default(uuid()) @db.Uuid
-  label        String
+  label        String         @unique
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   organization Organization[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@unique([label])
-}
-
-enum InviteStatus {
-  PENDING
-  SENT
-  ACCEPTED
-  FAILED
-  EXPIRED
 }
 
 model PendingInvite {
@@ -297,29 +216,12 @@ model PendingInvite {
   expiresAt      DateTime
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  inviter      User         @relation("InvitedBy", fields: [invitedBy], references: [id])
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  inviter        User             @relation("InvitedBy", fields: [invitedBy], references: [id])
 
   @@index([status, createdAt])
   @@index([token])
   @@index([email])
-}
-
-enum JobType {
-  SEND_INVITE_EMAIL
-  SEND_NOTIFICATION
-  SEND_EVENT_REMINDER
-  GENERATE_REPORT
-  CLEANUP_DATA
-}
-
-enum JobStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  CANCELLED
 }
 
 model JobQueue {
@@ -337,4 +239,60 @@ model JobQueue {
 
   @@index([status, scheduledAt])
   @@index([type, status])
+}
+
+enum OrganizationRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum EventVisibility {
+  PUBLIC
+  PRIVATE
+  INVITE_ONLY
+}
+
+enum EventType {
+  ONLINE
+  OFFLINE
+  HYBRID
+}
+
+enum OrganizationSize {
+  STARTUP
+  SME
+  ENTERPRISE
+}
+
+enum ParticipationStatus {
+  REGISTERED
+  ATTENDED
+  CANCELLED
+  WAITLISTED
+}
+
+enum InviteStatus {
+  PENDING
+  SENT
+  ACCEPTED
+  FAILED
+  EXPIRED
+  DECLINED
+}
+
+enum JobType {
+  SEND_INVITE_EMAIL
+  SEND_NOTIFICATION
+  SEND_EVENT_REMINDER
+  GENERATE_REPORT
+  CLEANUP_DATA
+}
+
+enum JobStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  CANCELLED
 }

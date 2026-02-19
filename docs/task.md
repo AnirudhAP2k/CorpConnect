@@ -7,21 +7,21 @@
   - [x] Auto-assign creator as OWNER role (handled in data layer)
   - [x] Redirect to dashboard after org creation
   - [x] Update middleware to force onboarding
-- [ ] Organization management
-  - [ ] Organization profile page
-  - [ ] Edit organization details
-  - [ ] Upload organization logo (Cloudinary integration exists)
-  - [ ] View organization members
-- [ ] Organization membership
-  - [ ] Invite members to organization (email invites)
-  - [ ] Accept/decline invitations
-  - [ ] Manage member roles (OWNER, ADMIN, MEMBER)
-  - [ ] Remove members from organization
-- [ ] Organization switcher
-  - [ ] Display current active organization in navbar
-  - [ ] Dropdown to switch between user's organizations
-  - [ ] Store active org in session/cookie
-  - [ ] Update context when switching orgs
+- [x] Organization management
+  - [x] Organization profile page
+  - [x] Edit organization details
+  - [x] Upload organization logo (Cloudinary integration exists)
+  - [x] View organization members
+- [x] Organization membership
+  - [x] Invite members to organization (email invites)
+  - [x] Accept/decline invitations
+  - [x] Manage member roles (OWNER, ADMIN, MEMBER)
+  - [x] Remove members from organization
+- [x] Organization switcher
+  - [x] Display current active organization in navbar
+  - [x] Dropdown to switch between user's organizations
+  - [x] Store active org in database (activeOrganizationId)
+  - [x] Update context when switching orgs
 
 ## Phase 2: Event Module
 - [x] Event creation
@@ -37,24 +37,24 @@
   - [x] Filter by category, date, location
   - [x] Search events by title/description
   - [x] Event detail page
-  - [ ] My organization's events page
-- [ ] Event management
-  - [ ] Edit event details
-  - [ ] Cancel/delete events
-  - [ ] View event participants
+  - [x] My organization's events page
+- [x] Event management
+  - [x] Edit event details
+  - [x] Delete events with confirmation
+  - [ ] View event participants (in detail page)
   - [ ] Event analytics (basic view count)
 
 ## Phase 3: Participation Flow
-- [ ] Event participation
-  - [ ] Join/RSVP to events
-  - [ ] Save event for later
-  - [ ] Cancel participation
-  - [ ] Participation history for users
-  - [ ] Participation history for organizations
-- [ ] Event interactions
-  - [ ] Track which orgs attended which events
+- [x] Event participation
+  - [x] Join/RSVP to events (JoinEventButton + /api/events/[id]/participate POST)
+  - [ ] Save event for later (requires new DB table — deferred)
+  - [x] Cancel participation (CancelParticipationButton + DELETE endpoint)
+  - [x] Participation history for users (/my-events page with tabs)
+  - [ ] Participation history for organizations (org events page covers attending tab)
+- [x] Event interactions
+  - [x] Track which orgs attended which events (organizationId on EventParticipation)
   - [ ] Build relationship graph data
-  - [ ] Store participation metadata (timestamp, status)
+  - [x] Store participation metadata (timestamp, status, registeredAt, attendedAt)
 
 ## Phase 4: Dashboard
 - [ ] Organization dashboard
