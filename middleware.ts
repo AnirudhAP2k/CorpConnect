@@ -7,7 +7,8 @@ import {
   publicRoutes,
   protectedRoutes,
   apiAuthRoutes,
-  onboardingRoutes
+  onboardingRoutes,
+  adminRoutes
 } from "@/lib/routes";
 import { getUserById } from "@/data/user";
 
@@ -22,6 +23,7 @@ export default auth(async (req) => {
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
   const isProtectedRoute = protectedRoutes.includes(nextUrl.pathname);
+  const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
 
   if (isApiAuthRoute) {
     return;
@@ -38,9 +40,16 @@ export default auth(async (req) => {
     return Response.redirect(new URL('/login', nextUrl));
   }
 
+  if (isAdminRoute && isLoggedIn && req.auth?.user) {
+    const isAppAdmin = req.auth.user.isAppAdmin;
+    if (!isAppAdmin) {
+      return Response.redirect(new URL('/dashboard', nextUrl));
+    }
+  }
+
   // Check if logged-in user has completed onboarding
-  if (isLoggedIn && !isOnboardingRoute && req.auth?.user?.id) {
-    const user = await getUserById(req.auth.user.id);
+  if (isLoggedIn && !isOnboardingRoute && req.auth?.user) {
+    const user = req.auth.user;
 
     if (user && !user.hasCompletedOnboarding) {
       return Response.redirect(new URL('/onboarding', nextUrl));
@@ -48,8 +57,8 @@ export default auth(async (req) => {
   }
 
   // Redirect to dashboard if user tries to access onboarding after completing it
-  if (isOnboardingRoute && isLoggedIn && req.auth?.user?.id) {
-    const user = await getUserById(req.auth.user.id);
+  if (isOnboardingRoute && isLoggedIn && req.auth?.user) {
+    const user = req.auth.user;
 
     if (user && user.hasCompletedOnboarding) {
       return Response.redirect(new URL('/dashboard', nextUrl));
