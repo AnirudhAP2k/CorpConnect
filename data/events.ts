@@ -9,12 +9,15 @@
  */
 
 import { prisma } from "@/lib/db";
+import { isUUID } from "@/lib/utils";
 
 /**
  * Get event by ID with optional member filtering
  * @throws Error if event not found
  */
 export async function getEventById(id: string) {
+    if (!id || !isUUID(id)) return null;
+
     try {
         const event = await prisma.events.findUnique({
             where: { id },
