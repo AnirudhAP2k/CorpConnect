@@ -30,11 +30,10 @@ export function useEventView({ eventId, referrer = "direct", minSeconds = 3 }: U
     useEffect(() => {
         const timer = setTimeout(async () => {
             try {
-                await fetch(`/api/events/${eventId}/view`, {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ sessionId: sessionId.current, referrer }),
-                });
+                await axios.post(`/api/events/${eventId}/view`, {
+                    sessionId: sessionId.current,
+                    referrer,
+                } as RequestInit);
                 recorded.current = true;
             } catch {
                 // Silently ignore network errors
@@ -59,10 +58,9 @@ export function useEventView({ eventId, referrer = "direct", minSeconds = 3 }: U
             navigator.sendBeacon(`/api/events/${eventId}/view`, blob);
         } else {
             // Fallback for browsers without sendBeacon
-            fetch(`/api/events/${eventId}/view`, {
-                method: "PATCH",
-                headers: { "Content-Type": "application/json" },
-                body: payload,
+            axios.patch(`/api/events/${eventId}/view`, {
+                sessionId: sessionId.current,
+                durationSeconds,
                 keepalive: true,
             } as RequestInit).catch(() => { });
         }
