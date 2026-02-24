@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { JobType } from "@prisma/client";
 
 // Validation schema for organization update
 const OrganizationUpdateSchema = z.object({
@@ -164,6 +165,15 @@ export const PUT = async (
                 industry: true,
             },
         });
+
+        // Enqueue embedding job for updated profile (non-blocking)
+        const embedText = `${organization.name}. ${organization.description ?? ""}`;
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.EMBED_ORG,
+                payload: { orgId: organization.id, text: embedText },
+            },
+        }).catch(() => { /* best-effort */ });
 
         return NextResponse.json(
             {
