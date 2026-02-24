@@ -11,6 +11,7 @@ import { prisma } from "@/lib/db";
 import JoinEventButton from "@/components/shared/JoinEventButton";
 import CancelParticipationButton from "@/components/shared/CancelParticipationButton";
 import EventParticipantsPanel from "@/components/shared/EventParticipantsPanel";
+import EventViewTracker from "@/components/shared/EventViewTracker";
 
 interface EventDetailPageProps {
     params: Promise<{
@@ -116,6 +117,7 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
 
     return (
         <div className="min-h-screen bg-gray-50">
+            <EventViewTracker eventId={id} />
             {/* Hero Section */}
             <div className="relative h-96 w-full bg-gray-900">
                 {event.image ? (

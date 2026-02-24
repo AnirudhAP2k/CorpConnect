@@ -3,6 +3,12 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { recordEventView, updateViewDuration } from "@/data/analytics";
 
+interface ViewBody {
+    sessionId?: string;
+    referrer?: string;
+    durationSeconds?: number;
+}
+
 // POST /api/events/[id]/view — record a view session start
 export const POST = async (
     req: NextRequest,
@@ -19,7 +25,8 @@ export const POST = async (
 
     try {
         const body = await req.json().catch(() => ({}));
-        const { sessionId, referrer } = body as { sessionId?: string; referrer?: string };
+
+        const { sessionId, referrer, durationSeconds } = body as ViewBody;
 
         if (!sessionId) {
             return NextResponse.json({ error: "sessionId is required" }, { status: 400 });
@@ -37,6 +44,10 @@ export const POST = async (
 
         await recordEventView(eventId, userId, sessionId, referrer);
 
+        if (durationSeconds) {
+            await updateViewDuration(sessionId, durationSeconds);
+        }
+
         return NextResponse.json({ ok: true }, { status: 200 });
     } catch (error) {
         console.error("View record error:", error);
@@ -53,10 +64,7 @@ export const PATCH = async (
 
     try {
         const body = await req.json().catch(() => ({}));
-        const { sessionId, durationSeconds } = body as {
-            sessionId?: string;
-            durationSeconds?: number;
-        };
+        const { sessionId, durationSeconds } = body as ViewBody;
 
         if (!sessionId || typeof durationSeconds !== "number") {
             return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
