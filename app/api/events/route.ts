@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { EventSubmitSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { JobType } from "@prisma/client";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -44,6 +45,15 @@ export const POST = async (req: NextRequest) => {
         }
 
         revalidatePath('/events');
+
+        // Enqueue embedding job (non-blocking — runs asynchronously via job runner)
+        const embedText = `${event.title}. ${event.description}`;
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.EMBED_EVENT,
+                payload: { eventId: event.id, text: embedText },
+            },
+        }).catch(() => { /* silently ignore — embedding is best-effort */ });
 
         return NextResponse.json(
             { message: "Event created successfully!", eventId: event.id },
