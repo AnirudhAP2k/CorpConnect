@@ -6,12 +6,14 @@
  * 2. Add `embedding vector(384)` columns to Events and Organization tables
  * 3. Create IVFFlat indexes for fast approximate nearest-neighbour search
  *
- * Run once:  npx ts-node scripts/enable-pgvector.ts
+ * Run once:  npx tsx scripts/enable-pgvector.ts
  *
  * Model: all-MiniLM-L6-v2  →  384 dimensions
  */
 
-import { prisma } from "../lib/db";
+import { PrismaClient } from "@prisma/client";
+
+const prisma = new PrismaClient();
 
 async function main() {
     console.log("🔧 Enabling pgvector extension...");
@@ -50,7 +52,7 @@ async function main() {
     console.log("  ✅ Organization embedding IVFFlat index created");
 
     console.log("\n🎉 pgvector setup complete!");
-    console.log("   Next step: run the AI service to generate embeddings.");
+    console.log("   Next step: start the AI service to generate embeddings.");
 }
 
 main()
