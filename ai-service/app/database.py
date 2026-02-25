@@ -7,7 +7,11 @@ have full control over vector queries.
 
 from typing import Optional
 import asyncpg
-from pgvector.asyncpg import register_vector
+try:
+    from pgvector.asyncpg import register_vector
+    PGVECTOR_AVAILABLE = True
+except ImportError:
+    PGVECTOR_AVAILABLE = False
 
 from app.config import settings
 
@@ -28,8 +32,15 @@ async def init_db_pool() -> None:
 
 
 async def _init_connection(conn: asyncpg.Connection) -> None:
-    """Register pgvector codec on each new connection."""
-    await register_vector(conn)
+    """Register pgvector codec on each new connection (if extension is installed)."""
+    if not PGVECTOR_AVAILABLE:
+        return
+    try:
+        await register_vector(conn)
+    except ValueError as e:
+        # pgvector extension not installed in DB yet — run scripts/enable-pgvector.ts
+        print(f"⚠️  pgvector not available ({e}). Recommendations and search will be disabled.")
+        print("   Run: npx ts-node scripts/enable-pgvector.ts  (from the Next.js project root)")
 
 
 async def close_db_pool() -> None:
