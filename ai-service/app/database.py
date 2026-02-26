@@ -40,7 +40,7 @@ async def _init_connection(conn: asyncpg.Connection) -> None:
     except ValueError as e:
         # pgvector extension not installed in DB yet — run scripts/enable-pgvector.ts
         print(f"⚠️  pgvector not available ({e}). Recommendations and search will be disabled.")
-        print("   Run: npx ts-node scripts/enable-pgvector.ts  (from the Next.js project root)")
+        print("   Run: npx tsx scripts/enable-pgvector.ts  (from the Next.js project root)")
 
 
 async def close_db_pool() -> None:
