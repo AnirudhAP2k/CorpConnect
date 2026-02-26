@@ -9,6 +9,7 @@
  * This ensures Next.js never surfaces AI service downtime to end users.
  */
 
+import axios, { AxiosRequestConfig } from "axios";
 import { SignJWT } from "jose";
 
 // ─── Response types ────────────────────────────────────────────────────────────
@@ -78,7 +79,7 @@ async function authHeaders(): Promise<Record<string, string>> {
 
 async function request<T>(
     path: string,
-    options: RequestInit = {}
+    options: AxiosRequestConfig = {}
 ): Promise<T | null> {
     if (!AI_SERVICE_MASTER_KEY) {
         // AI service not configured — silently skip
@@ -86,14 +87,14 @@ async function request<T>(
     }
     try {
         const headers = await authHeaders();
-        const res = await fetch(`${AI_SERVICE_URL}${path}`, {
+        const res = await axios.get(`${AI_SERVICE_URL}${path}`, {
+            headers,
             ...options,
-            headers: { ...headers, ...(options.headers ?? {}) },
             // Abort after 5s — never block user-facing response
-            signal: AbortSignal.timeout(5000),
+            timeout: 5000,
         });
-        if (!res.ok) return null;
-        return res.json() as Promise<T>;
+        if (res.status !== 200) return null;
+        return res.data as Promise<T>;
     } catch {
         // Network error, timeout, or AI service down — fail silently
         return null;
@@ -134,7 +135,7 @@ export const aiService = {
             "/search/semantic",
             {
                 method: "POST",
-                body: JSON.stringify({ query, limit }),
+                data: JSON.stringify({ query, limit }),
             }
         );
         return response?.results ?? [];
@@ -144,7 +145,7 @@ export const aiService = {
     async embedEvent(eventId: string, text: string): Promise<void> {
         await request("/embed/event", {
             method: "POST",
-            body: JSON.stringify({ eventId, text }),
+            data: JSON.stringify({ eventId, text }),
         });
     },
 
@@ -152,7 +153,7 @@ export const aiService = {
     async embedOrg(orgId: string, text: string): Promise<void> {
         await request("/embed/org", {
             method: "POST",
-            body: JSON.stringify({ orgId, text }),
+            data: JSON.stringify({ orgId, text }),
         });
     },
 
@@ -160,10 +161,10 @@ export const aiService = {
     async isAvailable(): Promise<boolean> {
         if (!AI_SERVICE_MASTER_KEY) return false;
         try {
-            const res = await fetch(`${AI_SERVICE_URL}/health`, {
-                signal: AbortSignal.timeout(2000),
+            const res = await axios.get(`${AI_SERVICE_URL}/health`, {
+                timeout: 2000,
             });
-            return res.ok;
+            return res.status === 200;
         } catch {
             return false;
         }
