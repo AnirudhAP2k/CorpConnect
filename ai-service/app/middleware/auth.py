@@ -1,5 +1,5 @@
 """
-middleware/auth.py — Multi-tenant authentication for the Evently AI Service.
+middleware/auth.py — Multi-tenant authentication for the CorpCircle AI Service.
 
 Two auth modes:
   1. Master JWT (Authorization: Bearer <token>)
