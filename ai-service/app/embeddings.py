@@ -13,6 +13,7 @@ from typing import Union
 from sentence_transformers import SentenceTransformer
 
 from app.config import settings
+import numpy as np
 
 _model: SentenceTransformer | None = None
 
@@ -54,7 +55,6 @@ def weighted_average_embeddings(
     Returns a normalised result vector.
     Used to build a user's 'taste profile' from their history.
     """
-    import numpy as np
 
     if not embeddings:
         raise ValueError("No embeddings to average")
