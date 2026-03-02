@@ -56,5 +56,5 @@ async def health():
     return {
         "status": "ok",
         "model": settings.MODEL_NAME,
-        "version": "1.0.0",
+        "version": settings.SERVICE_VERSION,
     }
