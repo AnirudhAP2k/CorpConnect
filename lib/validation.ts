@@ -122,6 +122,13 @@ export const OrganizationCreateSchema = z.object({
     logo: z.instanceof(File, { message: "An image file is required." })
         .nullable()
         .optional(),
+    // Richer B2B profile fields (Phase 8)
+    services: z.array(z.string().max(60)).max(15).optional().default([]),
+    technologies: z.array(z.string().max(60)).max(20).optional().default([]),
+    partnershipInterests: z.array(z.string().max(60)).max(10).optional().default([]),
+    hiringStatus: z.enum(["HIRING", "NOT_HIRING", "OPEN_TO_PARTNERSHIPS"]).optional().default("NOT_HIRING"),
+    linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL" }).optional().or(z.literal("")),
+    twitterUrl: z.string().url({ message: "Please enter a valid Twitter/X URL" }).optional().or(z.literal("")),
 });
 
 export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: true }).extend({
