@@ -1,4 +1,4 @@
-# CorpCircle
+# CorpConnect
 
 > AI-Powered B2B Collaboration & Networking Platform
 
@@ -6,7 +6,7 @@
 
 ## 🚀 Overview
 
-CorpCircle is a modern B2B platform designed to help organizations connect, collaborate, and grow through structured networking and intelligent matchmaking.
+CorpConnect is a modern B2B platform designed to help organizations connect, collaborate, and grow through structured networking and intelligent matchmaking.
 
 The platform enables businesses to:
 
@@ -16,7 +16,7 @@ The platform enables businesses to:
 - Receive AI-driven partnership recommendations
 - Build long-term strategic collaborations
 
-CorpCircle bridges the gap between traditional business directories and intelligent business ecosystems.
+CorpConnect bridges the gap between traditional business directories and intelligent business ecosystems.
 
 ---
 
@@ -35,7 +35,7 @@ Organizations struggle to find the *right* partners aligned with their business 
 
 ## 💡 Solution
 
-CorpCircle introduces:
+CorpConnect introduces:
 
 - AI-powered business matching
 - Smart event-based networking
