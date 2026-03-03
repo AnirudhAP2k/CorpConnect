@@ -30,6 +30,7 @@ import {
 import FileUploader from "@/components/shared/FileUploader";
 import { FormErrors } from "@/components/FormErrors";
 import { FormSuccess } from "@/components/FormSuccess";
+import TagArrayInput from "@/components/shared/TagArrayInput";
 import axios from "axios";
 import Dropdown from "@/components/shared/Dropdown";
 
@@ -64,6 +65,12 @@ const OrganizationForm = ({
       location: "",
       size: undefined,
       logo: null,
+      services: [],
+      technologies: [],
+      partnershipInterests: [],
+      hiringStatus: "NOT_HIRING",
+      linkedinUrl: "",
+      twitterUrl: "",
     },
   });
 
@@ -95,6 +102,12 @@ const OrganizationForm = ({
           location: values.location,
           size: values.size,
           logo: logoUrl,
+          services: values.services ?? [],
+          technologies: values.technologies ?? [],
+          partnershipInterests: values.partnershipInterests ?? [],
+          hiringStatus: values.hiringStatus ?? "NOT_HIRING",
+          linkedinUrl: values.linkedinUrl ?? "",
+          twitterUrl: values.twitterUrl ?? "",
         };
 
         let response;
@@ -265,6 +278,123 @@ const OrganizationForm = ({
                   image={field.value}
                   setFiles={setFiles}
                   onFieldChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Social Links */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="linkedinUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>LinkedIn URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://linkedin.com/company/..." {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="twitterUrl"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Twitter / X URL</FormLabel>
+                <FormControl>
+                  <Input placeholder="https://twitter.com/..." {...field} disabled={isPending} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        {/* Hiring Status */}
+        <FormField
+          control={form.control}
+          name="hiringStatus"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Hiring Status</FormLabel>
+              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
+                <FormControl>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select hiring status" />
+                  </SelectTrigger>
+                </FormControl>
+                <SelectContent>
+                  <SelectItem value="HIRING">🟢 Actively Hiring</SelectItem>
+                  <SelectItem value="NOT_HIRING">⚪ Not Hiring</SelectItem>
+                  <SelectItem value="OPEN_TO_PARTNERSHIPS">🤝 Open to Partnerships</SelectItem>
+                </SelectContent>
+              </Select>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Services */}
+        <FormField
+          control={form.control}
+          name="services"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Services Offered <span className="text-gray-400 font-normal text-xs">(up to 15)</span></FormLabel>
+              <FormControl>
+                <TagArrayInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="e.g. Cloud Infrastructure, DevOps..."
+                  maxItems={15}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Technologies */}
+        <FormField
+          control={form.control}
+          name="technologies"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Technologies Used <span className="text-gray-400 font-normal text-xs">(up to 20)</span></FormLabel>
+              <FormControl>
+                <TagArrayInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="e.g. React, Kubernetes, Python..."
+                  maxItems={20}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Partnership Interests */}
+        <FormField
+          control={form.control}
+          name="partnershipInterests"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Partnership Interests <span className="text-gray-400 font-normal text-xs">(up to 10)</span></FormLabel>
+              <FormControl>
+                <TagArrayInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="e.g. Co-marketing, Joint Events, Investment..."
+                  maxItems={10}
+                  disabled={isPending}
                 />
               </FormControl>
               <FormMessage />

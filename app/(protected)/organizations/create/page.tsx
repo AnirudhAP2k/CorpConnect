@@ -1,6 +1,8 @@
 import { auth } from '@/auth';
 import OrganizationForm from '@/components/shared/OrganizationForm';
 import { getAllIndustries } from '@/data/organization';
+import { revalidatePath } from 'next/cache';
+import Link from 'next/link';
 import React from 'react';
 
 const CreateOrganizationPage = async () => {
@@ -10,17 +12,21 @@ const CreateOrganizationPage = async () => {
     return null;
   }
 
-  const industries = await getAllIndustries();
+  // const industries = await getAllIndustries();
 
   return (
     <>
       <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
+        <h3 className="wrapper h3-bold text-center sm:text-left">This page is moved to onboarding page. Click this link <Link className='text-primary-500' href="/onboarding">Onboarding</Link></h3>
+      </section>
+
+      {/* <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
         <h3 className="wrapper h3-bold text-center sm:text-left">Create Organization</h3>
       </section>
 
       <div className="wrapper my-8">
         <OrganizationForm userId={session.user.id} type="Create" industries={industries} />
-      </div>
+      </div> */}
     </>
   );
 };

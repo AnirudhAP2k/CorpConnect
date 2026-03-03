@@ -20,7 +20,7 @@ const OnboardingPage = async () => {
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-2xl shadow-lg">
                 <CardHeader className="space-y-2 text-center">
-                    <CardTitle className="text-3xl font-bold">Welcome to Evently! 🎉</CardTitle>
+                    <CardTitle className="text-3xl font-bold">Welcome to CorpConnect! 🎉</CardTitle>
                     <CardDescription className="text-base">
                         Let's get started by creating your organization profile.
                         This will help other businesses discover and connect with you.

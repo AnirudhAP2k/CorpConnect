@@ -55,6 +55,13 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
         location: organization.location || "",
         size: organization.size || undefined,
         logo: null,
+        // Phase 8: richer profile fields
+        services: organization.services ?? [],
+        technologies: organization.technologies ?? [],
+        partnershipInterests: organization.partnershipInterests ?? [],
+        hiringStatus: organization.hiringStatus ?? "NOT_HIRING",
+        linkedinUrl: organization.linkedinUrl ?? "",
+        twitterUrl: organization.twitterUrl ?? "",
     };
 
     return (

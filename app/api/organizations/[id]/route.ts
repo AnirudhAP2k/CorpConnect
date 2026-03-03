@@ -13,7 +13,15 @@ const OrganizationUpdateSchema = z.object({
     location: z.string().max(100).optional(),
     size: z.enum(["STARTUP", "SME", "ENTERPRISE"]).optional(),
     logo: z.string().optional(),
+    // Phase 8: Richer B2B profile fields
+    services: z.array(z.string().max(60)).max(15).optional(),
+    technologies: z.array(z.string().max(60)).max(20).optional(),
+    partnershipInterests: z.array(z.string().max(60)).max(10).optional(),
+    hiringStatus: z.enum(["HIRING", "NOT_HIRING", "OPEN_TO_PARTNERSHIPS"]).optional(),
+    linkedinUrl: z.string().url().optional().or(z.literal("")),
+    twitterUrl: z.string().url().optional().or(z.literal("")),
 });
+
 
 // GET /api/organizations/[id] - Get organization details
 export const GET = async (
@@ -167,7 +175,12 @@ export const PUT = async (
         });
 
         // Enqueue embedding job for updated profile (non-blocking)
-        const embedText = `${organization.name}. ${organization.description ?? ""}`;
+        const embedText = [
+            organization.name,
+            organization.description ?? "",
+            (organization as any).services?.join(", ") ?? "",
+            (organization as any).technologies?.join(", ") ?? "",
+        ].filter(Boolean).join(". ");
         prisma.jobQueue.create({
             data: {
                 type: JobType.EMBED_ORG,

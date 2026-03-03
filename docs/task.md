@@ -110,46 +110,68 @@
 - [x] UI
   - [x] TagInput component (autocomplete, keyboard nav, chip display)
 
-## Phase 6: Payment Gateway Integration 💳
-> Integration with a payment provider (Stripe, Razorpay, or equivalent) for paid events.
-- [ ] Select payment provider (Stripe recommended for international; Razorpay for India-first)
-- [ ] Add payment fields to Events model (isPaid, price, currency)
-- [ ] Create Stripe/Razorpay checkout session on event join
-- [ ] Handle webhook for payment confirmation → update EventParticipation.isPaid
-- [ ] Revenue reporting in org and admin dashboards (already stubbed out)
-- [ ] Refund flow for cancellations (partial or full)
-- [ ] Invoice generation (PDF, sent via email through job queue)
+## Phase 6: Payment Gateway Integration 💳 *(Deferred — see docs/phase6_implementation_plan.md)*
+> Integration with Stripe (international) + Razorpay (India) for org subscriptions and event payments.
+> **Full plan documented.** Resuming after B2B differentiation (Phase 8) is complete.
 
-## Phase 7: AI Microservice Integration 🤖
-> A separate Python/FastAPI microservice for AI-powered features.
-> The microservice will be its own repository, deployed independently, and called via REST API from Next.js.
+### Key Design Decisions (Locked)
+- **Dual provider**: Razorpay (UPI/INR) + Stripe (international) — user picks at checkout
+- **Org subscription tiers**: FREE / PRO / ENTERPRISE
+- **Event payment modes**: FREE (no change) / PLATFORM (app collects) / EXTERNAL (org's own link)
+- **Org webhook delivery**: Platform signs + POSTs payment events to org's configured URL
+- **Abuse prevention (4 layers)**:
+  - Layer 1: Paid event modes blocked for FREE tier orgs (API returns 402)
+  - Layer 2: FREE tier limits — max 3 active public events, max 50 attendees/event
+  - Layer 3: Platform fee on PLATFORM payments — 2% (PRO), 1% (ENTERPRISE)
+  - Layer 4: `isVerified = true` required to create paid events
 
-### AI Microservice Capabilities
-- [ ] **Smart Event Recommendation** — Recommend events to users based on:
-  - User's industry, organization size, past participation history
-  - Semantic similarity between event descriptions and user profile
-  - Collaborative filtering (users who attended similar events)
-- [ ] **Smart Org Connection Recommendation** — Suggest organizations to connect with:
-  - Same or adjacent industry
-  - Similar organization size
-  - Shared event participation history (relationship graph)
-- [ ] **Event Summary Generation** — Auto-generate concise summaries for events using LLM
-- [ ] **Sentiment Analysis** — Analyze post-event feedback/comments for sentiment
-- [ ] **Semantic Search** — Upgrade event/org search from keyword to vector similarity
+## Phase 7: AI Microservice Integration 🤖 ✅
+> Python/FastAPI service at `ai-service/`. Same PostgreSQL DB + pgvector. Multi-tenant auth.
+- [x] pgvector extension enabled (`scripts/enable-pgvector.ts`)
+- [x] `embedding vector(384)` on Events + Organization
+- [x] `ApiCredential` model (tenantId, apiKey bcrypt-hashed, tier FREE/PRO/ENTERPRISE, usage tracking)
+- [x] `EMBED_EVENT` + `EMBED_ORG` in JobType enum
+- [x] Full Python scaffold: main.py, config, database.py (asyncpg pool), embeddings.py (all-MiniLM-L6-v2), cache.py (Redis + fallback), auth middleware (master JWT + bcrypt tenant key + tier gating)
+- [x] Routers: POST /embed/event, POST /embed/org, GET /recommend/events/{userId}, GET /recommend/orgs/{orgId}, POST /search/semantic
+- [x] `lib/ai-service.ts` — typed HTTP client, 5s timeout, graceful fallback
+- [x] Proxy routes: GET /api/ai/recommend, POST /api/ai/search
+- [x] `app/api/organizations/[id]/api-credentials` — OWNER-only key management (bcrypt, shown once)
+- [x] Embed job triggers on event create + org create/update
 
-### Integration Points (Next.js ↔ Python/FastAPI)
-- [ ] Define REST API contract between Next.js and AI service
-- [ ] Add `AI_SERVICE_URL` env variable to Next.js app
-- [ ] Create `lib/ai-service.ts` client for calling the AI microservice
-- [ ] Add embedding generation trigger on event/org create/update
-- [ ] Rate limiting and auth between services (shared API key or JWT)
+## Phase 8: B2B Differentiation 🤝 *(Current focus — see docs/phase8_implementation_plan.md)*
+> Transform from an event management tool into a genuine B2B networking graph.
+> Based on competitive analysis vs Luma/Eventbrite — see docs/b2b_platform_differentiation.md.
 
-### AI Microservice Stack (separate repo)
-- Python 3.11+, FastAPI, Uvicorn
-- Sentence-Transformers or OpenAI Embeddings
-- pgvector (PostgreSQL extension) for vector storage — same DB
-- Redis for caching recommendations
-- Celery + Redis for async embedding jobs
+### 8.1 Organization Discovery
+- [ ] "Discover Organizations" browse page with filters (industry, size, location, tags)
+- [ ] Organization search with semantic query support
+- [ ] Org cards with public profile preview
+- [ ] "Orgs you might know" widget (AI-powered, from Phase 7 /recommend/orgs)
+
+### 8.2 Richer Organization Profiles
+- [ ] Add schema fields: `services`, `technologies`, `partnershipInterests`, `hiringStatus`
+- [ ] Extend org profile page with new sections
+- [ ] Tags displayed on org profile (EventTag/OrgTag already built)
+- [ ] Public vs private profile sections
+
+### 8.3 Connection Requests Between Orgs
+- [ ] `OrgConnection` model (sourceOrgId, targetOrgId, status: PENDING/ACCEPTED/DECLINED)
+- [ ] Send connection request UI on org profile
+- [ ] Accept/decline incoming connections
+- [ ] "Connected organizations" list on org dashboard
+- [ ] Connection notifications (job queue email)
+
+### 8.4 Pre-Event Org Matchmaking
+- [ ] "Orgs attending this event that match your profile" widget on event detail page
+- [ ] Meeting request between orgs attending the same event
+- [ ] `MeetingRequest` model (senderOrgId, receiverOrgId, eventId, proposedTime, status)
+- [ ] Meeting request accept/decline flow
+
+### 8.5 Industry Groups / Consortiums
+- [ ] `IndustryGroup` model (name, industryId, description, createdBy)
+- [ ] Group membership for orgs
+- [ ] Group feed / shared event calendar
+- [ ] Create/join/leave group
 
 ## Infrastructure & Polish
 - [x] Database schema updates
@@ -159,7 +181,7 @@
   - [x] Add Organization size and location fields
   - [x] Add participation status tracking
   - [x] Add `isAppAdmin` to User model (Phase 4 ✅)
-  - [ ] Add pgvector extension (Phase 7)
+  - [x] Add pgvector extension (Phase 7 ✅)
   - [x] Add tag system tables (Phase 5 ✅ — Tag, EventTag, OrgTag)
 - [ ] Database optimizations
   - [x] Add necessary indexes
