@@ -105,6 +105,22 @@ export const POST = async (
             });
         });
 
+        // Record org→org interaction if attending org differs from hosting org
+        const hostOrgId = event.organizationId;
+        if (hostOrgId && organizationId && hostOrgId !== organizationId) {
+            try {
+                await prisma.orgInteraction.createMany({
+                    data: [
+                        { sourceOrgId: hostOrgId, targetOrgId: organizationId, sharedEventId: eventId },
+                        { sourceOrgId: organizationId, targetOrgId: hostOrgId, sharedEventId: eventId },
+                    ],
+                    skipDuplicates: true,
+                });
+            } catch {
+                // Non-fatal: silently skip if it fails
+            }
+        }
+
         revalidatePath(`/events/${eventId}`);
         revalidatePath("/my-events");
 

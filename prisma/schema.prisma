@@ -30,6 +30,7 @@ model User {
   pendingInvites          PendingInvite[]        @relation("InvitedBy")
   organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
   activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
+  eventViews              EventView[]
 }
 
 model Account {
@@ -94,29 +95,33 @@ model TwoFactorConfirmation {
 }
 
 model Events {
-  id             String               @id @default(uuid()) @db.Uuid
-  title          String
-  description    String
-  location       String
-  image          String?
-  startDateTime  DateTime             @default(now())
-  endDateTime    DateTime             @default(now())
-  price          String?
-  isFree         Boolean              @default(false)
-  url            String?
-  organizationId String?              @db.Uuid
-  categoryId     String               @db.Uuid
-  userId         String?              @db.Uuid
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  visibility     EventVisibility      @default(PUBLIC)
-  eventType      EventType            @default(OFFLINE)
-  maxAttendees   Int?
-  attendeeCount  Int                  @default(0)
-  participations EventParticipation[]
-  category       Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  organization   Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  User           User?                @relation(fields: [userId], references: [id])
+  id              String               @id @default(uuid()) @db.Uuid
+  title           String
+  description     String
+  location        String
+  image           String?
+  startDateTime   DateTime             @default(now())
+  endDateTime     DateTime             @default(now())
+  price           String?
+  isFree          Boolean              @default(false)
+  url             String?
+  organizationId  String?              @db.Uuid
+  categoryId      String               @db.Uuid
+  userId          String?              @db.Uuid
+  createdAt       DateTime             @default(now())
+  updatedAt       DateTime             @updatedAt
+  visibility      EventVisibility      @default(PUBLIC)
+  eventType       EventType            @default(OFFLINE)
+  maxAttendees    Int?
+  attendeeCount   Int                  @default(0)
+  viewCount       Int                  @default(0)
+  participations  EventParticipation[]
+  eventViews      EventView[]
+  eventTags       EventTag[]
+  orgInteractions OrgInteraction[]
+  category        Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  organization    Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User            User?                @relation(fields: [userId], references: [id])
 
   @@index([organizationId])
   @@index([categoryId])
@@ -133,25 +138,28 @@ model Category {
 }
 
 model Organization {
-  id             String               @id @default(uuid()) @db.Uuid
-  name           String
-  description    String?
-  website        String?
-  createdBy      String               @db.Uuid
-  createdAt      DateTime             @default(now())
-  updatedAt      DateTime             @updatedAt
-  industryId     String               @db.Uuid
-  logo           String?
-  location       String?
-  size           OrganizationSize?    @default(STARTUP)
-  isVerified     Boolean              @default(false)
-  participations EventParticipation[]
-  events         Events[]
-  industry       Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  members        OrganizationMember[]
-  users          User[]               @relation("UserOrganization")
-  activeUsers    User[]               @relation("UserActiveOrganization")
-  pendingInvites PendingInvite[]
+  id                 String               @id @default(uuid()) @db.Uuid
+  name               String
+  description        String?
+  website            String?
+  createdBy          String               @db.Uuid
+  createdAt          DateTime             @default(now())
+  updatedAt          DateTime             @updatedAt
+  industryId         String               @db.Uuid
+  logo               String?
+  location           String?
+  size               OrganizationSize?    @default(STARTUP)
+  isVerified         Boolean              @default(false)
+  participations     EventParticipation[]
+  events             Events[]
+  industry           Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  members            OrganizationMember[]
+  users              User[]               @relation("UserOrganization")
+  activeUsers        User[]               @relation("UserActiveOrganization")
+  pendingInvites     PendingInvite[]
+  sourceInteractions OrgInteraction[]     @relation("SourceOrg")
+  targetInteractions OrgInteraction[]     @relation("TargetOrg")
+  orgTags            OrgTag[]
 
   @@index([industryId])
   @@index([createdBy])
@@ -200,6 +208,67 @@ model Industry {
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   organization Organization[]
+}
+
+// ─── Phase 5: Data Collection ─────────────────────────────────────────────────
+
+model EventView {
+  id              String   @id @default(uuid()) @db.Uuid
+  eventId         String   @db.Uuid
+  userId          String   @db.Uuid
+  sessionId       String   @unique @db.Uuid
+  startedAt       DateTime @default(now())
+  durationSeconds Int?
+  referrer        String?
+  event           Events   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([eventId, userId])
+}
+
+model OrgInteraction {
+  id            String       @id @default(uuid()) @db.Uuid
+  sourceOrgId   String       @db.Uuid
+  targetOrgId   String       @db.Uuid
+  sharedEventId String       @db.Uuid
+  createdAt     DateTime     @default(now())
+  sourceOrg     Organization @relation("SourceOrg", fields: [sourceOrgId], references: [id], onDelete: Cascade)
+  targetOrg     Organization @relation("TargetOrg", fields: [targetOrgId], references: [id], onDelete: Cascade)
+  sharedEvent   Events       @relation(fields: [sharedEventId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceOrgId, targetOrgId, sharedEventId])
+  @@index([sourceOrgId])
+  @@index([targetOrgId])
+}
+
+model Tag {
+  id        String     @id @default(uuid()) @db.Uuid
+  label     String     @unique
+  createdAt DateTime   @default(now())
+  eventTags EventTag[]
+  orgTags   OrgTag[]
+}
+
+model EventTag {
+  eventId String @db.Uuid
+  tagId   String @db.Uuid
+  event   Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([eventId, tagId])
+  @@index([tagId])
+}
+
+model OrgTag {
+  orgId String       @db.Uuid
+  tagId String       @db.Uuid
+  org   Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  tag   Tag          @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([orgId, tagId])
+  @@index([tagId])
 }
 
 model PendingInvite {

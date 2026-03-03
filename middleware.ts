@@ -47,21 +47,14 @@ export default auth(async (req) => {
     }
   }
 
-  // Check if logged-in user has completed onboarding
-  if (isLoggedIn && !isOnboardingRoute && req.auth?.user) {
-    const user = req.auth.user;
-
-    if (user && !user.hasCompletedOnboarding) {
-      return Response.redirect(new URL('/onboarding', nextUrl));
-    }
-  }
-
   // Redirect to dashboard if user tries to access onboarding after completing it
   if (isOnboardingRoute && isLoggedIn && req.auth?.user) {
     const user = req.auth.user;
 
     if (user && user.hasCompletedOnboarding) {
       return Response.redirect(new URL('/dashboard', nextUrl));
+    } else {
+      return Response.redirect(new URL('/onboarding', nextUrl));
     }
   }
 

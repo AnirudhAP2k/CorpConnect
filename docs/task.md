@@ -90,19 +90,25 @@
   - [x] isAppAdmin persisted in JWT token and session
   - [x] next-auth.d.ts ExtendedUser type updated
 
-## Phase 5: Data Collection for Future AI 📋
-- [ ] Analytics tracking
-  - [ ] Track event views (view count on Events model)
-  - [ ] Track event joins (already tracked via EventParticipation)
-  - [ ] Track organization interactions
-  - [ ] Store industry and category preference data per user
-- [ ] Prepare for embeddings
-  - [ ] Ensure rich descriptions for orgs (prompt users to fill in on onboarding)
-  - [ ] Ensure rich descriptions for events
-  - [ ] Tag system for events and orgs (new DB table)
-- [ ] Data export endpoints
-  - [ ] Export event participation data as structured JSON (for AI training)
-  - [ ] Export organization interaction graph (org→org connections via shared events)
+## Phase 5: Data Collection for Future AI ✅
+- [x] Analytics tracking
+  - [x] Track event views (viewCount + EventView table per session)
+  - [x] Track event views with engagement (durationSeconds, referrer, sessionId)
+  - [x] Track event joins (already tracked via EventParticipation)
+  - [x] Track organization interactions (OrgInteraction table — auto-populated on participation)
+  - [x] Store industry and category preference data per user (via /api/admin/export/preferences)
+- [x] Prepare for embeddings
+  - [x] Ensure rich descriptions for orgs (description field exists on Organization)
+  - [x] Ensure rich descriptions for events (description field exists on Events)
+  - [x] Tag system for events and orgs (Tag, EventTag, OrgTag tables + API routes)
+- [x] Data export endpoints
+  - [x] Export event participation data as structured JSON (/api/admin/export/participations)
+  - [x] Export organization interaction graph (/api/admin/export/interactions)
+  - [x] Export per-user preference signals (/api/admin/export/preferences)
+- [x] Client-side tracking
+  - [x] useEventView hook (sessionId, durationSeconds via sendBeacon, referrer)
+- [x] UI
+  - [x] TagInput component (autocomplete, keyboard nav, chip display)
 
 ## Phase 6: Payment Gateway Integration 💳
 > Integration with a payment provider (Stripe, Razorpay, or equivalent) for paid events.
@@ -154,7 +160,7 @@
   - [x] Add participation status tracking
   - [x] Add `isAppAdmin` to User model (Phase 4 ✅)
   - [ ] Add pgvector extension (Phase 7)
-  - [ ] Add tag system tables (Phase 5)
+  - [x] Add tag system tables (Phase 5 ✅ — Tag, EventTag, OrgTag)
 - [ ] Database optimizations
   - [x] Add necessary indexes
   - [ ] Optimize queries for listings

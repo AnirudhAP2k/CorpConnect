@@ -27,7 +27,7 @@ export const protectedRoutes = [
 export const apiAuthRoutes = "/api/auth";
 
 export const onboardingRoutes = [
-    '/onboarding'
+    '/dashboard'
 ];
 
 export const adminRoutes = [
