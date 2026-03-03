@@ -81,7 +81,7 @@ const MemberCard = ({
                             {member.role}
                         </Badge>
                     </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <div className="flex items-center gap-2 text-sm text-gray-600 flex-wrap">
                         {member.user.email && <span>{member.user.email}</span>}
                         <span>•</span>
                         <span>
