@@ -160,6 +160,7 @@ model Organization {
   sourceInteractions OrgInteraction[]     @relation("SourceOrg")
   targetInteractions OrgInteraction[]     @relation("TargetOrg")
   orgTags            OrgTag[]
+  apiCredential      ApiCredential?
 
   @@index([industryId])
   @@index([createdBy])
@@ -271,6 +272,26 @@ model OrgTag {
   @@index([tagId])
 }
 
+// ─── Phase 7: AI Microservice ─────────────────────────────────────────────────
+
+model ApiCredential {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @unique @db.Uuid
+  tenantId       String       @unique @db.Uuid @default(uuid())
+  apiKey         String       @unique            // bcrypt hash of the real key
+  apiKeyPrefix   String                          // first 12 chars shown in UI
+  tier           ApiTier      @default(FREE)
+  usageCount     Int          @default(0)
+  usageLimit     Int          @default(100)
+  lastUsedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([apiKeyPrefix])
+}
+
 model PendingInvite {
   id             String           @id @default(uuid()) @db.Uuid
   organizationId String           @db.Uuid
@@ -357,6 +378,14 @@ enum JobType {
   SEND_EVENT_REMINDER
   GENERATE_REPORT
   CLEANUP_DATA
+  EMBED_EVENT
+  EMBED_ORG
+}
+
+enum ApiTier {
+  FREE
+  PRO
+  ENTERPRISE
 }
 
 enum JobStatus {
