@@ -138,32 +138,40 @@ model Category {
 }
 
 model Organization {
-  id                 String               @id @default(uuid()) @db.Uuid
-  name               String
-  description        String?
-  website            String?
-  createdBy          String               @db.Uuid
-  createdAt          DateTime             @default(now())
-  updatedAt          DateTime             @updatedAt
-  industryId         String               @db.Uuid
-  logo               String?
-  location           String?
-  size               OrganizationSize?    @default(STARTUP)
-  isVerified         Boolean              @default(false)
-  participations     EventParticipation[]
-  events             Events[]
-  industry           Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  members            OrganizationMember[]
-  users              User[]               @relation("UserOrganization")
-  activeUsers        User[]               @relation("UserActiveOrganization")
-  pendingInvites     PendingInvite[]
-  sourceInteractions OrgInteraction[]     @relation("SourceOrg")
-  targetInteractions OrgInteraction[]     @relation("TargetOrg")
-  orgTags            OrgTag[]
-  apiCredential      ApiCredential?
+  id                   String               @id @default(uuid()) @db.Uuid
+  name                 String
+  description          String?
+  website              String?
+  createdBy            String               @db.Uuid
+  createdAt            DateTime             @default(now())
+  updatedAt            DateTime             @updatedAt
+  industryId           String               @db.Uuid
+  logo                 String?
+  location             String?
+  size                 OrganizationSize?    @default(STARTUP)
+  isVerified           Boolean              @default(false)
+  // Richer B2B profile fields (Phase 8)
+  services             String[]             @default([])
+  technologies         String[]             @default([])
+  partnershipInterests String[]             @default([])
+  hiringStatus         HiringStatus         @default(NOT_HIRING)
+  linkedinUrl          String?
+  twitterUrl           String?
+  participations       EventParticipation[]
+  events               Events[]
+  industry             Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  members              OrganizationMember[]
+  users                User[]               @relation("UserOrganization")
+  activeUsers          User[]               @relation("UserActiveOrganization")
+  pendingInvites       PendingInvite[]
+  sourceInteractions   OrgInteraction[]     @relation("SourceOrg")
+  targetInteractions   OrgInteraction[]     @relation("TargetOrg")
+  orgTags              OrgTag[]
+  apiCredential        ApiCredential?
 
   @@index([industryId])
   @@index([createdBy])
+  @@index([hiringStatus])
 }
 
 model OrganizationMember {
@@ -354,6 +362,12 @@ enum OrganizationSize {
   STARTUP
   SME
   ENTERPRISE
+}
+
+enum HiringStatus {
+  HIRING
+  NOT_HIRING
+  OPEN_TO_PARTNERSHIPS
 }
 
 enum ParticipationStatus {
