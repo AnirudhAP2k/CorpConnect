@@ -16,8 +16,6 @@ interface ConnectionEmailData {
     dashboardLink: string;
 }
 
-// ─── Send helper ─────────────────────────────────────────────────────────────
-
 export async function sendConnectionNotificationEmail(data: ConnectionEmailData) {
     const subject = getSubject(data);
     const html = getConnectionEmailTemplate(data);
@@ -47,8 +45,6 @@ function getSubject({ event, actorOrgName }: ConnectionEmailData): string {
         case "WITHDRAWN": return `${actorOrgName} withdrew their connection request on Evently`;
     }
 }
-
-// ─── Template ─────────────────────────────────────────────────────────────────
 
 export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
     const { event, recipientName, actorOrgName, targetOrgName, message, dashboardLink } = data;
