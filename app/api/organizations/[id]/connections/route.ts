@@ -126,15 +126,13 @@ export const POST = async (
         },
     });
 
-    // Fire-and-forget notification job
+    // Fire-and-forget: enqueue notification for target org admins
     prisma.jobQueue.create({
         data: {
             type: "SEND_NOTIFICATION",
             payload: {
                 type: "CONNECTION_REQUEST",
                 connectionId: connection.id,
-                sourceOrgName: connection.sourceOrg.name,
-                targetOrgId,
             },
         },
     }).catch(() => { });
