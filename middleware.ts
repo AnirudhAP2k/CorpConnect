@@ -1,6 +1,5 @@
 import NextAuth from "next-auth"
 import authConfig from "@/auth.config"
-import { redirect } from "next/navigation"
 import {
   defaultRoute,
   authRoutes,
@@ -10,7 +9,6 @@ import {
   onboardingRoutes,
   adminRoutes
 } from "@/lib/routes";
-import { getUserById } from "@/data/user";
 
 const { auth } = NextAuth(authConfig);
 
@@ -53,8 +51,6 @@ export default auth(async (req) => {
 
     if (user && user.hasCompletedOnboarding) {
       return Response.redirect(new URL('/dashboard', nextUrl));
-    } else {
-      return Response.redirect(new URL('/onboarding', nextUrl));
     }
   }
 
