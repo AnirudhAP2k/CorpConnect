@@ -24,7 +24,7 @@ interface Connection {
     targetOrg: OrgMini;
     status: string;
     message: string | null;
-    createdAt: string;
+    createdAt: Date;
     initiatedBy: { id: string; name: string | null };
 }
 
