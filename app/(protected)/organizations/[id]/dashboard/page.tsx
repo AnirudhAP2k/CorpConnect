@@ -13,12 +13,10 @@ import EventRow from "@/components/dashboard/EventRow";
 import RevenueWidget from "@/components/dashboard/RevenueWidget";
 import { getOrganizationById } from "@/data/organization";
 import { getHostEvents, getAttendingEvents } from "@/data/events";
-import {
-    getOrgDashboardStats,
-    getOrgRecentActivity,
-    getOrgRevenueBreakdown,
-} from "@/data/dashboard";
+import { getOrgConnections, getOrgDashboardStats, getOrgRecentActivity, getOrgRevenueBreakdown } from "@/data/dashboard";
 import { format } from "date-fns";
+import OrgConnectionsPanel from "@/components/organizations/OrgConnectionsPanel";
+import { prisma } from "@/lib/db";
 
 interface OrgDashboardPageProps {
     params: Promise<{ id: string }>;
@@ -45,14 +43,19 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
     }
 
     // Fetch all dashboard data in parallel
-    const [stats, hostedEvents, attendingEvents, recentActivity, revenueBreakdown] =
+    const [stats, hostedEvents, attendingEvents, recentActivity, revenueBreakdown, allConnections] =
         await Promise.all([
             getOrgDashboardStats(orgId),
             getHostEvents(orgId),
             getAttendingEvents(orgId),
             getOrgRecentActivity(orgId),
             getOrgRevenueBreakdown(orgId),
+            getOrgConnections(orgId),
         ]);
+
+    const acceptedConnections = allConnections.filter((c: any) => c.status === "ACCEPTED");
+    const pendingSent = allConnections.filter((c: any) => c.status === "PENDING" && c.sourceOrgId === orgId);
+    const pendingReceived = allConnections.filter((c: any) => c.status === "PENDING" && c.targetOrgId === orgId);
 
     const statusColor: Record<string, string> = {
         REGISTERED: "bg-blue-100 text-blue-700",
@@ -300,6 +303,14 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                         </Badge>
                     </CardContent>
                 </Card>
+
+                {/* Org Connections Panel */}
+                <OrgConnectionsPanel
+                    orgId={orgId}
+                    accepted={acceptedConnections}
+                    pendingSent={pendingSent}
+                    pendingReceived={pendingReceived}
+                />
             </div>
         </div>
     );
