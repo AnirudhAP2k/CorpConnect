@@ -15,6 +15,12 @@ const ActionSchema = z.object({
     action: z.enum(["ACCEPT", "DECLINE", "WITHDRAW"]),
 });
 
+const notifTypeMap: Record<string, string> = {
+    ACCEPT: "CONNECTION_ACCEPTED",
+    DECLINE: "CONNECTION_DECLINED",
+    WITHDRAW: "CONNECTION_WITHDRAWN",
+};
+
 export const PATCH = async (
     req: NextRequest,
     { params }: { params: Promise<{ id: string; connectionId: string }> }
@@ -80,6 +86,16 @@ export const PATCH = async (
             targetOrg: { select: { id: true, name: true } },
         },
     });
+
+    prisma.jobQueue.create({
+        data: {
+            type: "SEND_NOTIFICATION",
+            payload: {
+                type: notifTypeMap[action],
+                connectionId,
+            },
+        },
+    }).catch(() => { });
 
     return NextResponse.json({ connection: updated, message: `Connection ${statusMap[action].toLowerCase()}` });
 };
