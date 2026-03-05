@@ -1,40 +1,42 @@
 import { sendMail } from "@/lib/mailer";
 
 interface MemberInviteEmailData {
-    organizationName: string;
-    inviterName: string;
-    role: string;
-    inviteLink: string;
-    recipientEmail: string;
+  organizationName: string;
+  inviterName: string;
+  role: string;
+  inviteLink: string;
+  recipientEmail: string;
 }
 
 export async function sendMemberInviteEmail(data: MemberInviteEmailData) {
-    const { organizationName, inviterName, role, inviteLink, recipientEmail } = data;
+  const { organizationName, inviterName, role, inviteLink, recipientEmail } = data;
 
-    const html = getMemberInviteEmailTemplate({
-        organizationName,
-        inviterName,
-        role,
-        inviteLink,
-    });
+  const html = getMemberInviteEmailTemplate({
+    organizationName,
+    inviterName,
+    role,
+    inviteLink,
+  });
 
-    return await sendMail({
-        email: process.env.SENDER_EMAIL || "noreply@evently.com",
-        sendTo: recipientEmail,
-        subject: `You've been invited to join ${organizationName} on Evently`,
-        html,
-    });
+  return await sendMail({
+    email: process.env.SENDER_EMAIL || "noreply@evently.com",
+    sendTo: recipientEmail,
+    subject: `You've been invited to join ${organizationName} on Evently`,
+    html,
+    templateType: "MEMBER_INVITE",
+    payload: { organizationName, inviterName, role, inviteLink, recipientEmail },
+  });
 }
 
 function getMemberInviteEmailTemplate(data: {
-    organizationName: string;
-    inviterName: string;
-    role: string;
-    inviteLink: string;
+  organizationName: string;
+  inviterName: string;
+  role: string;
+  inviteLink: string;
 }): string {
-    const { organizationName, inviterName, role, inviteLink } = data;
+  const { organizationName, inviterName, role, inviteLink } = data;
 
-    return `
+  return `
 <!DOCTYPE html>
 <html lang="en">
 <head>
