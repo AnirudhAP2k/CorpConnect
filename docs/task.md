@@ -175,7 +175,15 @@
 - [x] Dashboard page wires OrgConnectionsPanel with live Prisma data (parallel fetch)
 - [x] `Dialog` and `Tabs` shadcn UI components created manually (shadcn CLI blocked by SSL on this machine)
 - [x] "Connected organizations" list on org dashboard
-- [ ] Connection notifications (job queue email)
+- [x] Connection notifications (job queue email) — 4 events: REQUESTED / ACCEPTED / DECLINED / WITHDRAWN
+  - `lib/email-templates/connection-notification.ts` — HTML template + send helper
+  - `lib/jobs/job-processor.ts` — `processConnectionNotification` handles SEND_NOTIFICATION jobs
+  - POST /connections enqueues `CONNECTION_REQUEST`; PATCH enqueues `CONNECTION_ACCEPTED`, `CONNECTION_DECLINED`, or `CONNECTION_WITHDRAWN`
+  - Emails sent to all OWNER/ADMIN users of the notified org
+- [x] Email audit logging via `EmailLog` table
+  - Schema: `EmailLog` model (fromAddress, toAddress, subject, templateType, payload JSON, smtpHost, smtpService, status SENT/FAILED, messageId, errorMessage, durationMs)
+  - `lib/mailer.ts` rewritten — every send attempt writes a log row (including SMTP verify failures)
+  - `sendMail()` accepts `templateType` and `payload` params; both template helpers pass them through
 
 ### 8.4 Pre-Event Org Matchmaking
 - [ ] "Orgs attending this event that match your profile" widget on event detail page
