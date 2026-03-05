@@ -142,23 +142,39 @@
 > Transform from an event management tool into a genuine B2B networking graph.
 > Based on competitive analysis vs Luma/Eventbrite — see docs/b2b_platform_differentiation.md.
 
-### 8.1 Organization Discovery
-- [ ] "Discover Organizations" browse page with filters (industry, size, location, tags)
-- [ ] Organization search with semantic query support
-- [ ] Org cards with public profile preview
-- [ ] "Orgs you might know" widget (AI-powered, from Phase 7 /recommend/orgs)
+### 8.1 Organization Discovery ✅
+- [x] "Discover Organizations" browse page (`/organizations/discover`) with filters (industry, size, location, tags)
+  - [x] SSR Server Component with ISR (`revalidate = 300`) for filter options
+  - [x] `OrgResults` nested async SC streamed via Suspense with skeleton fallback
+  - [x] URL-searchParam driven filters (shareable/bookmarkable) — `OrgDiscoverFilters` client component
+  - [x] Paginated via `<a>` links (no client JS needed)
+- [x] `GET /api/organizations/discover` route — keyword, industry, size, location, tag filters; verified orgs sorted first
+- [x] `OrgCard` Server Component — logo, verified badge, industry, tags, member/event counts, location/size
+- [x] `OrgCardSkeleton` + `OrgGridSkeleton` components under `components/`
+- [x] "Discover Orgs" added to navbar (`constants/index.ts`)
 
-### 8.2 Richer Organization Profiles
-- [ ] Add schema fields: `services`, `technologies`, `partnershipInterests`, `hiringStatus`
-- [ ] Extend org profile page with new sections
-- [ ] Tags displayed on org profile (EventTag/OrgTag already built)
-- [ ] Public vs private profile sections
+### 8.2 Richer Organization Profiles ✅
+- [x] Schema: `services[]`, `technologies[]`, `partnershipInterests[]`, `hiringStatus` (enum), `linkedinUrl`, `twitterUrl` added to `Organization`
+- [x] `HiringStatus` enum added (HIRING / NOT_HIRING / OPEN_TO_PARTNERSHIPS)
+- [x] `OrganizationCreateSchema` + `OrganizationUpdateSchema` extended with new fields
+- [x] `TagArrayInput` client component — free-text chip input (Enter/comma to add, Backspace/× to remove)
+- [x] `OrganizationForm` updated — Social Links, Hiring Status, Services, Technologies, Partnership Interests sections
+- [x] `app/api/organizations/[id]` PUT handler accepts & saves new fields; embed text enriched with services + technologies
+- [x] Org profile page rewritten as SSR Server Component (ISR 60s) — new sections: Services, Technologies, Partnership Interests, Tags, hiring badge, social links, Quick Stats sidebar
+- [x] Edit page `initialData` passes all new fields to pre-fill form
+- [ ] **[Future]** Public vs private profile sections — toggle per org (e.g. `showMemberList` flag on `Organization` model) to control visibility of member list for non-members; most fields stay public by default for B2B discoverability
 
-### 8.3 Connection Requests Between Orgs
-- [ ] `OrgConnection` model (sourceOrgId, targetOrgId, status: PENDING/ACCEPTED/DECLINED)
-- [ ] Send connection request UI on org profile
-- [ ] Accept/decline incoming connections
-- [ ] "Connected organizations" list on org dashboard
+### 8.3 Connection Requests Between Orgs ✅
+- [x] `OrgConnection` model (sourceOrgId, targetOrgId, status: PENDING/ACCEPTED/DECLINED/WITHDRAWN, message, initiatedByUserId)
+- [x] `OrgConnectionStatus` enum added to schema; DB pushed + Prisma client regenerated
+- [x] List connections & send request (OWNER/ADMIN only, blocks self-connections and duplicates)
+- [x] Accept/decline (target org), withdraw (source org), remove accepted connection
+- [x] `ConnectButton` client component — handles all 6 states (NONE/PENDING_SENT/PENDING_RECEIVED/ACCEPTED/DECLINED/WITHDRAWN), send dialog with optional intro message
+- [x] SSR connection status lookup on org profile page; ConnectButton shown to non-members only
+- [x] `OrgConnectionsPanel` dashboard component — tabbed (Connected / Incoming / Sent) with Accept/Decline/Withdraw/Remove actions
+- [x] Dashboard page wires OrgConnectionsPanel with live Prisma data (parallel fetch)
+- [x] `Dialog` and `Tabs` shadcn UI components created manually (shadcn CLI blocked by SSL on this machine)
+- [x] "Connected organizations" list on org dashboard
 - [ ] Connection notifications (job queue email)
 
 ### 8.4 Pre-Event Org Matchmaking
@@ -183,6 +199,8 @@
   - [x] Add `isAppAdmin` to User model (Phase 4 ✅)
   - [x] Add pgvector extension (Phase 7 ✅)
   - [x] Add tag system tables (Phase 5 ✅ — Tag, EventTag, OrgTag)
+  - [x] Add B2B profile fields to Organization (Phase 8.2 ✅ — services[], technologies[], partnershipInterests[], hiringStatus, linkedinUrl, twitterUrl)
+  - [x] Add `HiringStatus` enum (Phase 8.2 ✅)
 - [ ] Database optimizations
   - [x] Add necessary indexes
   - [ ] Optimize queries for listings
@@ -193,9 +211,9 @@
 - [x] Server actions
   - [x] Organization actions with validation
   - [x] Event participation actions
-- [ ] UI/UX polish
+- [/] UI/UX polish
   - [ ] Responsive design for all pages
-  - [ ] Loading states
+  - [x] Loading states (skeleton components — SkeletonCard, OrgCardSkeleton, OrgGridSkeleton)
   - [ ] Error handling
   - [ ] Success notifications
   - [ ] Empty states
