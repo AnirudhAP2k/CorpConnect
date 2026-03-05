@@ -31,6 +31,7 @@ model User {
   organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
   activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
   eventViews              EventView[]
+  initiatedConnections    OrgConnection[]
 }
 
 model Account {
@@ -168,10 +169,31 @@ model Organization {
   targetInteractions   OrgInteraction[]     @relation("TargetOrg")
   orgTags              OrgTag[]
   apiCredential        ApiCredential?
+  sentConnections      OrgConnection[]      @relation("SentConnections")
+  receivedConnections  OrgConnection[]      @relation("ReceivedConnections")
 
   @@index([industryId])
   @@index([createdBy])
   @@index([hiringStatus])
+}
+
+// ─── Org-to-org connection request ────────────────────────────────────────────
+model OrgConnection {
+  id                String              @id @default(uuid()) @db.Uuid
+  sourceOrgId       String              @db.Uuid
+  targetOrgId       String              @db.Uuid
+  status            OrgConnectionStatus @default(PENDING)
+  message           String? // optional intro message
+  initiatedByUserId String              @db.Uuid
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  sourceOrg         Organization        @relation("SentConnections", fields: [sourceOrgId], references: [id], onDelete: Cascade)
+  targetOrg         Organization        @relation("ReceivedConnections", fields: [targetOrgId], references: [id], onDelete: Cascade)
+  initiatedBy       User                @relation(fields: [initiatedByUserId], references: [id])
+
+  @@unique([sourceOrgId, targetOrgId])
+  @@index([targetOrgId, status])
+  @@index([sourceOrgId, status])
 }
 
 model OrganizationMember {
@@ -285,9 +307,9 @@ model OrgTag {
 model ApiCredential {
   id             String       @id @default(uuid()) @db.Uuid
   organizationId String       @unique @db.Uuid
-  tenantId       String       @unique @db.Uuid @default(uuid())
-  apiKey         String       @unique            // bcrypt hash of the real key
-  apiKeyPrefix   String                          // first 12 chars shown in UI
+  tenantId       String       @unique @default(uuid()) @db.Uuid
+  apiKey         String       @unique // bcrypt hash of the real key
+  apiKeyPrefix   String // first 12 chars shown in UI
   tier           ApiTier      @default(FREE)
   usageCount     Int          @default(0)
   usageLimit     Int          @default(100)
@@ -368,6 +390,13 @@ enum HiringStatus {
   HIRING
   NOT_HIRING
   OPEN_TO_PARTNERSHIPS
+}
+
+enum OrgConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
 }
 
 enum ParticipationStatus {
