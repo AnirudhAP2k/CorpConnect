@@ -419,3 +419,23 @@ export async function getAdminJobQueueHealth() {
 
     return { pending, processing, completed, failed, cancelled, recentFailed };
 }
+
+/**
+ * Organization connections for admin dashboard.
+ */
+export async function getOrgConnections(orgId: string) {
+    return prisma.orgConnection.findMany({
+        where: {
+            OR: [
+                { sourceOrgId: orgId, status: { in: ["PENDING", "ACCEPTED"] } },
+                { targetOrgId: orgId, status: { in: ["PENDING", "ACCEPTED"] } },
+            ],
+        },
+        include: {
+            sourceOrg: { select: { id: true, name: true, logo: true, industry: { select: { label: true } } } },
+            targetOrg: { select: { id: true, name: true, logo: true, industry: { select: { label: true } } } },
+            initiatedBy: { select: { id: true, name: true } },
+        },
+        orderBy: { updatedAt: "desc" },
+    });
+}

@@ -19,18 +19,19 @@ model User {
   createdAt               DateTime               @default(now())
   updatedAt               DateTime               @updatedAt
   hasCompletedOnboarding  Boolean                @default(false)
-  isAppAdmin              Boolean                @default(false)
   organizationId          String?                @db.Uuid
   activeOrganizationId    String?                @db.Uuid
+  isAppAdmin              Boolean                @default(false)
   accounts                Account[]
   participations          EventParticipation[]
-  events                  Events[]
-  organizationMemberships OrganizationMember[]
-  twoFactorConfirmation   TwoFactorConfirmation?
-  pendingInvites          PendingInvite[]        @relation("InvitedBy")
-  organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
-  activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
   eventViews              EventView[]
+  events                  Events[]
+  initiatedConnections    OrgConnection[]
+  organizationMemberships OrganizationMember[]
+  pendingInvites          PendingInvite[]        @relation("InvitedBy")
+  twoFactorConfirmation   TwoFactorConfirmation?
+  activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
+  organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
 }
 
 model Account {
@@ -116,12 +117,12 @@ model Events {
   attendeeCount   Int                  @default(0)
   viewCount       Int                  @default(0)
   participations  EventParticipation[]
-  eventViews      EventView[]
   eventTags       EventTag[]
-  orgInteractions OrgInteraction[]
+  eventViews      EventView[]
   category        Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   organization    Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   User            User?                @relation(fields: [userId], references: [id])
+  orgInteractions OrgInteraction[]
 
   @@index([organizationId])
   @@index([categoryId])
@@ -150,28 +151,47 @@ model Organization {
   location             String?
   size                 OrganizationSize?    @default(STARTUP)
   isVerified           Boolean              @default(false)
-  // Richer B2B profile fields (Phase 8)
-  services             String[]             @default([])
-  technologies         String[]             @default([])
-  partnershipInterests String[]             @default([])
   hiringStatus         HiringStatus         @default(NOT_HIRING)
   linkedinUrl          String?
+  partnershipInterests String[]             @default([])
+  services             String[]             @default([])
+  technologies         String[]             @default([])
   twitterUrl           String?
+  apiCredential        ApiCredential?
   participations       EventParticipation[]
   events               Events[]
-  industry             Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  members              OrganizationMember[]
-  users                User[]               @relation("UserOrganization")
-  activeUsers          User[]               @relation("UserActiveOrganization")
-  pendingInvites       PendingInvite[]
+  sentConnections      OrgConnection[]      @relation("SentConnections")
+  receivedConnections  OrgConnection[]      @relation("ReceivedConnections")
   sourceInteractions   OrgInteraction[]     @relation("SourceOrg")
   targetInteractions   OrgInteraction[]     @relation("TargetOrg")
   orgTags              OrgTag[]
-  apiCredential        ApiCredential?
+  industry             Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  members              OrganizationMember[]
+  pendingInvites       PendingInvite[]
+  activeUsers          User[]               @relation("UserActiveOrganization")
+  users                User[]               @relation("UserOrganization")
 
   @@index([industryId])
   @@index([createdBy])
   @@index([hiringStatus])
+}
+
+model OrgConnection {
+  id                String              @id @default(uuid()) @db.Uuid
+  sourceOrgId       String              @db.Uuid
+  targetOrgId       String              @db.Uuid
+  status            OrgConnectionStatus @default(PENDING)
+  message           String?
+  initiatedByUserId String              @db.Uuid
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  initiatedBy       User                @relation(fields: [initiatedByUserId], references: [id])
+  sourceOrg         Organization        @relation("SentConnections", fields: [sourceOrgId], references: [id], onDelete: Cascade)
+  targetOrg         Organization        @relation("ReceivedConnections", fields: [targetOrgId], references: [id], onDelete: Cascade)
+
+  @@unique([sourceOrgId, targetOrgId])
+  @@index([targetOrgId, status])
+  @@index([sourceOrgId, status])
 }
 
 model OrganizationMember {
@@ -219,8 +239,6 @@ model Industry {
   organization Organization[]
 }
 
-// ─── Phase 5: Data Collection ─────────────────────────────────────────────────
-
 model EventView {
   id              String   @id @default(uuid()) @db.Uuid
   eventId         String   @db.Uuid
@@ -243,9 +261,9 @@ model OrgInteraction {
   targetOrgId   String       @db.Uuid
   sharedEventId String       @db.Uuid
   createdAt     DateTime     @default(now())
+  sharedEvent   Events       @relation(fields: [sharedEventId], references: [id], onDelete: Cascade)
   sourceOrg     Organization @relation("SourceOrg", fields: [sourceOrgId], references: [id], onDelete: Cascade)
   targetOrg     Organization @relation("TargetOrg", fields: [targetOrgId], references: [id], onDelete: Cascade)
-  sharedEvent   Events       @relation(fields: [sharedEventId], references: [id], onDelete: Cascade)
 
   @@unique([sourceOrgId, targetOrgId, sharedEventId])
   @@index([sourceOrgId])
@@ -280,14 +298,12 @@ model OrgTag {
   @@index([tagId])
 }
 
-// ─── Phase 7: AI Microservice ─────────────────────────────────────────────────
-
 model ApiCredential {
   id             String       @id @default(uuid()) @db.Uuid
   organizationId String       @unique @db.Uuid
-  tenantId       String       @unique @db.Uuid @default(uuid())
-  apiKey         String       @unique            // bcrypt hash of the real key
-  apiKeyPrefix   String                          // first 12 chars shown in UI
+  tenantId       String       @unique @default(uuid()) @db.Uuid
+  apiKey         String       @unique
+  apiKeyPrefix   String
   tier           ApiTier      @default(FREE)
   usageCount     Int          @default(0)
   usageLimit     Int          @default(100)
@@ -315,8 +331,8 @@ model PendingInvite {
   expiresAt      DateTime
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
-  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   inviter        User             @relation("InvitedBy", fields: [invitedBy], references: [id])
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([status, createdAt])
   @@index([token])
@@ -338,6 +354,26 @@ model JobQueue {
 
   @@index([status, scheduledAt])
   @@index([type, status])
+}
+
+model EmailLog {
+  id           String         @id @default(uuid()) @db.Uuid
+  fromAddress  String
+  toAddress    String
+  subject      String
+  templateType String
+  payload      Json
+  smtpHost     String?
+  smtpService  String?
+  status       EmailLogStatus
+  messageId    String?
+  errorMessage String?
+  durationMs   Int?
+  sentAt       DateTime       @default(now())
+
+  @@index([toAddress])
+  @@index([status, sentAt])
+  @@index([templateType, sentAt])
 }
 
 enum OrganizationRole {
@@ -368,6 +404,13 @@ enum HiringStatus {
   HIRING
   NOT_HIRING
   OPEN_TO_PARTNERSHIPS
+}
+
+enum OrgConnectionStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  WITHDRAWN
 }
 
 enum ParticipationStatus {
@@ -408,4 +451,9 @@ enum JobStatus {
   COMPLETED
   FAILED
   CANCELLED
+}
+
+enum EmailLogStatus {
+  SENT
+  FAILED
 }

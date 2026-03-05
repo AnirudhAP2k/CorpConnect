@@ -14,6 +14,7 @@ export const publicRoutes = [
 ];
 
 export const protectedRoutes = [
+    '/dashboard',
     '/events/create',
     '/profile',
     '/organizations/:id',
@@ -27,7 +28,7 @@ export const protectedRoutes = [
 export const apiAuthRoutes = "/api/auth";
 
 export const onboardingRoutes = [
-    '/dashboard'
+    '/onboarding'
 ];
 
 export const adminRoutes = [

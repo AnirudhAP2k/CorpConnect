@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import MemberCard from "@/components/shared/MemberCard";
+import ConnectButton from "@/components/organizations/ConnectButton";
 import type { Organization } from "@prisma/client";
 
 // ISR — org profile is semi-static, revalidate every 60 s
@@ -95,8 +96,48 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
     const currentUserMembership = org.members.find((m) => m.userId === userId);
     const canEdit = currentUserMembership && ["OWNER", "ADMIN"].includes(currentUserMembership.role);
     const canManageMembers = currentUserMembership?.role === "OWNER";
+    const isMember = !!currentUserMembership;
 
     const hiringBadge = HIRING_BADGES[org.hiringStatus] ?? HIRING_BADGES.NOT_HIRING;
+
+    // Resolve connection status for ConnectButton (only for non-members)
+    let connectionStatus: "NONE" | "PENDING_SENT" | "PENDING_RECEIVED" | "ACCEPTED" | "DECLINED" | "WITHDRAWN" | "NO_ACTIVE_ORG" = "NO_ACTIVE_ORG";
+    let connectionId: string | undefined;
+    let activeOrgIdForButton: string | null = null;
+
+    if (!isMember) {
+        const user = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { activeOrganizationId: true },
+        });
+        activeOrgIdForButton = user?.activeOrganizationId ?? null;
+
+        if (activeOrgIdForButton) {
+            // (prisma as any) — Prisma client types are stale; resolves after dev server restart
+            const conn = await (prisma as any).orgConnection.findFirst({
+                where: {
+                    OR: [
+                        { sourceOrgId: activeOrgIdForButton, targetOrgId: id },
+                        { sourceOrgId: id, targetOrgId: activeOrgIdForButton },
+                    ],
+                },
+                select: { id: true, status: true, sourceOrgId: true },
+            });
+
+            if (!conn) {
+                connectionStatus = "NONE";
+            } else if (conn.status === "ACCEPTED") {
+                connectionStatus = "ACCEPTED";
+            } else if (conn.status === "PENDING") {
+                connectionStatus = conn.sourceOrgId === activeOrgIdForButton ? "PENDING_SENT" : "PENDING_RECEIVED";
+            } else if (conn.status === "DECLINED") {
+                connectionStatus = "DECLINED";
+            } else {
+                connectionStatus = "WITHDRAWN";
+            }
+            connectionId = conn?.id;
+        }
+    }
 
     return (
         <div className="min-h-screen bg-gray-50">
@@ -163,7 +204,17 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
                         </div>
 
                         {/* Action buttons */}
-                        <div className="flex items-center gap-2 flex-shrink-0">
+                        <div className="flex items-center gap-2 flex-shrink-0 flex-wrap">
+                            {/* Connect button — shown to non-members only */}
+                            {!isMember && (
+                                <ConnectButton
+                                    targetOrgId={id}
+                                    targetOrgName={organization.name}
+                                    activeOrgId={activeOrgIdForButton ?? null}
+                                    initialStatus={connectionStatus}
+                                    connectionId={connectionId}
+                                />
+                            )}
                             {canEdit && (
                                 <Link href={`/organizations/${id}/edit`}>
                                     <Button variant="outline" className="gap-2">
