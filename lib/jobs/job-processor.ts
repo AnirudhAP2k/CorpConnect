@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { sendMemberInviteEmail } from "@/lib/email-templates/member-invite";
+import { processConnectionNotification } from "@/lib/jobs/connection-notification";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -170,8 +171,7 @@ async function processJob(job: any) {
             break;
 
         case "SEND_NOTIFICATION":
-            // TODO: Implement notification sending
-            console.log("[Job] Sending notification:", payload);
+            await processConnectionNotification(payload);
             break;
 
         case "SEND_EVENT_REMINDER":
