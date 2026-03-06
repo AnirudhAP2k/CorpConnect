@@ -19,7 +19,6 @@ export async function processConnectionNotification(payload: ConnectionNotificat
         where: { id: connectionId },
         include: {
             sourceOrg: {
-                select: { id: true, name: true },
                 include: {
                     members: {
                         where: { role: { in: ["OWNER", "ADMIN"] } },
@@ -28,7 +27,6 @@ export async function processConnectionNotification(payload: ConnectionNotificat
                 },
             },
             targetOrg: {
-                select: { id: true, name: true },
                 include: {
                     members: {
                         where: { role: { in: ["OWNER", "ADMIN"] } },
