@@ -1,6 +1,6 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { SignJWT } from "jose";
+import { getMasterJwt } from "@/lib/ai-service";
 
 /**
  * GET /api/admin/ai-token
@@ -26,13 +26,7 @@ export const GET = async () => {
         return NextResponse.json({ error: "AI_SERVICE_MASTER_KEY not configured" }, { status: 500 });
     }
 
-    const secret = new TextEncoder().encode(masterKey);
-
-    const token = await new SignJWT({ role: "master" })
-        .setProtectedHeader({ alg: "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("1h")
-        .sign(secret);
+    const token = await getMasterJwt();
 
     return NextResponse.json({
         token,
