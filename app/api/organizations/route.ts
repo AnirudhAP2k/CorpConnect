@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { OrganizationSubmitSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
+import { JobType } from "@prisma/client";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -14,7 +15,7 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ error: "Invalid organization information" }, { status: 400 });
         }
 
-        const { logoUrl, ...restData } = validated.data;
+        const { logoUrl, industryId, ...restData } = validated.data;
         const session = await auth();
         const userId = session?.user?.id;
 
@@ -28,7 +29,7 @@ export const POST = async (req: NextRequest) => {
                 logo: logoUrl,
                 createdBy: userId,
                 industry: {
-                    connect: { id: restData.industryId }
+                    connect: { id: industryId }
                 }
             }
         });
@@ -36,6 +37,14 @@ export const POST = async (req: NextRequest) => {
         if (!organization) {
             return NextResponse.json({ error: "Organization creation failed" }, { status: 400 });
         }
+
+        // Enqueue embedding job — handler fetches & builds the text itself
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.EMBED_ORG,
+                payload: { orgId: organization.id },
+            },
+        }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_ORG:", err));
 
         return NextResponse.json({ message: "Organization creation successful!", organization: organization.id }, { status: 200 });
     } catch (error: any) {
