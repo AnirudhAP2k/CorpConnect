@@ -12,6 +12,9 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { SignJWT } from "jose";
 
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
+const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
+
 // ─── Response types ────────────────────────────────────────────────────────────
 
 export interface AIRecommendedEvent {
@@ -52,13 +55,8 @@ export interface AISemanticSearchResponse {
     count: number;
 }
 
-// ─── Auth ──────────────────────────────────────────────────────────────────────
-
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
-const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
-
 /** Generate a short-lived master JWT for internal service-to-service calls. */
-async function getMasterJwt(): Promise<string> {
+export async function getMasterJwt(): Promise<string> {
     const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
     return new SignJWT({ role: "master" })
         .setProtectedHeader({ alg: "HS256" })
@@ -67,7 +65,7 @@ async function getMasterJwt(): Promise<string> {
         .sign(secret);
 }
 
-async function authHeaders(): Promise<Record<string, string>> {
+export async function authHeaders(): Promise<Record<string, string>> {
     const token = await getMasterJwt();
     return {
         "Content-Type": "application/json",
@@ -109,10 +107,13 @@ export const aiService = {
         userId: string,
         limit = 10
     ): Promise<AIRecommendedEvent[]> {
-        const response = await request<AIRecommendEventsResponse>(
-            `/recommend/events/${userId}?limit=${limit}`
+        const response = await axios.get<AIRecommendEventsResponse>(
+            `${AI_SERVICE_URL}/recommend/events/${userId}?limit=${limit}`,
+            {
+                headers: await authHeaders(),
+            }
         );
-        return response?.recommendations ?? [];
+        return response.data.recommendations ?? [];
     },
 
     /** Get org connection recommendations. Returns empty array if unavailable. */
@@ -120,10 +121,13 @@ export const aiService = {
         orgId: string,
         limit = 10
     ): Promise<AIRecommendedOrg[]> {
-        const response = await request<AIRecommendOrgsResponse>(
-            `/recommend/orgs/${orgId}?limit=${limit}`
+        const response = await axios.get<AIRecommendOrgsResponse>(
+            `${AI_SERVICE_URL}/recommend/orgs/${orgId}?limit=${limit}`,
+            {
+                headers: await authHeaders(),
+            }
         );
-        return response?.recommendations ?? [];
+        return response.data.recommendations ?? [];
     },
 
     /** Semantic search over events. Returns empty array if unavailable. */
@@ -131,30 +135,39 @@ export const aiService = {
         query: string,
         limit = 10
     ): Promise<AISearchResult[]> {
-        const response = await request<AISemanticSearchResponse>(
-            "/search/semantic",
+        const response = await axios.post<AISemanticSearchResponse>(
+            `${AI_SERVICE_URL}/search/semantic`,
             {
-                method: "POST",
-                data: JSON.stringify({ query, limit }),
+                query,
+                limit
+            },
+            {
+                headers: await authHeaders(),
             }
         );
-        return response?.results ?? [];
+        return response.data.results ?? [];
     },
 
     /** Trigger embedding generation for an event (called from job runner). */
     async embedEvent(eventId: string, text: string): Promise<void> {
-        await request("/embed/event", {
-            method: "POST",
-            data: JSON.stringify({ eventId, text }),
-        });
+        await axios.post(`${AI_SERVICE_URL}/embed/event`, {
+            eventId,
+            text
+        },
+            {
+                headers: await authHeaders(),
+            });
     },
 
     /** Trigger embedding generation for an org (called from job runner). */
     async embedOrg(orgId: string, text: string): Promise<void> {
-        await request("/embed/org", {
-            method: "POST",
-            data: JSON.stringify({ orgId, text }),
-        });
+        await axios.post(`${AI_SERVICE_URL}/embed/org`, {
+            orgId,
+            text
+        },
+            {
+                headers: await authHeaders(),
+            });
     },
 
     /** Returns true if the AI service is reachable. */
