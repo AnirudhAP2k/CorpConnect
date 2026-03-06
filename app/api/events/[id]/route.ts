@@ -4,6 +4,7 @@ import { EventSubmitSchema } from "@/lib/validation";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
 import { getEventByIdWithMemberCheck } from "@/data/events";
+import { JobType } from "@prisma/client";
 
 // GET /api/events/[id] - Get single event (already exists in route.ts)
 
@@ -62,6 +63,14 @@ export const PUT = async (
 
         revalidatePath(`/events/${eventId}`);
         revalidatePath('/events');
+
+        // Enqueue re-embedding job after update — handler fetches & builds the text itself
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.EMBED_EVENT,
+                payload: { eventId },
+            },
+        }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_EVENT:", err));
 
         return NextResponse.json(
             {

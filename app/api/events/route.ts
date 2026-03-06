@@ -46,14 +46,13 @@ export const POST = async (req: NextRequest) => {
 
         revalidatePath('/events');
 
-        // Enqueue embedding job (non-blocking — runs asynchronously via job runner)
-        const embedText = `${event.title}. ${event.description}`;
+        // Enqueue embedding job — handler fetches & builds the text itself
         prisma.jobQueue.create({
             data: {
                 type: JobType.EMBED_EVENT,
-                payload: { eventId: event.id, text: embedText },
+                payload: { eventId: event.id },
             },
-        }).catch(() => { /* silently ignore — embedding is best-effort */ });
+        }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_EVENT:", err));
 
         return NextResponse.json(
             { message: "Event created successfully!", eventId: event.id },
