@@ -6,12 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { getEventById } from "@/data/events";
+import { getEventById, getMeetingRequestsForEvent } from "@/data/events";
 import { prisma } from "@/lib/db";
 import JoinEventButton from "@/components/shared/JoinEventButton";
 import CancelParticipationButton from "@/components/shared/CancelParticipationButton";
 import EventParticipantsPanel from "@/components/shared/EventParticipantsPanel";
 import EventViewTracker from "@/components/shared/EventViewTracker";
+import OrgMatchWidget from "@/components/events/OrgMatchWidget";
+import MeetingRequestsPanel from "@/components/events/MeetingRequestsPanel";
+import { getMatchingOrgsForEvent } from "@/data/events";
+import type { MeetingStatus } from "@/lib/types";
 
 interface EventDetailPageProps {
     params: Promise<{
@@ -28,12 +32,13 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
     const event = await getEventById(id);
 
     // Get user's active organization for participation
-    const activeOrgId = userId
-        ? (await prisma.user.findUnique({
+    const userOrgData = userId
+        ? await prisma.user.findUnique({
             where: { id: userId },
             select: { activeOrganizationId: true },
-        }))?.activeOrganizationId
+        })
         : null;
+    const activeOrgId = userOrgData?.activeOrganizationId ?? null;
 
     if (!event) {
         notFound();
@@ -96,6 +101,33 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
     const isHost = userId && event.organization?.members.some(
         (m) => m.userId === userId && (m.role === "OWNER" || m.role === "ADMIN")
     );
+
+    // Matchmaking & meeting requests (only if user is registered with an active org)
+    const isRegistered = !!userParticipation;
+    const [matchedOrgs, existingMeetingRequests] = (isRegistered && activeOrgId)
+        ? await Promise.all([
+            getMatchingOrgsForEvent(id, activeOrgId),
+            getMeetingRequestsForEvent(id, activeOrgId),
+        ])
+        : [[], []];
+
+    // Build meetingStatusMap for OrgMatchWidget
+    const meetingStatusMap: Record<string, { status: MeetingStatus; requestId?: string }> = {};
+    for (const mr of existingMeetingRequests as any[]) {
+        const otherOrgId = mr.senderOrgId === activeOrgId ? mr.receiverOrgId : mr.senderOrgId;
+        const isSender = mr.senderOrgId === activeOrgId;
+        let status: MeetingStatus = "NONE";
+        if (mr.status === "PENDING") status = isSender ? "PENDING_SENT" : "PENDING_RECEIVED";
+        else if (mr.status === "ACCEPTED") status = "ACCEPTED";
+        else if (mr.status === "DECLINED") status = "DECLINED";
+        else if (mr.status === "CANCELLED") status = "CANCELLED";
+        meetingStatusMap[otherOrgId] = { status, requestId: mr.id };
+    }
+
+    // Split meeting requests for the panel
+    const incomingMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.receiverOrgId === activeOrgId && mr.status === "PENDING");
+    const sentMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.senderOrgId === activeOrgId && mr.status === "PENDING");
+    const confirmedMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.status === "ACCEPTED");
 
     const getEventTypeBadge = () => {
         const types = {
@@ -244,6 +276,17 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                 totalCount={event.attendeeCount}
                             />
                         )}
+
+                        {/* Meeting requests panel (registered attendees with an active org only) */}
+                        {isRegistered && activeOrgId && (
+                            <MeetingRequestsPanel
+                                eventId={id}
+                                callerOrgId={activeOrgId}
+                                incoming={incomingMeetings}
+                                sent={sentMeetings}
+                                confirmed={confirmedMeetings}
+                            />
+                        )}
                     </div>
 
                     {/* Sidebar */}
@@ -307,6 +350,16 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                     </div>
                                 </Link>
                             </div>
+                        )}
+
+                        {/* Org match widget (registered attendees with active org only) */}
+                        {isRegistered && activeOrgId && matchedOrgs.length > 0 && (
+                            <OrgMatchWidget
+                                eventId={id}
+                                callerOrgId={activeOrgId}
+                                matchedOrgs={matchedOrgs}
+                                meetingStatusMap={meetingStatusMap}
+                            />
                         )}
                     </div>
                 </div>
