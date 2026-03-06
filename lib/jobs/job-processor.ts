@@ -1,6 +1,9 @@
 import { prisma } from "@/lib/db";
 import { sendMemberInviteEmail } from "@/lib/email-templates/member-invite";
 import { processConnectionNotification } from "@/lib/jobs/connection-notification";
+import { processMeetingNotification } from "@/lib/jobs/meeting-notification";
+import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
+import { processEmbedEvent, processEmbedOrg } from "@/lib/jobs/embed-generation";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -170,9 +173,15 @@ async function processJob(job: any) {
             // This is now handled by processPendingInvites
             break;
 
-        case "SEND_NOTIFICATION":
-            await processConnectionNotification(payload);
+        case "SEND_NOTIFICATION": {
+            const notifPayload = payload as { type: string };
+            if (notifPayload.type?.startsWith("MEETING_")) {
+                await processMeetingNotification(payload);
+            } else {
+                await processConnectionNotification(payload);
+            }
             break;
+        }
 
         case "SEND_EVENT_REMINDER":
             // TODO: Implement event reminder
@@ -186,48 +195,18 @@ async function processJob(job: any) {
 
         case "CLEANUP_DATA":
             // TODO: Implement data cleanup
-            console.log("[Job] Cleaning up data:", payload);
+            await cleanupOldJobs();
+            break;
+
+        case "EMBED_EVENT":
+            await processEmbedEvent(payload);
+            break;
+
+        case "EMBED_ORG":
+            await processEmbedOrg(payload);
             break;
 
         default:
             throw new Error(`Unknown job type: ${job.type}`);
-    }
-}
-
-export async function cleanupOldJobs() {
-    console.log("[Job Processor] Cleaning up old jobs...");
-
-    try {
-        // Delete completed jobs older than 7 days
-        const sevenDaysAgo = new Date();
-        sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-        const deletedJobs = await prisma.jobQueue.deleteMany({
-            where: {
-                status: "COMPLETED",
-                processedAt: {
-                    lt: sevenDaysAgo,
-                },
-            },
-        });
-
-        // Delete expired invites older than 30 days
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-        const deletedInvites = await prisma.pendingInvite.deleteMany({
-            where: {
-                status: {
-                    in: ["EXPIRED", "ACCEPTED", "FAILED"],
-                },
-                updatedAt: {
-                    lt: thirtyDaysAgo,
-                },
-            },
-        });
-
-        console.log(`[Job Processor] ✓ Deleted ${deletedJobs.count} old jobs and ${deletedInvites.count} old invites`);
-    } catch (error) {
-        console.error("[Job Processor] Error cleaning up old jobs:", error);
     }
 }
