@@ -75,8 +75,8 @@ const Navbar = async () => {
                 </form>
                 <Link href={`/user/${session?.user?.id}`}>
                   <Image
-                    src={session?.user?.image}
-                    alt={session?.user?.name}
+                    src={session?.user?.image || "/assets/images/placeholder.svg"} // default fallback
+                    alt={session?.user?.name || "User Avatar"}
                     width={40}
                     height={40}
                     className="rounded-full"
