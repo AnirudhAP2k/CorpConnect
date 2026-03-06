@@ -2,8 +2,8 @@ import cron from "node-cron";
 import {
     processPendingInvites,
     processJobQueue,
-    cleanupOldJobs,
 } from "@/lib/jobs/job-processor";
+import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
 
 let isInitialized = false;
 
