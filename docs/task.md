@@ -186,10 +186,16 @@
   - `sendMail()` accepts `templateType` and `payload` params; both template helpers pass them through
 
 ### 8.4 Pre-Event Org Matchmaking
-- [ ] "Orgs attending this event that match your profile" widget on event detail page
-- [ ] Meeting request between orgs attending the same event
-- [ ] `MeetingRequest` model (senderOrgId, receiverOrgId, eventId, proposedTime, status)
-- [ ] Meeting request accept/decline flow
+- [x] `MeetingRequest` model (eventId, senderOrgId, receiverOrgId, proposedTime, agenda, status, initiatedByUserId)
+- [x] `MeetingRequestStatus` enum (PENDING / ACCEPTED / DECLINED / CANCELLED)
+- [x] `getMatchingOrgsForEvent(eventId, callerOrgId)` — AI-primary (vector similarity) + SQL-overlap fallback
+- [x] GET/POST `/api/events/[id]/meeting-requests` — list & send requests
+- [x] PATCH/DELETE `/api/events/[id]/meeting-requests/[requestId]` — accept/decline/cancel/delete
+- [x] `MeetingRequestButton` component — all 5 states handled inline
+- [x] `OrgMatchWidget` component — sidebar card with AI badge, top 5 matched orgs + meeting buttons
+- [x] `MeetingRequestsPanel` component — tabbed Incoming/Sent/Confirmed panels
+- [x] Meeting email notifications — 4 event types (REQUESTED/ACCEPTED/DECLINED/CANCELLED), `lib/email-templates/meeting-request.ts`
+- [x] Event detail page integration — OrgMatchWidget in sidebar, MeetingRequestsPanel in main content, SSR data fetch with parallel calls
 
 ### 8.5 Industry Groups / Consortiums
 - [ ] `IndustryGroup` model (name, industryId, description, createdBy)
