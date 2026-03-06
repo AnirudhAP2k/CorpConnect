@@ -51,3 +51,8 @@ export interface OptionsTypes {
 export const tokenVerificationBaseLink = `${process.env.NEXTAUTH_URL}/verify-token?token=`
 
 export const passwordResetTokenBaseLink = `${process.env.NEXTAUTH_URL}/new-password?token=`
+
+export const emailFooter = `<div class="footer">
+      <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
+      <p style="font-size:12px;color:#999;">This is an automated email. Please do not reply to this message.</p>
+    </div>`

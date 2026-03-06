@@ -1,94 +1,95 @@
+import { emailFooter } from "@/constants";
 import { sendMail } from "@/lib/mailer";
 
 export type ConnectionEmailEvent = "REQUESTED" | "ACCEPTED" | "DECLINED" | "WITHDRAWN";
 
 interface ConnectionEmailData {
-    event: ConnectionEmailEvent;
-    recipientEmail: string;
-    recipientName: string;
-    /** Org that initiated the action */
-    actorOrgName: string;
-    /** Org that received the action */
-    targetOrgName: string;
-    /** Optional intro message (only for REQUESTED) */
-    message?: string;
-    /** Link to the recipient org's dashboard to take action */
-    dashboardLink: string;
+  event: ConnectionEmailEvent;
+  recipientEmail: string;
+  recipientName: string;
+  /** Org that initiated the action */
+  actorOrgName: string;
+  /** Org that received the action */
+  targetOrgName: string;
+  /** Optional intro message (only for REQUESTED) */
+  message?: string;
+  /** Link to the recipient org's dashboard to take action */
+  dashboardLink: string;
 }
 
 export async function sendConnectionNotificationEmail(data: ConnectionEmailData) {
-    const subject = getSubject(data);
-    const html = getConnectionEmailTemplate(data);
+  const subject = getSubject(data);
+  const html = getConnectionEmailTemplate(data);
 
-    return await sendMail({
-        email: process.env.SENDER_EMAIL || "noreply@evently.com",
-        sendTo: data.recipientEmail,
-        subject,
-        html,
-        templateType: `CONNECTION_${data.event}`,
-        payload: {
-            event: data.event,
-            recipientEmail: data.recipientEmail,
-            recipientName: data.recipientName,
-            actorOrgName: data.actorOrgName,
-            targetOrgName: data.targetOrgName,
-            message: data.message ?? null,
-        },
-    });
+  return await sendMail({
+    email: process.env.SENDER_EMAIL || "noreply@evently.com",
+    sendTo: data.recipientEmail,
+    subject,
+    html,
+    templateType: `CONNECTION_${data.event}`,
+    payload: {
+      event: data.event,
+      recipientEmail: data.recipientEmail,
+      recipientName: data.recipientName,
+      actorOrgName: data.actorOrgName,
+      targetOrgName: data.targetOrgName,
+      message: data.message ?? null,
+    },
+  });
 }
 
 function getSubject({ event, actorOrgName }: ConnectionEmailData): string {
-    switch (event) {
-        case "REQUESTED": return `${actorOrgName} wants to connect with your organization on Evently`;
-        case "ACCEPTED": return `${actorOrgName} accepted your connection request on Evently`;
-        case "DECLINED": return `${actorOrgName} declined your connection request on Evently`;
-        case "WITHDRAWN": return `${actorOrgName} withdrew their connection request on Evently`;
-    }
+  switch (event) {
+    case "REQUESTED": return `${actorOrgName} wants to connect with your organization on Evently`;
+    case "ACCEPTED": return `${actorOrgName} accepted your connection request on Evently`;
+    case "DECLINED": return `${actorOrgName} declined your connection request on Evently`;
+    case "WITHDRAWN": return `${actorOrgName} withdrew their connection request on Evently`;
+  }
 }
 
 export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
-    const { event, recipientName, actorOrgName, targetOrgName, message, dashboardLink } = data;
+  const { event, recipientName, actorOrgName, targetOrgName, message, dashboardLink } = data;
 
-    const eventMeta: Record<ConnectionEmailEvent, { icon: string; headline: string; body: string; cta: string; accentColor: string }> = {
-        REQUESTED: {
-            icon: "🤝",
-            headline: `${actorOrgName} wants to connect!`,
-            body: `<strong>${actorOrgName}</strong> has sent a connection request to <strong>${targetOrgName}</strong> on Evently. Review the request on your dashboard and accept or decline.`,
-            cta: "View Connection Request",
-            accentColor: "#624CF5",
-        },
-        ACCEPTED: {
-            icon: "✅",
-            headline: "Connection accepted!",
-            body: `<strong>${actorOrgName}</strong> has accepted your connection request from <strong>${targetOrgName}</strong>. You are now connected and can explore partnership opportunities.`,
-            cta: "View Connected Organizations",
-            accentColor: "#16a34a",
-        },
-        DECLINED: {
-            icon: "❌",
-            headline: "Connection request declined",
-            body: `<strong>${actorOrgName}</strong> has declined your connection request from <strong>${targetOrgName}</strong>. You can discover other organizations on Evently.`,
-            cta: "Discover Organizations",
-            accentColor: "#dc2626",
-        },
-        WITHDRAWN: {
-            icon: "↩️",
-            headline: "Connection request withdrawn",
-            body: `<strong>${actorOrgName}</strong> has withdrawn their pending connection request to <strong>${targetOrgName}</strong>.`,
-            cta: "View Your Dashboard",
-            accentColor: "#d97706",
-        },
-    };
+  const eventMeta: Record<ConnectionEmailEvent, { icon: string; headline: string; body: string; cta: string; accentColor: string }> = {
+    REQUESTED: {
+      icon: "🤝",
+      headline: `${actorOrgName} wants to connect!`,
+      body: `<strong>${actorOrgName}</strong> has sent a connection request to <strong>${targetOrgName}</strong> on Evently. Review the request on your dashboard and accept or decline.`,
+      cta: "View Connection Request",
+      accentColor: "#624CF5",
+    },
+    ACCEPTED: {
+      icon: "✅",
+      headline: "Connection accepted!",
+      body: `<strong>${actorOrgName}</strong> has accepted your connection request from <strong>${targetOrgName}</strong>. You are now connected and can explore partnership opportunities.`,
+      cta: "View Connected Organizations",
+      accentColor: "#16a34a",
+    },
+    DECLINED: {
+      icon: "❌",
+      headline: "Connection request declined",
+      body: `<strong>${actorOrgName}</strong> has declined your connection request from <strong>${targetOrgName}</strong>. You can discover other organizations on Evently.`,
+      cta: "Discover Organizations",
+      accentColor: "#dc2626",
+    },
+    WITHDRAWN: {
+      icon: "↩️",
+      headline: "Connection request withdrawn",
+      body: `<strong>${actorOrgName}</strong> has withdrawn their pending connection request to <strong>${targetOrgName}</strong>.`,
+      cta: "View Your Dashboard",
+      accentColor: "#d97706",
+    },
+  };
 
-    const meta = eventMeta[event];
+  const meta = eventMeta[event];
 
-    const messageBlock = message
-        ? `<div style="background:#f8f7ff;border-left:3px solid #624CF5;padding:14px 18px;border-radius:4px;margin:20px 0;font-style:italic;color:#555;">
+  const messageBlock = message
+    ? `<div style="background:#f8f7ff;border-left:3px solid #624CF5;padding:14px 18px;border-radius:4px;margin:20px 0;font-style:italic;color:#555;">
               "${message}"
            </div>`
-        : "";
+    : "";
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -129,10 +130,8 @@ export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
       <p class="link-text">Or copy and paste this link in your browser:<br>${dashboardLink}</p>
     </div>
 
-    <div class="footer">
-      <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
-      <p style="font-size:12px;color:#999;">This is an automated email. Please do not reply to this message.</p>
-    </div>
+    ${emailFooter}
+
   </div>
 </body>
 </html>`;

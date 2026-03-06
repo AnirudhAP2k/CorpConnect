@@ -1,3 +1,4 @@
+import { emailFooter } from "@/constants";
 import { sendMail } from "@/lib/mailer";
 
 interface MemberInviteEmailData {
@@ -159,15 +160,9 @@ function getMemberInviteEmailTemplate(data: {
         you can safely ignore this email.
       </p>
     </div>
-    
-    <div class="footer">
-      <p>
-        © ${new Date().getFullYear()} Evently. All rights reserved.
-      </p>
-      <p style="font-size: 12px; color: #999;">
-        This is an automated email. Please do not reply to this message.
-      </p>
-    </div>
+
+    ${emailFooter}
+
   </div>
 </body>
 </html>

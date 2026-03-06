@@ -27,6 +27,7 @@ model User {
   eventViews              EventView[]
   events                  Events[]
   initiatedConnections    OrgConnection[]
+  initiatedMeetingRequests MeetingRequest[]
   organizationMemberships OrganizationMember[]
   pendingInvites          PendingInvite[]        @relation("InvitedBy")
   twoFactorConfirmation   TwoFactorConfirmation?
@@ -119,6 +120,7 @@ model Events {
   participations  EventParticipation[]
   eventTags       EventTag[]
   eventViews      EventView[]
+  meetingRequests MeetingRequest[]
   category        Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   organization    Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   User            User?                @relation(fields: [userId], references: [id])
@@ -160,10 +162,12 @@ model Organization {
   apiCredential        ApiCredential?
   participations       EventParticipation[]
   events               Events[]
-  sentConnections      OrgConnection[]      @relation("SentConnections")
-  receivedConnections  OrgConnection[]      @relation("ReceivedConnections")
-  sourceInteractions   OrgInteraction[]     @relation("SourceOrg")
-  targetInteractions   OrgInteraction[]     @relation("TargetOrg")
+  sentConnections         OrgConnection[]      @relation("SentConnections")
+  receivedConnections     OrgConnection[]      @relation("ReceivedConnections")
+  sentMeetingRequests     MeetingRequest[]     @relation("SentMeetings")
+  receivedMeetingRequests MeetingRequest[]     @relation("ReceivedMeetings")
+  sourceInteractions      OrgInteraction[]     @relation("SourceOrg")
+  targetInteractions      OrgInteraction[]     @relation("TargetOrg")
   orgTags              OrgTag[]
   industry             Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
   members              OrganizationMember[]
@@ -192,6 +196,28 @@ model OrgConnection {
   @@unique([sourceOrgId, targetOrgId])
   @@index([targetOrgId, status])
   @@index([sourceOrgId, status])
+}
+
+model MeetingRequest {
+  id                String               @id @default(uuid()) @db.Uuid
+  eventId           String               @db.Uuid
+  senderOrgId       String               @db.Uuid
+  receiverOrgId     String               @db.Uuid
+  proposedTime      DateTime?            // optional proposed meeting time
+  agenda            String?              // optional agenda / intro message
+  status            MeetingRequestStatus @default(PENDING)
+  initiatedByUserId String               @db.Uuid
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  event             Events               @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  senderOrg         Organization         @relation("SentMeetings", fields: [senderOrgId], references: [id], onDelete: Cascade)
+  receiverOrg       Organization         @relation("ReceivedMeetings", fields: [receiverOrgId], references: [id], onDelete: Cascade)
+  initiatedBy       User                 @relation(fields: [initiatedByUserId], references: [id])
+
+  @@unique([eventId, senderOrgId, receiverOrgId])
+  @@index([eventId, receiverOrgId])
+  @@index([eventId, senderOrgId])
+  @@index([receiverOrgId, status])
 }
 
 model OrganizationMember {
@@ -456,4 +482,11 @@ enum JobStatus {
 enum EmailLogStatus {
   SENT
   FAILED
+}
+
+enum MeetingRequestStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+  CANCELLED
 }
