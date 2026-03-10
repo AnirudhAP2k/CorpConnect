@@ -5,6 +5,7 @@ export type ExtendedUser = DefaultSession["user"] & {
     role: UserRole;
     isAppAdmin: boolean;
     hasCompletedOnboarding: boolean;
+    activeOrganizationId: string | null;
 }
 
 declare module "next-auth" {

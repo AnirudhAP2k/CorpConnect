@@ -74,6 +74,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             token.role = existingUser.role;
             token.isAppAdmin = existingUser.isAppAdmin;
+            token.activeOrganizationId = existingUser.activeOrganizationId;
             token.hasCompletedOnboarding = existingUser.hasCompletedOnboarding;
 
             return token;
