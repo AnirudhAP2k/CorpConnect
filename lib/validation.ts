@@ -146,3 +146,7 @@ export const createGroupSchema = z.object({
 export const createGroupEventSchema = z.object({
     eventId: z.string().uuid("Invalid event ID"),
 });
+
+export const createPostSchema = z.object({
+    content: z.string().min(1, "Post cannot be empty").max(1000, "Post is too long"),
+});
