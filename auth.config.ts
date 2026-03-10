@@ -5,7 +5,7 @@ import type { NextAuthConfig } from "next-auth"
 import { LoginSchema } from "@/lib/validation";
 import { getUserByEmail } from "@/data/user";
 import bcrypt from "bcryptjs";
-import { OrganizationRole } from "@prisma/client";
+import { mapTokenToSession } from "@/auth.session";
 
 export default {
     providers: [
@@ -45,21 +45,7 @@ export default {
     ],
     callbacks: {
         async session({ session, token }) {
-            if (token.sub && session.user) {
-                session.user.id = token.sub;
-            }
-
-            if (token.role && session.user) {
-                session.user.role = token.role as OrganizationRole;
-            }
-
-            if (session.user) {
-                session.user.isAppAdmin = (token.isAppAdmin as boolean) ?? false;
-                session.user.hasCompletedOnboarding = (token.hasCompletedOnboarding as boolean) ?? false;
-                session.user.activeOrganizationId = (token.activeOrganizationId as string | null) ?? null;
-            }
-
-            return session;
+            return mapTokenToSession(session, token);
         },
     },
 } satisfies NextAuthConfig

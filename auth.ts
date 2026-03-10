@@ -3,8 +3,8 @@ import { prisma } from "@/lib/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import authConfig from "@/auth.config";
 import { getUserById } from "./data/user";
-import { OrganizationRole } from "@prisma/client";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
+import { mapTokenToSession } from "@/auth.session";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -49,21 +49,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             return true;
         },
-        async session({ session, token }) {
-            if (token.sub && session.user) {
-                session.user.id = token.sub;
-            }
-
-            if (token.role && session.user) {
-                session.user.role = token.role as OrganizationRole;
-            }
-
-            if (session.user) {
-                session.user.isAppAdmin = token.isAppAdmin as boolean ?? false;
-            }
-
-            return session;
-        },
         async jwt({ token }) {
 
             if (!token.sub) return token;
@@ -78,6 +63,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             token.hasCompletedOnboarding = existingUser.hasCompletedOnboarding;
 
             return token;
+        },
+        async session({ session, token }) {
+            session = mapTokenToSession(session, token);
+
+            return session;
         },
     },
 });
