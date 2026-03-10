@@ -135,3 +135,14 @@ export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: tr
     userId: z.string(),
     logoUrl: z.string(),
 });
+
+export const createGroupSchema = z.object({
+    name: z.string().min(2, "Name must be at least 2 characters"),
+    description: z.string().optional(),
+    industryId: z.string().uuid("Invalid industry ID"),
+    logo: z.string().url().optional().or(z.literal("")),
+});
+
+export const createGroupEventSchema = z.object({
+    eventId: z.string().uuid("Invalid event ID"),
+});
