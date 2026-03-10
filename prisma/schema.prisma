@@ -8,31 +8,33 @@ datasource db {
 }
 
 model User {
-  id                      String                 @id @default(uuid()) @db.Uuid
-  name                    String?
-  email                   String?                @unique
-  password                String?
-  role                    OrganizationRole?      @default(MEMBER)
-  emailVerified           DateTime?
-  isTwoFactorEnabled      Boolean                @default(false)
-  image                   String?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  hasCompletedOnboarding  Boolean                @default(false)
-  organizationId          String?                @db.Uuid
-  activeOrganizationId    String?                @db.Uuid
-  isAppAdmin              Boolean                @default(false)
-  accounts                Account[]
-  participations          EventParticipation[]
-  eventViews              EventView[]
-  events                  Events[]
-  initiatedConnections    OrgConnection[]
+  id                       String                 @id @default(uuid()) @db.Uuid
+  name                     String?
+  email                    String?                @unique
+  password                 String?
+  role                     OrganizationRole?      @default(MEMBER)
+  emailVerified            DateTime?
+  isTwoFactorEnabled       Boolean                @default(false)
+  image                    String?
+  createdAt                DateTime               @default(now())
+  updatedAt                DateTime               @updatedAt
+  hasCompletedOnboarding   Boolean                @default(false)
+  organizationId           String?                @db.Uuid
+  activeOrganizationId     String?                @db.Uuid
+  isAppAdmin               Boolean                @default(false)
+  accounts                 Account[]
+  participations           EventParticipation[]
+  eventViews               EventView[]
+  events                   Events[]
+  initiatedConnections     OrgConnection[]
   initiatedMeetingRequests MeetingRequest[]
-  organizationMemberships OrganizationMember[]
-  pendingInvites          PendingInvite[]        @relation("InvitedBy")
-  twoFactorConfirmation   TwoFactorConfirmation?
-  activeOrganization      Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
-  organization            Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
+  organizationMemberships  OrganizationMember[]
+  pendingInvites           PendingInvite[]        @relation("InvitedBy")
+  twoFactorConfirmation    TwoFactorConfirmation?
+  activeOrganization       Organization?          @relation("UserActiveOrganization", fields: [activeOrganizationId], references: [id])
+  organization             Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
+  createdIndustryGroups    IndustryGroup[]
+  groupPosts               GroupPost[]
 }
 
 model Account {
@@ -97,34 +99,36 @@ model TwoFactorConfirmation {
 }
 
 model Events {
-  id              String               @id @default(uuid()) @db.Uuid
-  title           String
-  description     String
-  location        String
-  image           String?
-  startDateTime   DateTime             @default(now())
-  endDateTime     DateTime             @default(now())
-  price           String?
-  isFree          Boolean              @default(false)
-  url             String?
-  organizationId  String?              @db.Uuid
-  categoryId      String               @db.Uuid
-  userId          String?              @db.Uuid
-  createdAt       DateTime             @default(now())
-  updatedAt       DateTime             @updatedAt
-  visibility      EventVisibility      @default(PUBLIC)
-  eventType       EventType            @default(OFFLINE)
-  maxAttendees    Int?
-  attendeeCount   Int                  @default(0)
-  viewCount       Int                  @default(0)
-  participations  EventParticipation[]
-  eventTags       EventTag[]
-  eventViews      EventView[]
-  meetingRequests MeetingRequest[]
-  category        Category             @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  organization    Organization?        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  User            User?                @relation(fields: [userId], references: [id])
-  orgInteractions OrgInteraction[]
+  id                  String                       @id @default(uuid()) @db.Uuid
+  title               String
+  description         String
+  location            String
+  image               String?
+  startDateTime       DateTime                     @default(now())
+  endDateTime         DateTime                     @default(now())
+  price               String?
+  isFree              Boolean                      @default(false)
+  url                 String?
+  organizationId      String?                      @db.Uuid
+  categoryId          String                       @db.Uuid
+  userId              String?                      @db.Uuid
+  createdAt           DateTime                     @default(now())
+  updatedAt           DateTime                     @updatedAt
+  visibility          EventVisibility              @default(PUBLIC)
+  eventType           EventType                    @default(OFFLINE)
+  maxAttendees        Int?
+  attendeeCount       Int                          @default(0)
+  viewCount           Int                          @default(0)
+  participations      EventParticipation[]
+  eventTags           EventTag[]
+  eventViews          EventView[]
+  meetingRequests     MeetingRequest[]
+  category            Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  organization        Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  User                User?                        @relation(fields: [userId], references: [id])
+  orgInteractions     OrgInteraction[]
+  industryGroupEvents IndustryGroupEvent[]
+  embedding           Unsupported("vector(1536)")?
 
   @@index([organizationId])
   @@index([categoryId])
@@ -141,39 +145,43 @@ model Category {
 }
 
 model Organization {
-  id                   String               @id @default(uuid()) @db.Uuid
-  name                 String
-  description          String?
-  website              String?
-  createdBy            String               @db.Uuid
-  createdAt            DateTime             @default(now())
-  updatedAt            DateTime             @updatedAt
-  industryId           String               @db.Uuid
-  logo                 String?
-  location             String?
-  size                 OrganizationSize?    @default(STARTUP)
-  isVerified           Boolean              @default(false)
-  hiringStatus         HiringStatus         @default(NOT_HIRING)
-  linkedinUrl          String?
-  partnershipInterests String[]             @default([])
-  services             String[]             @default([])
-  technologies         String[]             @default([])
-  twitterUrl           String?
-  apiCredential        ApiCredential?
-  participations       EventParticipation[]
-  events               Events[]
-  sentConnections         OrgConnection[]      @relation("SentConnections")
-  receivedConnections     OrgConnection[]      @relation("ReceivedConnections")
-  sentMeetingRequests     MeetingRequest[]     @relation("SentMeetings")
-  receivedMeetingRequests MeetingRequest[]     @relation("ReceivedMeetings")
-  sourceInteractions      OrgInteraction[]     @relation("SourceOrg")
-  targetInteractions      OrgInteraction[]     @relation("TargetOrg")
-  orgTags              OrgTag[]
-  industry             Industry             @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  members              OrganizationMember[]
-  pendingInvites       PendingInvite[]
-  activeUsers          User[]               @relation("UserActiveOrganization")
-  users                User[]               @relation("UserOrganization")
+  id                      String                       @id @default(uuid()) @db.Uuid
+  name                    String
+  description             String?
+  website                 String?
+  createdBy               String                       @db.Uuid
+  createdAt               DateTime                     @default(now())
+  updatedAt               DateTime                     @updatedAt
+  industryId              String                       @db.Uuid
+  logo                    String?
+  location                String?
+  size                    OrganizationSize?            @default(STARTUP)
+  isVerified              Boolean                      @default(false)
+  hiringStatus            HiringStatus                 @default(NOT_HIRING)
+  linkedinUrl             String?
+  partnershipInterests    String[]                     @default([])
+  services                String[]                     @default([])
+  technologies            String[]                     @default([])
+  twitterUrl              String?
+  apiCredential           ApiCredential?
+  participations          EventParticipation[]
+  events                  Events[]
+  sentConnections         OrgConnection[]              @relation("SentConnections")
+  receivedConnections     OrgConnection[]              @relation("ReceivedConnections")
+  sentMeetingRequests     MeetingRequest[]             @relation("SentMeetings")
+  receivedMeetingRequests MeetingRequest[]             @relation("ReceivedMeetings")
+  sourceInteractions      OrgInteraction[]             @relation("SourceOrg")
+  targetInteractions      OrgInteraction[]             @relation("TargetOrg")
+  orgTags                 OrgTag[]
+  industry                Industry                     @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  members                 OrganizationMember[]
+  pendingInvites          PendingInvite[]
+  activeUsers             User[]                       @relation("UserActiveOrganization")
+  users                   User[]                       @relation("UserOrganization")
+  industryGroupMembers    IndustryGroupMember[]
+  groupPosts              GroupPost[]
+  addedGroupEvents        IndustryGroupEvent[]
+  embedding               Unsupported("vector(1536)")?
 
   @@index([industryId])
   @@index([createdBy])
@@ -203,8 +211,8 @@ model MeetingRequest {
   eventId           String               @db.Uuid
   senderOrgId       String               @db.Uuid
   receiverOrgId     String               @db.Uuid
-  proposedTime      DateTime?            // optional proposed meeting time
-  agenda            String?              // optional agenda / intro message
+  proposedTime      DateTime? // optional proposed meeting time
+  agenda            String? // optional agenda / intro message
   status            MeetingRequestStatus @default(PENDING)
   initiatedByUserId String               @db.Uuid
   createdAt         DateTime             @default(now())
@@ -258,11 +266,12 @@ model EventParticipation {
 }
 
 model Industry {
-  id           String         @id @default(uuid()) @db.Uuid
-  label        String         @unique
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  organization Organization[]
+  id             String          @id @default(uuid()) @db.Uuid
+  label          String          @unique
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization[]
+  industryGroups IndustryGroup[]
 }
 
 model EventView {
@@ -489,4 +498,68 @@ enum MeetingRequestStatus {
   ACCEPTED
   DECLINED
   CANCELLED
+}
+
+model IndustryGroup {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  logo        String? // Optional logo for the group
+  industryId  String   @db.Uuid
+  createdById String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  industry  Industry              @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  createdBy User                  @relation(fields: [createdById], references: [id])
+  members   IndustryGroupMember[]
+  posts     GroupPost[]
+  events    IndustryGroupEvent[]
+
+  @@index([industryId])
+}
+
+model IndustryGroupMember {
+  id             String           @id @default(uuid()) @db.Uuid
+  groupId        String           @db.Uuid
+  organizationId String           @db.Uuid
+  role           OrganizationRole @default(MEMBER) // Uses existing OWNER/ADMIN/MEMBER
+  joinedAt       DateTime         @default(now())
+
+  group        IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, organizationId])
+  @@index([organizationId])
+}
+
+model GroupPost {
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @db.Uuid
+  authorOrgId  String   @db.Uuid
+  authorUserId String   @db.Uuid
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorOrg  Organization  @relation(fields: [authorOrgId], references: [id], onDelete: Cascade)
+  authorUser User          @relation(fields: [authorUserId], references: [id])
+
+  @@index([groupId])
+}
+
+model IndustryGroupEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @db.Uuid
+  eventId      String   @db.Uuid
+  addedByOrgId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  event      Events        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  addedByOrg Organization  @relation(fields: [addedByOrgId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, eventId])
+  @@index([groupId])
 }
