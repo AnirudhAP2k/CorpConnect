@@ -198,10 +198,11 @@
 - [x] Event detail page integration — OrgMatchWidget in sidebar, MeetingRequestsPanel in main content, SSR data fetch with parallel calls
 
 ### 8.5 Industry Groups / Consortiums
-- [ ] `IndustryGroup` model (name, industryId, description, createdBy)
-- [ ] Group membership for orgs
-- [ ] Group feed / shared event calendar
-- [ ] Create/join/leave group
+- [x] `IndustryGroup` model (name, industryId, description, createdBy) and related models (`IndustryGroupMember`, `GroupPost`, `IndustryGroupEvent`)
+- [x] Group membership for orgs (`data/groups.ts`, `/api/groups/[id]/members`)
+- [x] Group feed / shared event calendar API routes
+- [x] Create/join/leave group API routes
+- [x] Group UI Directory and Details Page components
 
 ## Infrastructure & Polish
 - [x] Database schema updates
