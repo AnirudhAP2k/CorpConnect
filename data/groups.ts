@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { OrganizationRole } from "@prisma/client";
 
 export async function getGroups(orgId: string, industryId?: string) {
     if (!orgId) return { myGroups: [], discoverGroups: [] };
