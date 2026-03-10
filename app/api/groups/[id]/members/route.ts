@@ -22,7 +22,6 @@ export async function POST(
         const params = await context.params;
         const groupId = params.id;
 
-        // Verify user is OWNER/ADMIN of their organization
         const orgMember = await prisma.organizationMember.findUnique({
             where: {
                 userId_organizationId: {
@@ -36,7 +35,6 @@ export async function POST(
             return NextResponse.json({ error: "Must be admin to join groups" }, { status: 403 });
         }
 
-        // Verify group exists
         const group = await prisma.industryGroup.findUnique({
             where: { id: groupId }
         });
@@ -45,18 +43,16 @@ export async function POST(
             return NextResponse.json({ error: "Group not found" }, { status: 404 });
         }
 
-        // Add member
         const member = await prisma.industryGroupMember.create({
             data: {
                 groupId,
                 organizationId: orgId,
-                role: "MEMBER" // Default role for joining orgs
+                role: "MEMBER"
             }
         });
 
         return NextResponse.json(member);
     } catch (error: any) {
-        // Handle unique constraint violation (already joined)
         if (error.code === 'P2002') {
             return NextResponse.json({ error: "Already a member" }, { status: 400 });
         }
@@ -85,7 +81,6 @@ export async function DELETE(
         const params = await context.params;
         const groupId = params.id;
 
-        // Verify user is OWNER/ADMIN of their organization
         const orgMember = await prisma.organizationMember.findUnique({
             where: {
                 userId_organizationId: {
