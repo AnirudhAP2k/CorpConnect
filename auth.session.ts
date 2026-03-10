@@ -1,21 +1,19 @@
-import { OrganizationRole } from "@prisma/client";
+import { Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
 
-export function mapTokenToSession(session: any, token: any) {
+export function mapTokenToSession(session: Session, token: JWT): Session {
     if (token.sub && session.user) {
         session.user.id = token.sub;
     }
 
     if (token.role && session.user) {
-        session.user.role = token.role as OrganizationRole;
+        session.user.role = token.role;
     }
 
     if (session.user) {
-        session.user.isAppAdmin = (token.isAppAdmin as boolean) ?? false;
-        session.user.hasCompletedOnboarding =
-            (token.hasCompletedOnboarding as boolean) ?? false;
-
-        session.user.activeOrganizationId =
-            (token.activeOrganizationId as string | null) ?? null;
+        session.user.isAppAdmin = token.isAppAdmin ?? false;
+        session.user.hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
+        session.user.activeOrganizationId = token.activeOrganizationId ?? null;
     }
 
     return session;
