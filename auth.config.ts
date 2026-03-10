@@ -56,6 +56,7 @@ export default {
             if (session.user) {
                 session.user.isAppAdmin = (token.isAppAdmin as boolean) ?? false;
                 session.user.hasCompletedOnboarding = (token.hasCompletedOnboarding as boolean) ?? false;
+                session.user.activeOrganizationId = (token.activeOrganizationId as string | null) ?? null;
             }
 
             return session;
