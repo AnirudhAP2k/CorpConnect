@@ -17,6 +17,7 @@ import { getOrgConnections, getOrgDashboardStats, getOrgRecentActivity, getOrgRe
 import { format } from "date-fns";
 import OrgConnectionsPanel from "@/components/organizations/OrgConnectionsPanel";
 import { prisma } from "@/lib/db";
+import OrgAIPanel from "@/components/organizations/OrgAIPanel";
 
 interface OrgDashboardPageProps {
     params: Promise<{ id: string }>;
@@ -56,6 +57,11 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
     const acceptedConnections = allConnections.filter((c: any) => c.status === "ACCEPTED");
     const pendingSent = allConnections.filter((c: any) => c.status === "PENDING" && c.sourceOrgId === orgId);
     const pendingReceived = allConnections.filter((c: any) => c.status === "PENDING" && c.targetOrgId === orgId);
+
+    // Fetch ApiCredentials
+    const apiCredential = await prisma.apiCredential.findUnique({
+        where: { organizationId: orgId },
+    });
 
     const statusColor: Record<string, string> = {
         REGISTERED: "bg-blue-100 text-blue-700",
@@ -285,24 +291,14 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                     </Card>
                 </div>
 
-                {/* AI Ready Panel */}
-                <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-                    <CardContent className="flex flex-col sm:flex-row items-center gap-4 py-6">
-                        <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <Zap className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 text-center sm:text-left">
-                            <h3 className="font-semibold text-base">AI-Powered Insights Coming Soon</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Smart event recommendations, organization connection suggestions, semantic search,
-                                event summaries, and sentiment analysis — powered by a dedicated Python/FastAPI AI microservice.
-                            </p>
-                        </div>
-                        <Badge variant="outline" className="flex-shrink-0 text-primary border-primary/40">
-                            Phase 7
-                        </Badge>
-                    </CardContent>
-                </Card>
+                {/* AI Active Panel */}
+                <OrgAIPanel
+                    orgId={orgId}
+                    hasCredentials={!!apiCredential}
+                    usageCount={apiCredential?.usageCount || 0}
+                    usageLimit={apiCredential?.usageLimit || 100}
+                    tier={apiCredential?.tier || "FREE"}
+                />
 
                 {/* Org Connections Panel */}
                 <OrgConnectionsPanel
