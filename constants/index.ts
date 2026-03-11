@@ -30,6 +30,35 @@ export const headerLinks = [
     }
 ];
 
+export const sidebarLinks = [
+    {
+        label: "Dashboard",
+        route: "/dashboard",
+        icon: "Home",
+    },
+    {
+        label: "Discover Orgs",
+        route: "/organizations/discover",
+        icon: "Building2",
+    },
+    {
+        label: "Industry Groups",
+        route: "/groups",
+        icon: "UsersRound",
+    },
+    {
+        label: "Events Directory",
+        route: "/events",
+        icon: "CalendarDays",
+    },
+    {
+        label: "My Events",
+        route: "/my-events",
+        icon: "Ticket",
+    }
+];
+
+
 export const eventDefaultValues = {
     title: "",
     description: "",
