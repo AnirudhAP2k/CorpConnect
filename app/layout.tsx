@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "@/app/globals.css";
 import { Toaster } from "sonner";
+import { ThemeProvider } from "@/components/shared/ThemeProvider";
 
 const poppins = Poppins({
   variable: "--font-poppins",
@@ -9,10 +10,9 @@ const poppins = Poppins({
   weight: ['400', '500', '600', '700']
 });
 
-
 export const metadata: Metadata = {
-  title: "Evently",
-  description: "Event management tool",
+  title: "CorpConnect",
+  description: "A B2B Networking Platform",
 };
 
 export default function RootLayout({
@@ -21,13 +21,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={poppins.variable}
       >
-        {children}
-
-        <Toaster position="top-right" expand={true} richColors />
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+        >
+          {children}
+          <Toaster position="top-right" expand={true} richColors />
+        </ThemeProvider>
       </body>
     </html>
   );
