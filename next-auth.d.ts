@@ -1,12 +1,16 @@
 import { OrganizationRole } from "@prisma/client"
 import NextAuth, { type DefaultSession } from "next-auth"
 
-export type ExtendedUser = DefaultSession["user"] & {
-    role: OrganizationRole;
-    isAppAdmin: boolean;
-    hasCompletedOnboarding: boolean;
-    activeOrganizationId: string | null;
-}
+export type ExtendedUser =
+    {
+        id: string
+    } & DefaultSession["user"] & {
+        role: OrganizationRole;
+        isAppAdmin: boolean;
+        hasCompletedOnboarding: boolean;
+        activeOrganizationId: string | null;
+        emailVerified: Date | null;
+    }
 
 declare module "next-auth" {
     interface Session {
@@ -17,7 +21,8 @@ declare module "next-auth" {
 
 declare module "next-auth/jwt" {
     interface JWT {
-        role?: OrganizationRole;
+        sub?: string;
+        role?: OrganizationRole | null;
         isAppAdmin?: boolean;
         hasCompletedOnboarding?: boolean;
         activeOrganizationId?: string | null;
