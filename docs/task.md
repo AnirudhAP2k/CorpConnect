@@ -233,3 +233,15 @@
   - [ ] Success notifications
   - [ ] Empty states
 
+## Phase 9: B2B Sidebar Navigation UI 🧭
+- [ ] Create `TopHeader.tsx`
+  - [ ] Logo + Mobile toggle
+  - [ ] Org Switcher + User Dropdown
+- [ ] Create `Sidebar.tsx`
+  - [ ] Discover, Dashboard, Groups, Events navigation using icons
+  - [ ] Dynamic links to active organization profile/dashboard
+  - [ ] Admin link conditional rendering
+- [ ] Update `app/(protected)/layout.tsx`
+  - [ ] Implement flex/grid layout for Sidebar + Main Content
+- [ ] Mobile Navigation
+  - [ ] Build responsive overlay sheet for small screens
