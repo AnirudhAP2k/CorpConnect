@@ -4,7 +4,13 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { aiService } from "@/lib/ai-service";
 
-export async function useAIFeature(orgId: string, feature: "search" | "recommendEvents" | "recommendOrgs", query?: string) {
+interface AIFeature {
+    orgId: string;
+    feature: "search" | "recommendEvents" | "recommendOrgs";
+    query?: string;
+}
+
+export async function useAIFeature({ orgId, feature, query }: AIFeature) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 
