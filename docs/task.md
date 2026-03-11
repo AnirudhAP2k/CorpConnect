@@ -1,4 +1,4 @@
-# Evently B2B Platform - Core Features Implementation
+# CorpConnect B2B Platform - Core Features Implementation
 
 ## Phase 1: Organization Module ✅
 - [x] Organization onboarding flow

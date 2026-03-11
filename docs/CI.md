@@ -2,7 +2,7 @@
 
 ## Overview
 
-This document provides comprehensive information about the Continuous Integration (CI) setup for the Evently project. The CI pipeline ensures code quality, type safety, and build integrity before code is merged into the main branches.
+This document provides comprehensive information about the Continuous Integration (CI) setup for the CorpConnect project. The CI pipeline ensures code quality, type safety, and build integrity before code is merged into the main branches.
 
 ---
 
