@@ -1,0 +1,99 @@
+import Image from 'next/image'
+import Link from 'next/link'
+import React from 'react'
+import { auth, signOut } from '@/auth'
+import { Button } from '../ui/button'
+import OrganizationSwitcher from '@/components/shared/OrganizationSwitcher'
+import { prisma } from '@/lib/db'
+import MobileSidebar from '@/components/shared/MobileSidebar'
+import { ThemeToggle } from '@/components/shared/ThemeToggle'
+
+const TopHeader = async () => {
+    const session = await auth();
+
+    let userOrganizations: any[] = [];
+    let activeOrganizationId: string | null = null;
+    const isAdmin = session?.user?.isAppAdmin || false;
+
+    if (session?.user?.id) {
+        const memberships = await prisma.organizationMember.findMany({
+            where: { userId: session.user.id },
+            include: {
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo: true,
+                    },
+                },
+            },
+        });
+
+        userOrganizations = memberships.map((m) => m.organization);
+        activeOrganizationId = session.user.activeOrganizationId || null;
+    }
+
+    return (
+        <header className='w-full border-b bg-background sticky top-0 z-40 h-16 shrink-0'>
+            <div className='flex items-center justify-between px-4 h-full container mx-auto max-w-[1600px]'>
+                <div className='flex items-center gap-4'>
+                    {session?.user && (
+                        <div className="md:hidden">
+                            <MobileSidebar
+                                userOrganizations={userOrganizations}
+                                activeOrganizationId={activeOrganizationId}
+                                isAdmin={isAdmin}
+                            />
+                        </div>
+                    )}
+                    <Link href='/dashboard' className='flex flex-row items-center gap-2'>
+                        <Image src='/assets/images/logo.svg' width={110} height={110} alt='logo' />
+                    </Link>
+                </div>
+
+                <div className='flex items-center gap-4'>
+                    {session && session?.user ? (
+                        <>
+                            <div className='hidden md:block'>
+                                <OrganizationSwitcher
+                                    organizations={userOrganizations}
+                                    activeOrganizationId={activeOrganizationId}
+                                />
+                            </div>
+                            <div className='flex items-center gap-3'>
+                                <form
+                                    action={async () => {
+                                        "use server";
+                                        await signOut({ redirectTo: "/" })
+                                    }}>
+                                    <Button className="rounded-full" size="lg" type="submit">
+                                        Logout
+                                    </Button>
+                                </form>
+                                <Link href={`/profile`}>
+                                    <Image
+                                        src={session?.user?.image || "/assets/images/placeholder.svg"}
+                                        alt={session?.user?.name || "User Avatar"}
+                                        width={36}
+                                        height={36}
+                                        className="rounded-full border"
+                                    />
+                                </Link>
+                                <ThemeToggle />
+                            </div>
+                        </>
+                    ) : (
+                        <div className='flex items-center gap-3'>
+                            <ThemeToggle />
+                            <Button asChild className="rounded-full" size="lg">
+                                <Link href="/login">Login</Link>
+                            </Button>
+                        </div>
+                    )}
+                </div>
+            </div>
+        </header>
+    )
+}
+
+export default TopHeader
