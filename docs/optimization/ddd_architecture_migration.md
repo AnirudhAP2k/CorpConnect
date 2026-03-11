@@ -1,6 +1,6 @@
 # Future Improvement Plan: Domain-Driven Design (DDD) Architecture Migration
 
-This document outlines the step-by-step plan to transition the Evently platform's current architecture to a Domain-Driven Design (DDD) / Vertical Slice Architecture.
+This document outlines the step-by-step plan to transition the CorpConnect platform's current architecture to a Domain-Driven Design (DDD) / Vertical Slice Architecture.
 
 ## Goal
 To decouple business logic from the Next.js routing layer (API routes) and UI components. This will improve code cohesion, enable true Server-Side Rendering (SSR) via React Server Components, and allow the same backend logic to cleanly serve both the Next.js Web Application and future Mobile Applications.
