@@ -14,13 +14,15 @@ import {
 } from "@/data/dashboard";
 import { format } from "date-fns";
 import Link from "next/link";
+import { getAdminAIStats } from "@/lib/actions/admin-ai";
 
 export default async function AdminDashboardPage() {
-    const [platformStats, revenueStats, { orgs }, jobHealth] = await Promise.all([
+    const [platformStats, revenueStats, { orgs }, jobHealth, aiStats] = await Promise.all([
         getAdminPlatformStats(),
         getAdminRevenueStats(),
         getAdminOrgsList(0, 8),
         getAdminJobQueueHealth(),
+        getAdminAIStats()
     ]);
 
     const jobStatusConfig = [
@@ -186,22 +188,40 @@ export default async function AdminDashboardPage() {
             </Card>
 
             {/* AI Panel */}
-            <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-                <CardContent className="flex flex-col sm:flex-row items-center gap-4 py-6">
-                    <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                        <Zap className="h-6 w-6 text-primary" />
+            <Card className="border-solid border-2 border-primary/30 bg-primary/10">
+                <CardHeader className="pb-2 flex flex-row justify-between items-start">
+                    <div>
+                        <CardTitle className="flex items-center gap-2 text-base">
+                            <Zap className="h-5 w-5 text-primary" />
+                            AI Microservice Integration Active
+                        </CardTitle>
+                        <CardDescription className="mt-1 max-w-2xl">
+                            The Python/FastAPI microservice is now actively powering smart recommendations, semantic search,
+                            event summaries, sentiment analysis, and organization match-making across the platform.
+                        </CardDescription>
                     </div>
-                    <div className="flex-1 text-center sm:text-left">
-                        <h3 className="font-semibold text-base">AI Microservice Integration Planned</h3>
-                        <p className="text-sm text-muted-foreground mt-1">
-                            A Python/FastAPI microservice will power smart recommendations, semantic search,
-                            event summaries, sentiment analysis, and organization match-making. Revenue analytics
-                            will be enhanced with Stripe/Razorpay webhooks.
-                        </p>
-                    </div>
-                    <Badge variant="outline" className="flex-shrink-0 text-primary border-primary/40">
-                        Phase 6 & 7
+                     <Badge variant="default" className="bg-primary text-primary-foreground">
+                        Active API Platform
                     </Badge>
+                </CardHeader>
+                <CardContent className="pt-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-background rounded-lg p-4 border flex flex-col justify-center items-center text-center">
+                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Active Credentials</span>
+                            <span className="text-3xl font-bold text-primary">{aiStats.totalCredentials}</span>
+                            <span className="text-xs text-muted-foreground mt-1">Tenant keys issued</span>
+                        </div>
+                        <div className="bg-background rounded-lg p-4 border flex flex-col justify-center items-center text-center">
+                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Total AI Calls</span>
+                            <span className="text-3xl font-bold text-primary">{aiStats.totalCalls}</span>
+                            <span className="text-xs text-muted-foreground mt-1">Consumed across platform</span>
+                        </div>
+                        <div className="bg-background rounded-lg p-4 border flex flex-col justify-center items-center text-center">
+                            <span className="text-sm font-medium text-muted-foreground uppercase tracking-wider mb-1">Recent Activity</span>
+                            <span className="text-3xl font-bold text-primary">{aiStats.activeInLast7Days}</span>
+                            <span className="text-xs text-muted-foreground mt-1">Orgs active within 7 days</span>
+                        </div>
+                    </div>
                 </CardContent>
             </Card>
         </div>
