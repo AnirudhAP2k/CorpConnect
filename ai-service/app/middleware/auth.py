@@ -40,6 +40,10 @@ TIER_GATES: dict[str, ApiTier] = {
     "/recommend/events":   ApiTier.PRO,
     "/recommend/orgs":     ApiTier.PRO,
     "/search/semantic":    ApiTier.ENTERPRISE,
+    "/generate":           ApiTier.PRO,         # LLM generation — PRO+
+    "/ingest":             ApiTier.FREE,         # internal master-JWT only
+    "/chat":               ApiTier.PRO,          # RAG chat — PRO+
+    "/analyse":            ApiTier.PRO,          # Sentiment — PRO+
 }
 
 TIER_ORDER = [ApiTier.FREE, ApiTier.PRO, ApiTier.ENTERPRISE]
@@ -121,3 +125,17 @@ async def require_auth(
             break
 
     return tier
+
+
+async def require_master_jwt(
+    credentials: HTTPAuthorizationCredentials | None = Security(bearer_scheme),
+) -> None:
+    """
+    Strict master-JWT-only dependency for internal endpoints (ingest, generate, chat, analyse).
+    Rejects all tenant key auth — these endpoints are Next.js server-to-server only.
+    """
+    if not credentials or not _verify_master_jwt(credentials.credentials):
+        raise HTTPException(
+            status_code=401,
+            detail="This endpoint requires a valid master JWT (internal Next.js calls only).",
+        )
