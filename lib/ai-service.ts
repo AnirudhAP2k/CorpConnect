@@ -55,6 +55,19 @@ export interface AISemanticSearchResponse {
     count: number;
 }
 
+// ─── Phase 2: Content Generation ──────────────────────────────────────────────
+
+export interface AIGeneratedContent {
+    description: string;
+    suggestions: string[];
+    sourceDocs: string[];
+}
+
+export interface AIMatchmakingReason {
+    reason: string;
+    sharedThemes: string[];
+}
+
 /** Generate a short-lived master JWT for internal service-to-service calls. */
 export async function getMasterJwt(): Promise<string> {
     const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
@@ -180,6 +193,50 @@ export const aiService = {
             return res.status === 200;
         } catch {
             return false;
+        }
+    },
+
+    // ─── Phase 2: Content Generation ──────────────────────────────────────────
+
+    /**
+     * Generate a polished event description from a rough draft, grounded in
+     * the org's documents and platform compliance docs via RAG.
+     */
+    async generateEventDescription(
+        orgId: string,
+        roughDraft: string,
+        eventId?: string,
+    ): Promise<AIGeneratedContent | null> {
+        try {
+            const res = await axios.post<AIGeneratedContent>(
+                `${AI_SERVICE_URL}/generate/event-description`,
+                { orgId, roughDraft, eventId },
+                { headers: await authHeaders(), timeout: 30000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
+
+    /**
+     * Generate a human-readable matchmaking explanation grounded in both
+     * organizations' company descriptions retrieved via RAG.
+     */
+    async generateMatchmakingReason(
+        sourceOrgId: string,
+        targetOrgId: string,
+        score: number,
+    ): Promise<AIMatchmakingReason | null> {
+        try {
+            const res = await axios.post<AIMatchmakingReason>(
+                `${AI_SERVICE_URL}/generate/matchmaking-reason`,
+                { sourceOrgId, targetOrgId, score },
+                { headers: await authHeaders(), timeout: 20000 },
+            );
+            return res.data;
+        } catch {
+            return null;
         }
     },
 };
