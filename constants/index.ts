@@ -58,7 +58,6 @@ export const sidebarLinks = [
     }
 ];
 
-
 export const eventDefaultValues = {
     title: "",
     description: "",
