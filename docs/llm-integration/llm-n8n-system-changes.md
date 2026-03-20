@@ -28,7 +28,7 @@ This is the most significant change area. The Python FastAPI service needs to gr
 + tiktoken==0.7.0         # token counting for prompts
 ```
 
-**Choice:** Use **OpenAI (`gpt-4o-mini`)** or **Groq (`llama-3-8b-8192`)** as the LLM backend. Groq is free-tier and extremely fast; OpenAI has higher reasoning quality. The LLM client is isolated so it can be swapped easily.
+**Choice:** Use **OpenAI (`gpt-4o-mini`)** or **Groq (`llama-3.1-8b-instant`)** as the LLM backend. Groq is free-tier and extremely fast; OpenAI has higher reasoning quality. The LLM client is isolated so it can be swapped easily.
 
 ### 1.2 New Config (`app/config.py`)
 
@@ -37,7 +37,7 @@ Add three new environment variables to `Settings`:
 ```diff
 + LLM_PROVIDER: str = "openai"         # "openai" | "groq"
 + LLM_API_KEY: str = ""                # OpenAI or Groq API key
-+ LLM_MODEL_NAME: str = "gpt-4o-mini"  # or "llama-3-8b-8192"
++ LLM_MODEL_NAME: str = "gpt-4o-mini"  # or "llama-3.1-8b-instant"
 + N8N_WEBHOOK_SECRET: str = ""         # Shared secret for n8n webhook calls
 ```
 
@@ -363,7 +363,7 @@ volumes:
 ```env
 LLM_PROVIDER=groq                          # or "openai"
 LLM_API_KEY=gsk_...                        # Groq or OpenAI key
-LLM_MODEL_NAME=llama-3-8b-8192             # or "gpt-4o-mini"
+LLM_MODEL_NAME=llama-3.1-8b-instant             # or "gpt-4o-mini"
 N8N_WEBHOOK_SECRET=<random-32-char-string>
 ```
 
