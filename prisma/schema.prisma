@@ -182,10 +182,30 @@ model Organization {
   groupPosts              GroupPost[]
   addedGroupEvents        IndustryGroupEvent[]
   embedding               Unsupported("vector(1536)")?
+  orgDocuments            OrgDocument[]
 
   @@index([industryId])
   @@index([createdBy])
   @@index([hiringStatus])
+}
+
+// ─── RAG document store ─────────────────────────────────────────────────────
+// Stores chunked text (company bio, event FAQs, legal docs, etc.) with vector
+// embeddings for retrieval-augmented generation (RAG) across the AI features.
+model OrgDocument {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String?         @db.Uuid       // null = platform-wide doc (e.g. T&Cs)
+  docType        OrgDocumentType
+  title          String
+  content        String          // Raw text chunk (≤ 512 tokens)
+  sourceUrl      String?         // Optional link back to the original file
+  embedding      Unsupported("vector(1536)")?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([docType])
 }
 
 model OrgConnection {
@@ -472,6 +492,16 @@ enum JobType {
   CLEANUP_DATA
   EMBED_EVENT
   EMBED_ORG
+  ANALYSE_FEEDBACK_SENTIMENT
+  TRIGGER_N8N_WORKFLOW
+  GENERATE_MATCHMAKING_REASON
+}
+
+enum OrgDocumentType {
+  COMPANY_DESCRIPTION   // Organization bio and mission statement
+  EVENT_DESCRIPTION     // Event-specific details and FAQs
+  LEGAL_COMPLIANCE      // Terms, policies, and compliance documents
+  GENERAL               // Any additional reference material
 }
 
 enum ApiTier {
