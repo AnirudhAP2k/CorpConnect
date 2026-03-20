@@ -66,25 +66,40 @@ async def _validate_tenant_key(tenant_id: str, api_key: str) -> ApiTier:
     """
     Validate X-Tenant-ID + X-API-Key.
     Returns the tenant's tier on success, raises HTTPException on failure.
+    Uses Redis to cache the credential object for 60 seconds to avoid DB lookups.
     """
-    credential = await get_api_credential(tenant_id)
-
+    from app import cache
+    cache_key = cache.tenant_credential_key(tenant_id)
+    
+    # Check cache first
+    credential = await cache.get(cache_key)
+    
     if not credential:
-        raise HTTPException(status_code=401, detail="Invalid tenant ID")
+        # Miss — fetch from DB
+        credential = await get_api_credential(tenant_id)
+        if not credential:
+            raise HTTPException(status_code=401, detail="Invalid tenant ID")
+        
+        # Store in cache (ttl=60s)
+        await cache.set(cache_key, credential, ttl=60)
 
     # Verify against bcrypt hash
     key_matches = bcrypt.checkpw(api_key.encode(), credential["apiKey"].encode())
     if not key_matches:
         raise HTTPException(status_code=401, detail="Invalid API key")
 
-    # Check usage limit
+    # Check usage limit (cached snapshot — still effective for preventing massive overruns)
     if credential["usageCount"] >= credential["usageLimit"]:
         raise HTTPException(
             status_code=402,
             detail=f"Usage limit reached ({credential['usageLimit']} requests). Upgrade to continue.",
         )
 
+    # Increment usage in DB (always accurate source of truth)
+    # Note: Usage count in cache will stay slightly out-of-date for up to 60s,
+    # which is an acceptable tradeoff for performance.
     await increment_usage(tenant_id)
+    
     return ApiTier(credential["tier"])
 
 
