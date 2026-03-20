@@ -14,15 +14,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.config import settings
 from app.database import init_db_pool, close_db_pool
 from app.embeddings import load_model
+from app.cache import init_cache
 from app.llm import is_llm_configured
 from app.routers import embed, recommend, search, ingest, generate
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
-    # Initialise DB connection pool and load embedding model on startup
+    # Initialise DB connection pool, load embedding model, and init cache on startup
     await init_db_pool()
+    await init_cache()
     load_model()
     # Report LLM readiness
     if is_llm_configured():
