@@ -16,10 +16,13 @@ import logging
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from app import cache
 from app.database import get_pool
 from app.embeddings import encode
 from app.llm import generate, is_llm_configured
 from app.middleware.auth import require_master_jwt
+
+import hashlib
 
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(require_master_jwt)])
@@ -126,6 +129,17 @@ async def generate_event_description(body: GenerateDescriptionRequest):
             detail="LLM is not configured. Set LLM_API_KEY in ai-service/.env.",
         )
 
+    # 1. Check cache first
+    # Hash the inputs to create a unique key
+    input_str = f"{body.orgId}:{body.roughDraft}:{body.eventId or ''}"
+    prompt_hash = hashlib.md5(input_str.encode()).hexdigest()
+    cache_key = cache.llm_generation_key(prompt_hash)
+    
+    cached = await cache.get(cache_key)
+    if cached:
+        logger.info("⚡ Returning cached event description for org=%s", body.orgId)
+        return GenerateDescriptionResponse(**cached)
+
     # Embed the rough draft for RAG retrieval
     draft_vector: list[float] = encode(body.roughDraft)
 
@@ -189,11 +203,16 @@ CONTEXT:
         body.orgId, len(all_docs),
     )
 
-    return GenerateDescriptionResponse(
+    response = GenerateDescriptionResponse(
         description=generated,
         suggestions=suggestions[:3],
         sourceDocs=source_titles,
     )
+    
+    # Cache for 1 hour to save on LLM costs for re-submits
+    await cache.set(cache_key, response.model_dump(), ttl=3600)
+    
+    return response
 
 
 @router.post(
@@ -206,6 +225,13 @@ async def generate_matchmaking_reason(body: MatchmakingReasonRequest):
     Generate a human-readable explanation for why two organizations match,
     grounded in their actual company descriptions (not just their similarity score).
     """
+    # Check cache first
+    cache_key = cache.matchmaking_reason_key(body.sourceOrgId, body.targetOrgId)
+    cached = await cache.get(cache_key)
+    if cached:
+        logger.info("⚡ Returning cached match reason for %s -> %s", body.sourceOrgId, body.targetOrgId)
+        return MatchmakingReasonResponse(**cached)
+
     if not is_llm_configured():
         raise HTTPException(
             status_code=503,
@@ -272,7 +298,12 @@ Then on a new line write the JSON array of shared themes."""
         source_name, target_name, body.score,
     )
 
-    return MatchmakingReasonResponse(
+    response = MatchmakingReasonResponse(
         reason=reason,
         sharedThemes=shared_themes[:5],
     )
+    
+    # Matchmaking reasons change rarely — cache for 24h
+    await cache.set(cache_key, response.model_dump(), ttl=86400)
+    
+    return response
