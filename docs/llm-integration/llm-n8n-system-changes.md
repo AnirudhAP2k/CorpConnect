@@ -57,7 +57,7 @@ def get_llm_client() -> AsyncOpenAI:
     if _client is None:
         _client = AsyncOpenAI(
             api_key=settings.LLM_API_KEY,
-            base_url="https://api.groq.com/openai/v1" if settings.LLM_PROVIDER == "groq" else None,
+            base_url=settings.LLM_API_BASE_URL if settings.LLM_PROVIDER == "groq" else None,
         )
     return _client
 
