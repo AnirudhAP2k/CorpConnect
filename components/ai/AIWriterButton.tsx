@@ -9,9 +9,7 @@ import { AIGeneratedContent } from "@/lib/ai-service";
 interface AIWriterButtonProps {
     orgId: string;
     eventId?: string;
-    /** Current value of the description textarea */
     currentDraft: string;
-    /** Called when the user accepts the generated description */
     onAccept: (description: string) => void;
 }
 
