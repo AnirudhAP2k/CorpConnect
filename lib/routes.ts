@@ -13,16 +13,20 @@ export const publicRoutes = [
     '/about',
 ];
 
-export const protectedRoutes = [
-    '/dashboard',
-    '/events/create',
-    '/profile',
+export const organizationRoutes = [
     '/organizations/:id',
     '/organizations/:id/members',
     '/organizations/:id/events',
     '/organizations/:id/events/:eventId',
     '/organizations/:id/members/:memberId',
     '/organizations/:id/events/:eventId/invites',
+];
+
+export const protectedRoutes = [
+    '/dashboard',
+    '/events/create',
+    '/profile',
+    ...organizationRoutes
 ];
 
 export const apiAuthRoutes = "/api/auth";
