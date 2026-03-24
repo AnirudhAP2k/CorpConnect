@@ -7,7 +7,8 @@ import {
   protectedRoutes,
   apiAuthRoutes,
   onboardingRoutes,
-  adminRoutes
+  adminRoutes,
+  organizationRoutes
 } from "@/lib/routes";
 
 const { auth } = NextAuth(authConfig);
@@ -22,6 +23,7 @@ export default auth(async (req) => {
   const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
   const isProtectedRoute = protectedRoutes.includes(nextUrl.pathname);
   const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
+  const isOrganizationRoute = organizationRoutes.includes(nextUrl.pathname);
 
   if (isApiAuthRoute) {
     return;
@@ -45,12 +47,19 @@ export default auth(async (req) => {
     }
   }
 
-  // Redirect to dashboard if user tries to access onboarding after completing it
   if (isOnboardingRoute && isLoggedIn && req.auth?.user) {
     const user = req.auth.user;
 
     if (user && user.hasCompletedOnboarding) {
       return Response.redirect(new URL('/dashboard', nextUrl));
+    }
+  }
+
+  if (isOrganizationRoute && isLoggedIn && req.auth?.user) {
+    const user = req.auth.user;
+
+    if (user && !user.hasCompletedOnboarding) {
+      return Response.redirect(new URL('/onboarding', nextUrl));
     }
   }
 
