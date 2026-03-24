@@ -7,6 +7,7 @@ import OrganizationSwitcher from '@/components/shared/OrganizationSwitcher'
 import { prisma } from '@/lib/db'
 import MobileSidebar from '@/components/shared/MobileSidebar'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
+import { logout } from '@/data/logout'
 
 const TopHeader = async () => {
     const session = await auth();
@@ -61,11 +62,7 @@ const TopHeader = async () => {
                                 />
                             </div>
                             <div className='flex items-center gap-3'>
-                                <form
-                                    action={async () => {
-                                        "use server";
-                                        await signOut({ redirectTo: "/" })
-                                    }}>
+                                <form action={logout}>
                                     <Button className="rounded-full" size="lg" type="submit">
                                         Logout
                                     </Button>
