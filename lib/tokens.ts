@@ -6,6 +6,7 @@ import { getTwoFactorTokenbyEmail } from "@/data/two-factor-token";
 import { hashToken } from "@/lib/utils";
 
 export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
+export const GRACE_PERIOD_MS = 60 * 1000;
 
 export const genVerificationToken = async (email: string) => {
     const token = randomUUID();
@@ -105,9 +106,24 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
     }
 
     if (existingToken.revokedAt) {
-        await revokeAllUserTokens(existingToken.userId);
-        throw new Error("Token reuse detected. All sessions revoked.");
+        const isWithinGracePeriod =
+            new Date().getTime() - existingToken.revokedAt.getTime() < GRACE_PERIOD_MS;
+
+        if (isWithinGracePeriod && existingToken.replacedBy) {
+            const activeToken = await prisma.refreshToken.findUnique({
+                where: { token: existingToken.replacedBy },
+                include: { user: true }
+            });
+
+            if (activeToken && !activeToken.revokedAt) {
+                return activeToken;
+            }
+        }
+
+        // await revokeAllUserTokens(existingToken.userId);
+        // throw new Error("Token reuse detected. All sessions revoked.");
     }
+
     if (new Date() > existingToken.expiresAt) {
         await prisma.refreshToken.update({
             where: { id: existingToken.id },
