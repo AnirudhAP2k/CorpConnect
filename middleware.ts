@@ -1,5 +1,6 @@
 import NextAuth from "next-auth"
 import authConfig from "@/auth.config"
+import { verifyMobileAccessToken } from "@/lib/mobile-auth";
 import {
   defaultRoute,
   authRoutes,
@@ -19,7 +20,19 @@ export default auth(async (req) => {
   const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthRoutes);
-  const isApiRoute = nextUrl.pathname.includes(apiRoutes);
+  const isApiRoute = nextUrl.pathname.startsWith(apiRoutes);
+
+  // ── Hybrid Mobile Auth ────────────────────────────────────────────────────
+  // If the request is an API call carrying a valid Bearer token, bypass all
+  // cookie-session checks and let the request through. The individual route
+  // handler is responsible for calling requireMobileAuth() to validate the
+  // token and extract the userId.
+  if (isApiRoute && !isApiAuthRoute) {
+    const mobilePaylod = await verifyMobileAccessToken(req);
+    if (mobilePaylod) return;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
