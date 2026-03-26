@@ -6,6 +6,7 @@ import {
   publicRoutes,
   protectedRoutes,
   apiAuthRoutes,
+  apiRoutes,
   onboardingRoutes,
   adminRoutes,
   organizationRoutes
@@ -18,6 +19,7 @@ export default auth(async (req) => {
   const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthRoutes);
+  const isApiRoute = nextUrl.pathname.includes(apiRoutes);
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);

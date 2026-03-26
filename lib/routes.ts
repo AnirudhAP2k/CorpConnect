@@ -29,6 +29,8 @@ export const protectedRoutes = [
     ...organizationRoutes
 ];
 
+export const apiRoutes = "/api/";
+
 export const apiAuthRoutes = "/api/auth";
 
 export const onboardingRoutes = [
