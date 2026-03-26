@@ -16,6 +16,7 @@ declare module "next-auth" {
     interface Session {
         id: string
         user: ExtendedUser
+        error?: string | null;
     }
 
     interface User {
@@ -33,5 +34,8 @@ declare module "next-auth/jwt" {
         isAppAdmin?: boolean;
         hasCompletedOnboarding?: boolean;
         activeOrganizationId?: string | null;
+        refreshToken?: string;
+        accessTokenExpires?: number;
+        error?: string | null;
     }
 }
