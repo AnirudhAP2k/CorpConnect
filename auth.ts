@@ -60,7 +60,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 if (!user.id) return token;
 
                 const refreshToken = await generateRefreshToken(user.id);
-                token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
                 token.refreshToken = refreshToken.token;
                 token.sub = user.id;
 
@@ -71,7 +70,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 return token;
             }
 
-            if (Date.now() < (token.accessTokenExpires as number)) {
+            if (Date.now() < (token.exp as number) * 1000) {
                 return token;
             }
 
@@ -84,8 +83,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 }
 
                 const rotatedToken = await rotateRefreshToken(token.refreshToken as string);
-
-                token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
                 token.refreshToken = rotatedToken.token;
 
                 token.role = rotatedToken.user.role;
