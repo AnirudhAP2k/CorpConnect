@@ -55,7 +55,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
 
         async jwt({ token, user, trigger }) {
-            // 1. Initial Sign In
+
             if (trigger === "signIn" && user) {
                 if (!user.id) return token;
 
@@ -77,7 +77,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
             try {
                 if (!token.refreshToken) {
-                    throw new Error("Missing refresh token");
+                    return {
+                        ...token,
+                        error: "RefreshTokenError"
+                    }
                 }
 
                 const rotatedToken = await rotateRefreshToken(token.refreshToken as string);
@@ -85,7 +88,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 token.accessTokenExpires = Date.now() + 15 * 60 * 1000;
                 token.refreshToken = rotatedToken.token;
 
-                // User data is included in the rotated token — no extra DB call needed!
                 token.role = rotatedToken.user.role;
                 token.isAppAdmin = rotatedToken.user.isAppAdmin;
                 token.activeOrganizationId = rotatedToken.user.activeOrganizationId;
