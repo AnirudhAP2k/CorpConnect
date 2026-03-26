@@ -7,7 +7,7 @@ import OrganizationSwitcher from '@/components/shared/OrganizationSwitcher'
 import { prisma } from '@/lib/db'
 import MobileSidebar from '@/components/shared/MobileSidebar'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
-import { logout } from '@/data/logout'
+import { logout } from '@/actions/logout.actions'
 
 const TopHeader = async () => {
     const session = await auth();

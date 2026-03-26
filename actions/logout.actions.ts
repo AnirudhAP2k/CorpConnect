@@ -1,3 +1,9 @@
+/**
+ * Logout action
+ * Revoke refresh token
+ * Delete refresh token cookie
+ * Sign out
+ */
 "use server";
 
 import { signOut } from "@/auth";
