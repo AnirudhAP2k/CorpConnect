@@ -135,7 +135,8 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
                 expiresAt,
                 userAgent,
                 ip,
-            }
+            },
+            include: { user: true }
         })
     ]);
 
