@@ -22,27 +22,33 @@ export default auth(async (req) => {
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthRoutes);
   const isApiRoute = nextUrl.pathname.startsWith(apiRoutes);
 
-  // ── Hybrid Mobile Auth ────────────────────────────────────────────────────
-  // If the request is an API call carrying a valid Bearer token, bypass all
-  // cookie-session checks and let the request through. The individual route
-  // handler is responsible for calling requireMobileAuth() to validate the
-  // token and extract the userId.
-  if (isApiRoute && !isApiAuthRoute) {
-    const mobilePaylod = await verifyMobileAccessToken(req);
-    if (mobilePaylod) return;
-  }
-
-  // ─────────────────────────────────────────────────────────────────────────
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-  const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
-  const isProtectedRoute = protectedRoutes.includes(nextUrl.pathname);
-  const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
-  const isOrganizationRoute = organizationRoutes.includes(nextUrl.pathname);
-
   if (isApiAuthRoute) {
     return;
   }
+
+  // ── Hybrid Mobile Auth ────────────────────────────────────────────────────
+  // If an API call carries a valid Bearer token, bypass all cookie-session
+  // checks and let the request through. The individual route handler is
+  // responsible for calling requireMobileAuth() to validate the token.
+  if (isApiRoute) {
+    const mobilePayload = await verifyMobileAccessToken(req);
+
+    if (mobilePayload) return;
+
+    if (!isLoggedIn) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
+  const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
+  const isOrganizationRoute = organizationRoutes.includes(nextUrl.pathname);
 
   if (isAuthRoute) {
     if (isLoggedIn) {
