@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Users, Building2 } from "lucide-react";
 
 export const metadata = {
-    title: "Industry Groups | Evently",
+    title: "Industry Groups | CorpConnect",
     description: "Connect with organizations in your industry consortiums",
 };
 

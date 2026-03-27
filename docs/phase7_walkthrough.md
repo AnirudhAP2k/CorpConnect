@@ -2,7 +2,7 @@
 
 ## What Was Built
 
-A complete Python/FastAPI AI microservice integrated into the Evently monorepo, with multi-tenant auth, embedding-based recommendations, and semantic search.
+A complete Python/FastAPI AI microservice integrated into the CorpConnect monorepo, with multi-tenant auth, embedding-based recommendations, and semantic search.
 
 ---
 

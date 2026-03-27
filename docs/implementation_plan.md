@@ -1,4 +1,4 @@
-# Evently B2B Platform - Core Features Implementation Plan
+# CorpConnect B2B Platform - Core Features Implementation Plan
 
 Building the foundation for a B2B events and networking platform with organization management, event creation, and participation tracking.
 

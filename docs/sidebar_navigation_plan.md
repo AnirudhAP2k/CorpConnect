@@ -7,7 +7,7 @@ Transition the application layout from a consumer-style top-heavy navbar to a pr
 
 ### 1. Top Header (`components/shared/TopHeader.tsx`)
 A slim, sticky top bar focusing on global context and user actions:
-- **Left**: Evently Logo (clickable to Dashboard) + Mobile Menu Toggle
+- **Left**: CorpConnect Logo (clickable to Dashboard) + Mobile Menu Toggle
 - **Right**: Organization Switcher (Current Context) + User Profile Dropdown (Logout, Profile)
 
 ### 2. Left Sidebar (`components/shared/Sidebar.tsx`)

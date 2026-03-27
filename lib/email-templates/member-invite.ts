@@ -20,9 +20,9 @@ export async function sendMemberInviteEmail(data: MemberInviteEmailData) {
   });
 
   return await sendMail({
-    email: process.env.SENDER_EMAIL || "noreply@evently.com",
+    email: process.env.SENDER_EMAIL || "noreply@corpconnect.com",
     sendTo: recipientEmail,
-    subject: `You've been invited to join ${organizationName} on Evently`,
+    subject: `You've been invited to join ${organizationName} on CorpConnect`,
     html,
     templateType: "MEMBER_INVITE",
     payload: { organizationName, inviterName, role, inviteLink, recipientEmail },
@@ -125,7 +125,7 @@ function getMemberInviteEmailTemplate(data: {
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">Evently</div>
+      <div class="logo">CorpConnect</div>
     </div>
     
     <h1>You've been invited!</h1>
@@ -135,7 +135,7 @@ function getMemberInviteEmailTemplate(data: {
       
       <p>
         <strong>${inviterName}</strong> has invited you to join 
-        <span class="organization-name">${organizationName}</span> on Evently.
+        <span class="organization-name">${organizationName}</span> on CorpConnect.
       </p>
       
       <p>

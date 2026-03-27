@@ -15,7 +15,7 @@ const Footer = () => {
           />
         </Link>
 
-        <p>{new Date().getFullYear()} Evently. All Rights Reserved</p>
+        <p>{new Date().getFullYear()} CorpConnect. All Rights Reserved</p>
       </div>
     </footer>
   )

@@ -44,7 +44,7 @@ export default async function AdminLayout({
                         </div>
                         <div>
                             <p className="font-bold text-sm">Admin Console</p>
-                            <p className="text-xs text-muted-foreground">Evently Platform</p>
+                            <p className="text-xs text-muted-foreground">CorpConnect Platform</p>
                         </div>
                     </div>
                 </div>
