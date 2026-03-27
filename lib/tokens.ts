@@ -4,6 +4,7 @@ import { prisma } from "@/lib/db";
 import { getPasswordResetTokenByEmail } from "@/data/password-reset-token";
 import { getTwoFactorTokenbyEmail } from "@/data/two-factor-token";
 import { hashToken } from "@/lib/utils";
+import { cookies } from "next/headers";
 
 export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 export const GRACE_PERIOD_MS = 60 * 1000;
@@ -120,8 +121,8 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
             }
         }
 
-        // await revokeAllUserTokens(existingToken.userId);
-        // throw new Error("Token reuse detected. All sessions revoked.");
+        await revokeAllUserTokens(existingToken.userId);
+        throw new Error("Token reuse detected. All sessions revoked.");
     }
 
     if (new Date() > existingToken.expiresAt) {
@@ -173,5 +174,17 @@ export async function revokeAllUserTokens(userId: string) {
             revokedAt: null
         },
         data: { revokedAt: new Date() }
+    });
+}
+
+export const storeRefreshToken = async (token: string) => {
+    let cookieStore = await cookies();
+
+    cookieStore.set("refresh_token", token, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "strict",
+        maxAge: 60 * 60 * 24 * REFRESH_TOKEN_EXPIRY_DAYS,
+        path: "/",
     });
 }
