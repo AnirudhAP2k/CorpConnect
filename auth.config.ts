@@ -6,6 +6,7 @@ import { LoginSchema } from "@/lib/validation";
 import { getUserByEmail } from "@/data/user";
 import bcrypt from "bcryptjs";
 import { mapTokenToSession } from "@/auth.session";
+import { JWT_MAX_AGE_SECONDS } from "@/constants";
 
 export default {
     providers: [
@@ -43,6 +44,9 @@ export default {
             }
         }),
     ],
+    session: {
+        maxAge: JWT_MAX_AGE_SECONDS,
+    },
     callbacks: {
         async session({ session, token }) {
             return mapTokenToSession(session, token);
