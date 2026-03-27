@@ -15,6 +15,8 @@ import {
 
 const { auth } = NextAuth(authConfig);
 
+const SESSION_REFRESH_PATH = "/api/auth/session-refresh";
+
 export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
@@ -58,13 +60,23 @@ export default auth(async (req) => {
   }
 
   if (!isPublicRoute && !isLoggedIn) {
-    return Response.redirect(new URL('/login', nextUrl));
+    const refreshToken = req.cookies.get("refresh_token")?.value;
+
+    if (refreshToken) {
+      const returnTo = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+
+      return Response.redirect(
+        new URL(`${SESSION_REFRESH_PATH}?returnTo=${returnTo}`, nextUrl)
+      );
+    }
+
+    return Response.redirect(new URL("/login", nextUrl));
   }
 
   if (isAdminRoute && isLoggedIn && req.auth?.user) {
     const isAppAdmin = req.auth.user.isAppAdmin;
     if (!isAppAdmin) {
-      return Response.redirect(new URL('/dashboard', nextUrl));
+      return Response.redirect(new URL("/dashboard", nextUrl));
     }
   }
 
@@ -72,7 +84,7 @@ export default auth(async (req) => {
     const user = req.auth.user;
 
     if (user && user.hasCompletedOnboarding) {
-      return Response.redirect(new URL('/dashboard', nextUrl));
+      return Response.redirect(new URL("/dashboard", nextUrl));
     }
   }
 
@@ -80,7 +92,7 @@ export default auth(async (req) => {
     const user = req.auth.user;
 
     if (user && !user.hasCompletedOnboarding) {
-      return Response.redirect(new URL('/onboarding', nextUrl));
+      return Response.redirect(new URL("/onboarding", nextUrl));
     }
   }
 
