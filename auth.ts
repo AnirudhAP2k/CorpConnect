@@ -5,7 +5,10 @@ import authConfig from "@/auth.config";
 import { getUserById } from "./data/user";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
 import { mapTokenToSession } from "@/auth.session";
-import { generateRefreshToken, rotateRefreshToken, revokeToken } from "@/lib/tokens";
+import { generateRefreshToken, revokeToken } from "@/lib/tokens";
+import { storeRefreshToken } from "@/lib/tokens";
+import { cookies } from "next/headers";
+import { JWT_MAX_AGE_SECONDS } from "@/constants";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -18,14 +21,18 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     session: {
         strategy: "jwt",
-        maxAge: 15 * 60, // 15 Minute Access Token
+        maxAge: JWT_MAX_AGE_SECONDS,
     },
 
     events: {
         async signOut(message) {
-            if ("token" in message && message.token?.refreshToken) {
+            let cookieStore = await cookies();
+            let refreshToken = cookieStore.get("refresh_token")?.value || null;
+
+            if (refreshToken) {
                 try {
-                    await revokeToken(message.token.refreshToken as string);
+                    await revokeToken(refreshToken);
+                    cookieStore.delete("refresh_token");
                 } catch (e) {
                     console.error("Refresh token error:", e);
                 }
@@ -55,57 +62,23 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         },
 
         async jwt({ token, user, trigger }) {
-
             if (trigger === "signIn" && user) {
                 if (!user.id) return token;
 
                 const refreshToken = await generateRefreshToken(user.id);
-                token.refreshToken = refreshToken.token;
-                token.sub = user.id;
+                await storeRefreshToken(refreshToken.token);
 
+                token.sub = user.id;
                 token.role = user.role;
                 token.isAppAdmin = user.isAppAdmin;
                 token.activeOrganizationId = user.activeOrganizationId;
                 token.hasCompletedOnboarding = user.hasCompletedOnboarding;
-                return token;
             }
 
-            if (Date.now() < (token.exp as number) * 1000) {
-                return token;
-            }
-
-            try {
-                if (!token.refreshToken) {
-                    return {
-                        ...token,
-                        error: "RefreshTokenError"
-                    }
-                }
-
-                const rotatedToken = await rotateRefreshToken(token.refreshToken as string);
-                token.refreshToken = rotatedToken.token;
-
-                token.role = rotatedToken.user.role;
-                token.isAppAdmin = rotatedToken.user.isAppAdmin;
-                token.activeOrganizationId = rotatedToken.user.activeOrganizationId;
-                token.hasCompletedOnboarding = rotatedToken.user.hasCompletedOnboarding;
-
-                return token;
-
-            } catch (error) {
-                console.error("Refresh token error:", error);
-
-                return {
-                    ...token,
-                    error: "RefreshTokenError"
-                };
-            }
+            return token;
         },
 
         async session({ session, token }) {
-            if (token.error) {
-                session.error = token.error;
-            }
             return mapTokenToSession(session, token);
         },
     },
