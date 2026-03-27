@@ -35,6 +35,7 @@ model User {
   organization             Organization?          @relation("UserOrganization", fields: [organizationId], references: [id])
   createdIndustryGroups    IndustryGroup[]
   groupPosts               GroupPost[]
+  refreshTokens            RefreshToken[]
 }
 
 model Account {
@@ -55,6 +56,24 @@ model Account {
   user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+}
+
+model RefreshToken {
+  id          String    @id @default(uuid()) @db.Uuid
+  token       String    @unique
+  userId      String    @db.Uuid
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  replacedBy  String?
+  userAgent   String?
+  ip          String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([token])
 }
 
 model VerificationToken {

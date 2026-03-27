@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from 'clsx'
 import { twMerge } from 'tailwind-merge'
 import qs from 'query-string'
 import { UrlQueryParams, RemoveUrlQueryParams } from '@/lib/types'
+import crypto from "crypto";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -111,4 +112,8 @@ export function formUrlQuery({ params, key, value }: UrlQueryParams) {
 export function isUUID(value: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(value);
+}
+
+export function hashToken(token: string) {
+  return crypto.createHash("sha256").update(token).digest("hex");
 }
