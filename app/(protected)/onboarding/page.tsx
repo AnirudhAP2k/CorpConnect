@@ -11,8 +11,9 @@ const OnboardingPage = async () => {
         redirect("/login");
     }
 
-    // If user has already completed onboarding, redirect to dashboard
-    // This will be checked by middleware, but double-check here
+    if (session.user.hasCompletedOnboarding) {
+        redirect("/dashboard");
+    }
 
     const industries = await getAllIndustries();
 

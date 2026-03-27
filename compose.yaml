@@ -27,6 +27,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      redis:
+        condition: service_started
   db:
     image: postgres:16
     restart: always
@@ -44,8 +46,17 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+  redis:
+    image: redis:7-alpine
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 volumes:
   db-data:
+  redis_data:
+
 # secrets:
 #   db-password:
 #     file: db_credentials.txt
