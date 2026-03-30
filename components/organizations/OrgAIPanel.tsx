@@ -44,7 +44,7 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
         setResults(null);
 
         try {
-            const apiCall = await useAIFeature(orgId, feature, query);
+            const apiCall = await useAIFeature({ orgId, feature, query });
 
             if (apiCall && !apiCall.success) {
                 toast.error(apiCall.error || "Failed to contact AI service.");
@@ -69,8 +69,8 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
                     <div>
                         <CardTitle className="text-base font-semibold">AI-Powered Insights Active</CardTitle>
                         <CardDescription>
-                            {hasCredentials 
-                                ? `Tier: ${tier} | Usage: ${usageCount}/${usageLimit} calls` 
+                            {hasCredentials
+                                ? `Tier: ${tier} | Usage: ${usageCount}/${usageLimit} calls`
                                 : "API Credentials required to access these features."}
                         </CardDescription>
                     </div>
@@ -80,20 +80,20 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
                 </Badge>
             </CardHeader>
             <CardContent className="pt-6 space-y-6">
-                
+
                 {/* Search Feature */}
                 <div className="space-y-3">
                     <h4 className="text-sm font-medium flex items-center gap-2"><Search className="h-4 w-4" /> Semantic Search</h4>
                     <div className="flex items-center gap-2">
-                        <Input 
-                            placeholder="Find events about AI, Web3, etc..." 
-                            value={query} 
-                            onChange={(e) => setQuery(e.target.value)} 
+                        <Input
+                            placeholder="Find events about AI, Web3, etc..."
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
                             className="bg-background"
                             disabled={isLoading || !hasCredentials || usageCount >= usageLimit}
                         />
-                        <Button 
-                            onClick={() => handleAIFeature("search")} 
+                        <Button
+                            onClick={() => handleAIFeature("search")}
                             disabled={isLoading || !hasCredentials || usageCount >= usageLimit}
                             variant="default"
                             size="sm"
@@ -108,16 +108,16 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
                     <div className="space-y-3 flex-1">
                         <h4 className="text-sm font-medium flex items-center gap-2"><Lightbulb className="h-4 w-4" /> Recommendations</h4>
                         <div className="flex flex-col gap-2">
-                            <Button 
-                                onClick={() => handleAIFeature("recommendEvents")} 
+                            <Button
+                                onClick={() => handleAIFeature("recommendEvents")}
                                 disabled={isLoading || !hasCredentials || usageCount >= usageLimit}
                                 variant="outline"
                                 className="w-full justify-start text-xs sm:text-sm"
                             >
                                 Get Recommended Events
                             </Button>
-                            <Button 
-                                onClick={() => handleAIFeature("recommendOrgs")} 
+                            <Button
+                                onClick={() => handleAIFeature("recommendOrgs")}
                                 disabled={isLoading || !hasCredentials || usageCount >= usageLimit}
                                 variant="outline"
                                 className="w-full justify-start text-xs sm:text-sm gap-2"

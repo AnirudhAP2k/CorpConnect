@@ -58,7 +58,6 @@ export const sidebarLinks = [
     }
 ];
 
-
 export const eventDefaultValues = {
     title: "",
     description: "",
@@ -85,3 +84,12 @@ export const emailFooter = `<div class="footer">
       <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
       <p style="font-size:12px;color:#999;">This is an automated email. Please do not reply to this message.</p>
     </div>`
+
+export const SESSION_COOKIE_NAME =
+    process.env.NODE_ENV === "production"
+        ? "__Secure-authjs.session-token"
+        : "authjs.session-token";
+
+export const JWT_MAX_AGE_SECONDS = 15 * 60;
+
+export const JWT_REFRESH_EARLY_MS = 2 * 60 * 1000;
