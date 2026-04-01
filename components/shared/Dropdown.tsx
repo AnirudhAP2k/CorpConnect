@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Input } from '../ui/input';
 import { createOption, getAllOptions } from '@/actions/category.actions';
-import { OptionsTypes } from '@/constants';
+import { OptionsTypes } from '@/lib/types';
 
 interface DropdownProps {
     value: string

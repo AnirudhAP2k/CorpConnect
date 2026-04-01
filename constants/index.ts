@@ -68,14 +68,6 @@ export const eventDefaultValues = {
     categoryId: "",
 }
 
-export interface OptionsTypes {
-    title: string;
-    id: string;
-    createdAt: Date;
-    updatedAt: Date;
-    label: string;
-}
-
 export const tokenVerificationBaseLink = `${process.env.NEXTAUTH_URL}/verify-token?token=`
 
 export const passwordResetTokenBaseLink = `${process.env.NEXTAUTH_URL}/new-password?token=`
