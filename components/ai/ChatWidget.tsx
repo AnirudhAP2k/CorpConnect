@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { sendChatMessage, getChatHistory, getExistingSession } from "@/lib/actions/chat";
+import { sendChatMessage, getChatHistory, getExistingSession } from "@/actions/ai.actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
