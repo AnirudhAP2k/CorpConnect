@@ -37,6 +37,7 @@ model User {
   groupPosts               GroupPost[]
   refreshTokens            RefreshToken[]
   chatSessions             ChatSession[]
+  feedbacks                EventFeedback[]
 }
 
 model Account {
@@ -149,6 +150,7 @@ model Events {
   orgInteractions     OrgInteraction[]
   industryGroupEvents IndustryGroupEvent[]
   embedding           Unsupported("vector(1536)")?
+  feedbacks           EventFeedback[]
 
   @@index([organizationId])
   @@index([categoryId])
@@ -521,6 +523,28 @@ model ChatMessage {
   @@index([sessionId, createdAt])
 }
 
+model EventFeedback {
+  id             String             @id @default(uuid()) @db.Uuid
+  eventId        String             @db.Uuid
+  userId         String             @db.Uuid
+  rating         Int // 1–5 star rating
+  feedbackText   String? // Optional free-text comment
+  sentiment      FeedbackSentiment? // Filled async after LLM analysis
+  sentimentScore Float? // -1.0 (very negative) → +1.0 (very positive)
+  themes         String[]           @default([]) // e.g. ["Networking", "Content"]
+  aiSummary      String? // 1-sentence LLM distillation
+  analysedAt     DateTime?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  event          Events             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user           User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([eventId, userId]) // one feedback per attendee per event
+  @@index([eventId])
+  @@index([userId])
+  @@index([eventId, sentiment])
+}
+
 model EmailLog {
   id           String         @id @default(uuid()) @db.Uuid
   fromAddress  String
@@ -602,6 +626,12 @@ enum ChatContextType {
 enum ChatRole {
   USER
   ASSISTANT
+}
+
+enum FeedbackSentiment {
+  POSITIVE
+  NEUTRAL
+  NEGATIVE
 }
 
 enum JobType {
