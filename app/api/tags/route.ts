@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTagSuggestions } from "@/data/analytics";
 import { prisma } from "@/lib/db";
 
-// GET /api/tags?q=query — autocomplete tag search
 export const GET = async (req: NextRequest) => {
     const { searchParams } = new URL(req.url);
     const q = searchParams.get("q") ?? "";
@@ -12,7 +11,6 @@ export const GET = async (req: NextRequest) => {
     return NextResponse.json(tags);
 };
 
-// POST /api/tags — create a new tag (authenticated)
 export const POST = async (req: NextRequest) => {
     const session = await auth();
     if (!session?.user?.id) {
