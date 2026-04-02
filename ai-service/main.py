@@ -17,10 +17,14 @@ from app.embeddings import load_model
 from app.cache import init_cache
 from app.llm import is_llm_configured
 from app.routers import embed, recommend, search, ingest, generate, chat
+from app.logging_config import setup_logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
+    # Initialize logging first to capture all following startup events
+    setup_logging()
+
     # Initialise DB connection pool, load embedding model, and init cache on startup
     await init_db_pool()
     await init_cache()
