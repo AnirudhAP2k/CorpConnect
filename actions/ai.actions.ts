@@ -49,7 +49,6 @@ export async function useAIFeature({ orgId, feature, query }: AIFeature) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 
-    // Verify user is member
     const member = await prisma.organizationMember.findUnique({
         where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
     });
@@ -115,8 +114,6 @@ async function verifyAccess(
 
         if (event.visibility === "PUBLIC") return { allowed: true, orgId: event.organizationId ?? undefined };
 
-
-        // Private/InviteOnly — must be an org member
         const member = await prisma.organizationMember.findUnique({
             where: { userId_organizationId: { userId, organizationId: event.organizationId ?? "" } },
         });
@@ -124,7 +121,6 @@ async function verifyAccess(
 
     }
 
-    // ORGANIZATION context
     const member = await prisma.organizationMember.findUnique({
         where: { userId_organizationId: { userId, organizationId: contextId } },
     });
@@ -160,7 +156,6 @@ export async function sendChatMessage(
 
     return { success: true, data: result };
 }
-
 
 export async function getChatHistory(
     sessionId: string,
