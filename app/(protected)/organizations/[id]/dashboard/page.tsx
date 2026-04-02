@@ -19,6 +19,7 @@ import OrgConnectionsPanel from "@/components/organizations/OrgConnectionsPanel"
 import { prisma } from "@/lib/db";
 import OrgAIPanel from "@/components/organizations/OrgAIPanel";
 import { ChatWidget } from "@/components/ai/ChatWidget";
+import { SentimentPanel } from "@/components/feedback/SentimentPanel";
 
 interface OrgDashboardPageProps {
     params: Promise<{ id: string }>;
@@ -302,6 +303,9 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                         usageLimit={apiCredential?.usageLimit || 100}
                         tier={apiCredential?.tier || "FREE"}
                     />
+
+                    {/* Sentiment & Feedback Intelligence Panel */}
+                    <SentimentPanel orgId={orgId} />
 
                     {/* Org Connections Panel */}
                     <OrgConnectionsPanel
