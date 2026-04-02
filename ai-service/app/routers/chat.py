@@ -31,6 +31,7 @@ from app.embeddings import encode
 from app.llm import is_llm_configured, get_llm_client
 from app.config import settings
 from app.middleware.auth import require_master_jwt
+from datetime import timezone
 
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(require_master_jwt)])
@@ -179,8 +180,6 @@ async def _fetch_event_entity_context(pool, event_id: str) -> str:
         )
     if not event:
         return "Event details not available."
-
-    from datetime import timezone
 
     def fmt_dt(dt):
         if dt is None:
@@ -510,7 +509,7 @@ CONTEXT DOCUMENTS:
     await _persist_messages(pool, session_id, body.message, reply)
 
     logger.info(
-        "💬 Chat response for session=%s context=%s/%s | entity=%s rag_docs=%d similar=%d",
+        "Chat response for session=%s context=%s/%s | entity=%s rag_docs=%d similar=%d",
         session_id[:8], body.contextType, body.contextId[:8],
         "yes", len(all_rag_docs), len(similar_events) if isinstance(similar_events, list) else 0,
     )
