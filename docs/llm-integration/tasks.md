@@ -55,17 +55,24 @@ This document outlines the stepwise implementation of the Large Language Model (
 ## Phase 4: Sentiment Analysis & Feedback Loop
 *Goal: Provide actionable insights to organizers.*
 
-- [ ] **Database: Feedback Schema**
-    - [ ] Update `prisma/schema.prisma` with `EventFeedback` model.
-    - [ ] Add `ANALYSE_FEEDBACK_SENTIMENT` to `JobType`.
-- [ ] **AI Service: Analysis Router**
-    - [ ] Implement `app/routers/analyse.py` for sentiment extraction.
-- [ ] **Next.js: Feedback System**
-    - [ ] Create `lib/actions/feedback.ts`.
-    - [ ] Update job runner to handle asynchronous sentiment analysis tasks.
-- [ ] **Frontend: Reporting UI**
-    - [ ] Build `FeedbackForm` for attendees.
-    - [ ] Create `SentimentPanel` charts for the Organization Dashboard.
+- [x] **Database: Feedback Schema**
+    - [x] Update `prisma/schema.prisma` with `EventFeedback` model + `FeedbackSentiment` enum.
+    - [x] `ANALYSE_FEEDBACK_SENTIMENT` already existed in `JobType` — confirmed ✅
+    - [x] Ran `npx prisma db push` — table created, Prisma Client regenerated.
+- [x] **AI Service: Analysis Router**
+    - [x] Implemented `app/routers/analyse.py` — few-shot LLM prompt, structured JSON output, rating-based fallback.
+    - [x] Registered `/analyse` router in `main.py`.
+- [x] **Next.js: Feedback System**
+    - [x] Extended `lib/ai-service.ts` with `AISentimentRequest`, `AISentimentResult` types + `analyseSentiment()` method.
+    - [x] Created `lib/jobs/sentiment-analysis.ts` — job handler with idempotency guard.
+    - [x] Updated `lib/jobs/job-processor.ts` — added `ANALYSE_FEEDBACK_SENTIMENT` case.
+    - [x] Created `lib/actions/feedback.ts` — `submitFeedback`, `getUserFeedback`, `getEventFeedbackSummary`, `getOrgFeedbackSummary` server actions (auth + participation gated).
+- [x] **Frontend: Reporting UI**
+    - [x] Built `components/feedback/FeedbackForm.tsx` — star picker, text area, char counter, thank-you state.
+    - [x] Built `components/feedback/FeedbackButton.tsx` — Sheet trigger wrapping FeedbackForm.
+    - [x] Built `components/feedback/SentimentPanel.tsx` — recharts donut + bar charts, theme badges, recent comments.
+    - [x] Embedded `FeedbackButton` on Event detail page (registered, non-cancelled attendees only).
+    - [x] Embedded `SentimentPanel` on Org Dashboard (between OrgAIPanel and OrgConnectionsPanel).
 
 ## Phase 5: Agentic Workflows with n8n
 *Goal: Empower users with autonomous automations.*
@@ -84,8 +91,8 @@ This document outlines the stepwise implementation of the Large Language Model (
     - [ ] Implement rule management (Create/Toggle/Test).
 
 ## Progress Summary
-- **Phase 1:** 🟦 0/5
-- **Phase 2:** 🟦 0/3
-- **Phase 3:** 🟦 0/4
-- **Phase 4:** 🟦 0/4
-- **Phase 5:** 🟦 0/4
+- **Phase 1:** ✅ Complete
+- **Phase 2:** ✅ Complete
+- **Phase 3:** ✅ Complete
+- **Phase 4:** ✅ Complete
+- **Phase 5:** 🟦 Not started
