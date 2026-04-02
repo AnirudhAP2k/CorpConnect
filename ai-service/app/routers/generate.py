@@ -21,7 +21,7 @@ from app.database import get_pool
 from app.embeddings import encode
 from app.llm import generate, is_llm_configured
 from app.middleware.auth import require_master_jwt
-
+import json
 import hashlib
 
 logger = logging.getLogger(__name__)
@@ -137,7 +137,7 @@ async def generate_event_description(body: GenerateDescriptionRequest):
     
     cached = await cache.get(cache_key)
     if cached:
-        logger.info("⚡ Returning cached event description for org=%s", body.orgId)
+        logger.info("Returning cached event description for org=%s", body.orgId)
         return GenerateDescriptionResponse(**cached)
 
     # Embed the rough draft for RAG retrieval
@@ -190,8 +190,6 @@ CONTEXT:
 
     # Parse suggestions safely
     try:
-        import json
-        # Find the JSON array in the response
         start = suggestions_raw.find("[")
         end = suggestions_raw.rfind("]") + 1
         suggestions: list[str] = json.loads(suggestions_raw[start:end]) if start >= 0 else []
@@ -199,7 +197,7 @@ CONTEXT:
         suggestions = []
 
     logger.info(
-        "✍️  Generated event description for org=%s | %d source docs used",
+        "Generated event description for org=%s | %d source docs used",
         body.orgId, len(all_docs),
     )
 
@@ -229,7 +227,7 @@ async def generate_matchmaking_reason(body: MatchmakingReasonRequest):
     cache_key = cache.matchmaking_reason_key(body.sourceOrgId, body.targetOrgId)
     cached = await cache.get(cache_key)
     if cached:
-        logger.info("⚡ Returning cached match reason for %s -> %s", body.sourceOrgId, body.targetOrgId)
+        logger.info("Returning cached match reason for %s -> %s", body.sourceOrgId, body.targetOrgId)
         return MatchmakingReasonResponse(**cached)
 
     if not is_llm_configured():
@@ -284,7 +282,6 @@ Then on a new line write the JSON array of shared themes."""
     reason = response_text
     shared_themes: list[str] = []
     try:
-        import json
         start = response_text.rfind("[")
         end = response_text.rfind("]") + 1
         if start >= 0:
@@ -294,7 +291,7 @@ Then on a new line write the JSON array of shared themes."""
         pass
 
     logger.info(
-        "🤝 Matchmaking reason generated for %s ↔ %s (score=%.2f)",
+        "Matchmaking reason generated for %s ↔ %s (score=%.2f)",
         source_name, target_name, body.score,
     )
 
