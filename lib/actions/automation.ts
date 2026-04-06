@@ -2,17 +2,10 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export type AutomationTriggerType =
-    | "EVENT_REGISTRATION"
-    | "EVENT_CANCELLED"
-    | "FEEDBACK_RECEIVED"
-    | "CONNECTION_ACCEPTED"
-    | "MEETING_SCHEDULED"
-    | "NEW_MEMBER_JOINED";
+import { CreateRuleSchema } from "@/lib/validation";
+import { AutomationTriggerType } from "@/lib/types";
 
 export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "New Event Registration",
@@ -36,27 +29,14 @@ export interface AutomationRuleData {
     createdAt: string;
 }
 
-// ─── Validation ───────────────────────────────────────────────────────────────
-
-const CreateRuleSchema = z.object({
-    name: z.string().min(2).max(80),
-    description: z.string().max(300).optional(),
-    trigger: z.enum([
-        "EVENT_REGISTRATION", "EVENT_CANCELLED", "FEEDBACK_RECEIVED",
-        "CONNECTION_ACCEPTED", "MEETING_SCHEDULED", "NEW_MEMBER_JOINED",
-    ]),
-    webhookUrl: z.string().url().startsWith("https://", { message: "Webhook URL must start with https://" }),
-    filterJson: z.record(z.unknown()).optional(),
-});
-
 // ─── Auth guard helper ────────────────────────────────────────────────────────
 
 async function verifyOrgAdmin(orgId: string, userId: string) {
-    const m = await prisma.organizationMember.findUnique({
+    const member = await prisma.organizationMember.findUnique({
         where: { userId_organizationId: { userId, organizationId: orgId } },
         select: { role: true },
     });
-    return m?.role === "OWNER" || m?.role === "ADMIN";
+    return member?.role === "OWNER" || member?.role === "ADMIN";
 }
 
 // ─── Actions ──────────────────────────────────────────────────────────────────
@@ -84,7 +64,7 @@ export async function createAutomationRule(
             description: parsed.data.description ?? null,
             trigger: parsed.data.trigger,
             webhookUrl: parsed.data.webhookUrl,
-            filterJson: parsed.data.filterJson ?? null,
+            filterJson: (parsed.data.filterJson as Prisma.InputJsonValue) ?? undefined,
         },
     });
 
@@ -198,7 +178,7 @@ export async function testAutomationRule(
                 trigger: rule.trigger,
                 orgId: rule.organizationId,
                 contextData: { test: true, triggeredBy: session.user.id },
-            },
+            } as Prisma.InputJsonValue,
         },
     });
 
