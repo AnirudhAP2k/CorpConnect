@@ -4,6 +4,7 @@ import { processConnectionNotification } from "@/lib/jobs/connection-notificatio
 import { processMeetingNotification } from "@/lib/jobs/meeting-notification";
 import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
 import { processEmbedEvent, processEmbedOrg } from "@/lib/jobs/embed-generation";
+import { processSentimentAnalysis } from "@/lib/jobs/sentiment-analysis";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -204,6 +205,10 @@ async function processJob(job: any) {
 
         case "EMBED_ORG":
             await processEmbedOrg(payload);
+            break;
+
+        case "ANALYSE_FEEDBACK_SENTIMENT":
+            await processSentimentAnalysis(payload as { feedbackId: string });
             break;
 
         default:

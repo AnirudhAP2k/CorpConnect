@@ -91,6 +91,20 @@ export interface AIChatHistoryMessage {
     createdAt: string;
 }
 
+export interface AISentimentRequest {
+    feedbackId: string;
+    feedbackText: string | null;
+    rating: number;          // 1–5
+}
+
+export interface AISentimentResult {
+    feedbackId: string;
+    sentiment: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+    sentimentScore: number;        // -1.0 to +1.0
+    themes: string[];
+    summary: string;
+}
+
 /** Generate a short-lived master JWT for internal service-to-service calls. */
 export async function getMasterJwt(): Promise<string> {
     const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
@@ -294,6 +308,24 @@ export const aiService = {
             return res.data;
         } catch {
             return [];
+        }
+    },
+
+    /**
+     * Analyse the sentiment of event feedback via the LLM.
+     * The endpoint always returns a result (falls back to rating-based heuristic
+     * if the LLM is unavailable). Returns null only on network failure.
+     */
+    async analyseSentiment(req: AISentimentRequest): Promise<AISentimentResult | null> {
+        try {
+            const res = await axios.post<AISentimentResult>(
+                `${AI_SERVICE_URL}/analyse/sentiment`,
+                req,
+                { headers: await authHeaders(), timeout: 15000 },
+            );
+            return res.data;
+        } catch {
+            return null;
         }
     },
 };

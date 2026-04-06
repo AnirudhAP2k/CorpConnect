@@ -17,6 +17,8 @@ import MeetingRequestsPanel from "@/components/events/MeetingRequestsPanel";
 import { getMatchingOrgsForEvent } from "@/data/events";
 import type { MeetingStatus } from "@/lib/types";
 import { ChatWidget } from "@/components/ai/ChatWidget";
+import { FeedbackButton } from "@/components/feedback/FeedbackButton";
+import { getUserFeedback } from "@/lib/actions/feedback";
 
 interface EventDetailPageProps {
     params: Promise<{
@@ -105,12 +107,20 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
 
     // Matchmaking & meeting requests (only if user is registered with an active org)
     const isRegistered = !!userParticipation;
-    const [matchedOrgs, existingMeetingRequests] = (isRegistered && activeOrgId)
+    const participationStatus = userParticipation?.status;
+    const canLeaveFeedback = isRegistered && participationStatus !== "CANCELLED";
+
+    const [matchedOrgs, existingMeetingRequests, existingFeedback] = (isRegistered && activeOrgId)
         ? await Promise.all([
             getMatchingOrgsForEvent(id, activeOrgId),
             getMeetingRequestsForEvent(id, activeOrgId),
+            canLeaveFeedback ? getUserFeedback(id) : Promise.resolve(null),
         ])
-        : [[], []];
+        : [
+            [],
+            [],
+            canLeaveFeedback ? await getUserFeedback(id) : null,
+        ];
 
     // Build meetingStatusMap for OrgMatchWidget
     const meetingStatusMap: Record<string, { status: MeetingStatus; requestId?: string }> = {};
@@ -305,6 +315,14 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                             eventId={event.id}
                                             eventTitle={event.title}
                                         />
+                                        {/* Feedback button — only for non-cancelled participants */}
+                                        {canLeaveFeedback && (
+                                            <FeedbackButton
+                                                eventId={event.id}
+                                                eventTitle={event.title}
+                                                existing={existingFeedback}
+                                            />
+                                        )}
                                     </div>
                                 ) : isHost ? (
                                     <div className="space-y-2">
