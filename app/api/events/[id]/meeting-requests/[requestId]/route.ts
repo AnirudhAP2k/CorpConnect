@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 /**
  * PATCH /api/events/[id]/meeting-requests/[requestId]
@@ -85,7 +86,6 @@ export const PATCH = async (
         },
     });
 
-    // Fire-and-forget notification job
     const notifTypeMap: Record<string, string> = {
         ACCEPT: "MEETING_ACCEPTED",
         DECLINE: "MEETING_DECLINED",
@@ -97,6 +97,16 @@ export const PATCH = async (
             payload: { type: notifTypeMap[action], meetingRequestId: requestId },
         },
     }).catch(() => { });
+
+    if (action === "ACCEPT") {
+        const ctx = {
+            meetingRequestId: requestId,
+            senderOrgId: meetingRequest.senderOrgId,
+            receiverOrgId: meetingRequest.receiverOrgId,
+        };
+        enqueueMatchingRules("MEETING_SCHEDULED", meetingRequest.senderOrgId, ctx).catch(() => { });
+        enqueueMatchingRules("MEETING_SCHEDULED", meetingRequest.receiverOrgId, ctx).catch(() => { });
+    }
 
     return NextResponse.json({ meetingRequest: updated, message: `Meeting request ${statusMap[action].toLowerCase()}` });
 };
