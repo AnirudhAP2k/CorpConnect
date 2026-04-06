@@ -77,12 +77,31 @@ This document outlines the stepwise implementation of the Large Language Model (
 ## Phase 5: Agentic Workflows with n8n
 *Goal: Empower users with autonomous automations.*
 
-- [ ] **Infrastructure: Deployment**
-    - [ ] Add `n8n` service to `compose.yaml`.
-    - [ ] Secure communication with HMAC/Secret headers.
-- [ ] **Database: Automation Rules**
-    - [ ] Update `prisma/schema.prisma` with `AutomationRule` model.
-    - [ ] Add `TRIGGER_N8N_WORKFLOW` to `JobType`.
+- [x] **Infrastructure: Deployment**
+    - [x] Added `n8n` service to `compose.yaml` (self-hosted, reuses Postgres under `n8n` schema, basic-auth, persistent volume).
+    - [x] HMAC-SHA256 signing via `N8N_SHARED_SECRET`; separate `N8N_CALLBACK_SECRET` for callback route.
+- [x] **Database: Automation Rules**
+    - [x] Added `AutomationRule` model to `prisma/schema.prisma` with `AutomationTrigger` and `AutomationStatus` enums.
+    - [x] `TRIGGER_N8N_WORKFLOW` was already in `JobType` — confirmed ✅
+    - [x] Ran `npx prisma db push` — table created, Prisma Client regenerated cleanly.
+- [x] **Backend: Job Handler + Trigger System**
+    - [x] Created `lib/jobs/automation.ts` — `enqueueMatchingRules()` helper (fire-and-forget, never throws).
+    - [x] Created `lib/jobs/n8n-trigger.ts` — HMAC signing, 10s timeout, run stats update, re-throw on failure.
+    - [x] Updated `lib/jobs/job-processor.ts` — added `TRIGGER_N8N_WORKFLOW` case.
+    - [x] Created `lib/actions/automation.ts` — `createAutomationRule`, `listAutomationRules`, `toggleAutomationRule`, `deleteAutomationRule`, `testAutomationRule`.
+    - [x] Created `app/api/webhooks/n8n-callback/route.ts` — validates `X-Callback-Secret`, updates `lastRunAt`/`lastRunStatus`.
+- [x] **Trigger Instrumentation (6 points)**
+    - [x] `EVENT_REGISTRATION` — `app/api/events/[id]/participate/route.ts` (POST)
+    - [x] `FEEDBACK_RECEIVED` — `lib/actions/feedback.ts` (`submitFeedback`)
+    - [x] `CONNECTION_ACCEPTED` — `app/api/organizations/[id]/connections/[connectionId]/route.ts` (PATCH)
+    - [x] `MEETING_SCHEDULED` — `app/api/events/[id]/meeting-requests/[requestId]/route.ts` (PATCH)
+    - [x] `NEW_MEMBER_JOINED` — `app/api/invitations/[id]/accept/route.ts` (POST)
+    - [ ] `EVENT_CANCELLED` — deferred (no cancel endpoint currently exists; add when event cancellation is built)
+- [x] **Frontend: Rule Management UI**
+    - [x] Built `components/automation/AutomationRulesPanel.tsx` — rule list with status dots, trigger badges, run stats, hover actions (test/toggle/delete), empty state, toast notifications.
+    - [x] Built `components/automation/AddRuleSheet.tsx` — right-side Sheet with name, trigger dropdown, `https://` webhook URL input, description, live payload preview.
+    - [x] Embedded `AutomationRulesPanel` on Org Dashboard (below SentimentPanel).
+
 - [ ] **Next.js: Orchestration**
     - [ ] Implement `lib/actions/automation.ts`.
     - [ ] Create API route `app/api/webhooks/event-registration/route.ts` as a trigger source.
@@ -95,4 +114,4 @@ This document outlines the stepwise implementation of the Large Language Model (
 - **Phase 2:** ✅ Complete
 - **Phase 3:** ✅ Complete
 - **Phase 4:** ✅ Complete
-- **Phase 5:** 🟦 Not started
+- **Phase 5:** ✅ Complete
