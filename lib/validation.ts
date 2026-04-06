@@ -150,3 +150,14 @@ export const createGroupEventSchema = z.object({
 export const createPostSchema = z.object({
     content: z.string().min(1, "Post cannot be empty").max(1000, "Post is too long"),
 });
+
+export const CreateRuleSchema = z.object({
+    name: z.string().min(2).max(80),
+    description: z.string().max(300).optional(),
+    trigger: z.enum([
+        "EVENT_REGISTRATION", "EVENT_CANCELLED", "FEEDBACK_RECEIVED",
+        "CONNECTION_ACCEPTED", "MEETING_SCHEDULED", "NEW_MEMBER_JOINED",
+    ]),
+    webhookUrl: z.string().url().startsWith("https://", { message: "Webhook URL must start with https://" }),
+    filterJson: z.record(z.unknown()).optional(),
+});
