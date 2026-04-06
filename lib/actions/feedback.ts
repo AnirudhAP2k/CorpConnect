@@ -2,6 +2,7 @@
 
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -85,10 +86,21 @@ export async function submitFeedback(
         });
     }
 
+    const hostEvent = await prisma.events.findUnique({
+        where: { id: eventId },
+        select: { organizationId: true },
+    });
+    if (hostEvent?.organizationId) {
+        enqueueMatchingRules("FEEDBACK_RECEIVED", hostEvent.organizationId, {
+            feedbackId: feedback.id,
+            eventId,
+            userId,
+            rating,
+        }).catch(() => { });
+    }
+
     return { success: true, feedbackId: feedback.id };
 }
-
-// ─── Get User's Own Feedback (for pre-filling the form) ───────────────────────
 
 export async function getUserFeedback(
     eventId: string,
@@ -102,8 +114,6 @@ export async function getUserFeedback(
     });
     return row ?? null;
 }
-
-// ─── Get Feedback Summary for Org Dashboard ───────────────────────────────────
 
 export async function getEventFeedbackSummary(
     eventId: string,
