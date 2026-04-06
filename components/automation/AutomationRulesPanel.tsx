@@ -10,9 +10,9 @@ import {
     toggleAutomationRule,
     deleteAutomationRule,
     testAutomationRule,
-} from "@/lib/actions/automation";
-import type { AutomationRuleData, AutomationTriggerType } from "@/lib/actions/automation";
-import { TRIGGER_LABELS } from "@/lib/actions/automation";
+} from "@/actions/automation.actions";
+import type { AutomationRuleData, AutomationTriggerType } from "@/actions/automation.actions";
+import { TRIGGER_LABELS } from "@/actions/automation.actions";
 import { AddRuleSheet } from "@/components/automation/AddRuleSheet";
 import { formatDistanceToNow } from "date-fns";
 

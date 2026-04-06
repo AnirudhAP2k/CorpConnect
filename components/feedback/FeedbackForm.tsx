@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { Star } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { submitFeedback } from "@/lib/actions/feedback";
+import { submitFeedback } from "@/actions/feedback.actions";
 
 interface FeedbackFormProps {
     eventId: string;
@@ -78,8 +78,8 @@ export function FeedbackForm({ eventId, eventTitle, existing, onSuccess }: Feedb
                         >
                             <Star
                                 className={`w-8 h-8 transition-colors ${star <= (hovered || rating)
-                                        ? "fill-amber-400 text-amber-400"
-                                        : "fill-muted text-muted-foreground"
+                                    ? "fill-amber-400 text-amber-400"
+                                    : "fill-muted text-muted-foreground"
                                     }`}
                             />
                         </button>
