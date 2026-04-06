@@ -11,20 +11,13 @@
  */
 
 import { prisma } from "@/lib/db";
-
-export type AutomationTriggerType =
-    | "EVENT_REGISTRATION"
-    | "EVENT_CANCELLED"
-    | "FEEDBACK_RECEIVED"
-    | "CONNECTION_ACCEPTED"
-    | "MEETING_SCHEDULED"
-    | "NEW_MEMBER_JOINED";
+import { AutomationTriggerType } from "@/lib/types";
 
 export interface N8nJobPayload {
     ruleId: string;
     trigger: AutomationTriggerType;
     orgId: string;
-    contextData: Record<string, unknown>;
+    contextData: Record<string, any>;
 }
 
 /**
@@ -34,7 +27,7 @@ export interface N8nJobPayload {
 export async function enqueueMatchingRules(
     trigger: AutomationTriggerType,
     orgId: string,
-    contextData: Record<string, unknown>,
+    contextData: Record<string, any>,
 ): Promise<void> {
     try {
         const rules = await prisma.automationRule.findMany({
@@ -55,7 +48,6 @@ export async function enqueueMatchingRules(
             `[Automation] ⚡ Enqueued ${rules.length} job(s) for trigger=${trigger} org=${orgId.slice(0, 8)}`
         );
     } catch (err) {
-        // Non-fatal: log but don't break the caller
         console.error("[Automation] Failed to enqueue matching rules:", err);
     }
 }

@@ -194,3 +194,11 @@ export interface OptionsTypes {
   updatedAt: Date;
   label: string;
 }
+
+export type AutomationTriggerType =
+  | "EVENT_REGISTRATION"
+  | "EVENT_CANCELLED"
+  | "FEEDBACK_RECEIVED"
+  | "CONNECTION_ACCEPTED"
+  | "MEETING_SCHEDULED"
+  | "NEW_MEMBER_JOINED";
