@@ -5,6 +5,8 @@ import { processMeetingNotification } from "@/lib/jobs/meeting-notification";
 import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
 import { processEmbedEvent, processEmbedOrg } from "@/lib/jobs/embed-generation";
 import { processSentimentAnalysis } from "@/lib/jobs/sentiment-analysis";
+import { processN8nWorkflow } from "@/lib/jobs/n8n-trigger";
+import type { N8nJobPayload } from "@/lib/jobs/automation";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -209,6 +211,10 @@ async function processJob(job: any) {
 
         case "ANALYSE_FEEDBACK_SENTIMENT":
             await processSentimentAnalysis(payload as { feedbackId: string });
+            break;
+
+        case "TRIGGER_N8N_WORKFLOW":
+            await processN8nWorkflow(payload as N8nJobPayload);
             break;
 
         default:
