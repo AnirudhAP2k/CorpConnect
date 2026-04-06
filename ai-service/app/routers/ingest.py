@@ -22,6 +22,7 @@ from pydantic import BaseModel
 from app.database import get_pool
 from app.embeddings import encode
 from app.middleware.auth import require_master_jwt
+from pypdf import PdfReader
 
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(require_master_jwt)])
@@ -159,7 +160,7 @@ async def ingest_text(body: IngestTextRequest):
         doc_ids.append(doc_id)
 
     logger.info(
-        "📄 Ingested '%s' → %d chunk(s) | org=%s | type=%s",
+        "Ingested '%s' → %d chunk(s) | org=%s | type=%s",
         body.title, len(doc_ids), body.organizationId, body.docType,
     )
     return IngestResponse(chunks_created=len(doc_ids), doc_ids=doc_ids)
@@ -184,14 +185,6 @@ async def ingest_pdf(
         )
     if not file.filename or not file.filename.lower().endswith(".pdf"):
         raise HTTPException(status_code=422, detail="Uploaded file must be a PDF.")
-
-    try:
-        from pypdf import PdfReader
-    except ImportError:
-        raise HTTPException(
-            status_code=500,
-            detail="pypdf is not installed. Add 'pypdf==4.2.0' to requirements.txt.",
-        )
 
     raw_bytes = await file.read()
     reader = PdfReader(io.BytesIO(raw_bytes))
@@ -218,7 +211,7 @@ async def ingest_pdf(
         doc_ids.append(doc_id)
 
     logger.info(
-        "📄 Ingested PDF '%s' → %d chunk(s) | org=%s | type=%s",
+        "Ingested PDF '%s' → %d chunk(s) | org=%s | type=%s",
         title, len(doc_ids), organizationId, docType,
     )
     return IngestResponse(chunks_created=len(doc_ids), doc_ids=doc_ids)

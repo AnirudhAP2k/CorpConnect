@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useAIFeature } from "@/lib/actions/ai";
+import { useAIFeature } from "@/actions/ai.actions";
 
 interface OrgAIPanelProps {
     orgId: string;

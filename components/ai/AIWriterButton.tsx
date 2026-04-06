@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Sparkles, Loader2, ChevronDown, ChevronUp, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { generateEventDescription } from "@/lib/actions/generate";
+import { generateEventDescription } from "@/actions/ai.actions";
 import { AIGeneratedContent } from "@/lib/ai-service";
 
 interface AIWriterButtonProps {

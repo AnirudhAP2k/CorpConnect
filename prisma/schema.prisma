@@ -36,6 +36,7 @@ model User {
   createdIndustryGroups    IndustryGroup[]
   groupPosts               GroupPost[]
   refreshTokens            RefreshToken[]
+  chatSessions             ChatSession[]
 }
 
 model Account {
@@ -59,18 +60,18 @@ model Account {
 }
 
 model RefreshToken {
-  id          String    @id @default(uuid()) @db.Uuid
-  token       String    @unique
-  userId      String    @db.Uuid
-  expiresAt   DateTime
-  revokedAt   DateTime?
-  replacedBy  String?
-  userAgent   String?
-  ip          String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id         String    @id @default(uuid()) @db.Uuid
+  token      String    @unique
+  userId     String    @db.Uuid
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  replacedBy String?
+  userAgent  String?
+  ip         String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([token])
@@ -212,16 +213,16 @@ model Organization {
 // Stores chunked text (company bio, event FAQs, legal docs, etc.) with vector
 // embeddings for retrieval-augmented generation (RAG) across the AI features.
 model OrgDocument {
-  id             String          @id @default(uuid()) @db.Uuid
-  organizationId String?         @db.Uuid       // null = platform-wide doc (e.g. T&Cs)
+  id             String                       @id @default(uuid()) @db.Uuid
+  organizationId String?                      @db.Uuid // null = platform-wide doc (e.g. T&Cs)
   docType        OrgDocumentType
   title          String
-  content        String          // Raw text chunk (≤ 512 tokens)
-  sourceUrl      String?         // Optional link back to the original file
+  content        String // Raw text chunk (≤ 512 tokens)
+  sourceUrl      String? // Optional link back to the original file
   embedding      Unsupported("vector(1536)")?
-  createdAt      DateTime        @default(now())
-  updatedAt      DateTime        @updatedAt
-  organization   Organization?   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime                     @default(now())
+  updatedAt      DateTime                     @updatedAt
+  organization   Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
   @@index([docType])
@@ -430,6 +431,96 @@ model JobQueue {
   @@index([type, status])
 }
 
+model IndustryGroup {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  logo        String? // Optional logo for the group
+  industryId  String   @db.Uuid
+  createdById String   @db.Uuid
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  industry  Industry              @relation(fields: [industryId], references: [id], onDelete: Cascade)
+  createdBy User                  @relation(fields: [createdById], references: [id])
+  members   IndustryGroupMember[]
+  posts     GroupPost[]
+  events    IndustryGroupEvent[]
+
+  @@index([industryId])
+}
+
+model IndustryGroupMember {
+  id             String           @id @default(uuid()) @db.Uuid
+  groupId        String           @db.Uuid
+  organizationId String           @db.Uuid
+  role           OrganizationRole @default(MEMBER) // Uses existing OWNER/ADMIN/MEMBER
+  joinedAt       DateTime         @default(now())
+
+  group        IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, organizationId])
+  @@index([organizationId])
+}
+
+model GroupPost {
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @db.Uuid
+  authorOrgId  String   @db.Uuid
+  authorUserId String   @db.Uuid
+  content      String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  authorOrg  Organization  @relation(fields: [authorOrgId], references: [id], onDelete: Cascade)
+  authorUser User          @relation(fields: [authorUserId], references: [id])
+
+  @@index([groupId])
+}
+
+model IndustryGroupEvent {
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @db.Uuid
+  eventId      String   @db.Uuid
+  addedByOrgId String   @db.Uuid
+  createdAt    DateTime @default(now())
+
+  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  event      Events        @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  addedByOrg Organization  @relation(fields: [addedByOrgId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, eventId])
+  @@index([groupId])
+}
+
+model ChatSession {
+  id          String          @id @default(uuid()) @db.Uuid
+  userId      String          @db.Uuid
+  contextId   String          @db.Uuid
+  contextType ChatContextType
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages    ChatMessage[]
+
+  @@unique([userId, contextId, contextType])
+  @@index([userId])
+  @@index([contextId])
+}
+
+model ChatMessage {
+  id        String      @id @default(uuid()) @db.Uuid
+  sessionId String      @db.Uuid
+  role      ChatRole
+  content   String
+  createdAt DateTime    @default(now())
+  session   ChatSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, createdAt])
+}
+
 model EmailLog {
   id           String         @id @default(uuid()) @db.Uuid
   fromAddress  String
@@ -503,6 +594,16 @@ enum InviteStatus {
   DECLINED
 }
 
+enum ChatContextType {
+  EVENT
+  ORGANIZATION
+}
+
+enum ChatRole {
+  USER
+  ASSISTANT
+}
+
 enum JobType {
   SEND_INVITE_EMAIL
   SEND_NOTIFICATION
@@ -517,10 +618,10 @@ enum JobType {
 }
 
 enum OrgDocumentType {
-  COMPANY_DESCRIPTION   // Organization bio and mission statement
-  EVENT_DESCRIPTION     // Event-specific details and FAQs
-  LEGAL_COMPLIANCE      // Terms, policies, and compliance documents
-  GENERAL               // Any additional reference material
+  COMPANY_DESCRIPTION
+  EVENT_DESCRIPTION
+  LEGAL_COMPLIANCE
+  GENERAL
 }
 
 enum ApiTier {
@@ -547,68 +648,4 @@ enum MeetingRequestStatus {
   ACCEPTED
   DECLINED
   CANCELLED
-}
-
-model IndustryGroup {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  description String?
-  logo        String? // Optional logo for the group
-  industryId  String   @db.Uuid
-  createdById String   @db.Uuid
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  industry  Industry              @relation(fields: [industryId], references: [id], onDelete: Cascade)
-  createdBy User                  @relation(fields: [createdById], references: [id])
-  members   IndustryGroupMember[]
-  posts     GroupPost[]
-  events    IndustryGroupEvent[]
-
-  @@index([industryId])
-}
-
-model IndustryGroupMember {
-  id             String           @id @default(uuid()) @db.Uuid
-  groupId        String           @db.Uuid
-  organizationId String           @db.Uuid
-  role           OrganizationRole @default(MEMBER) // Uses existing OWNER/ADMIN/MEMBER
-  joinedAt       DateTime         @default(now())
-
-  group        IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@unique([groupId, organizationId])
-  @@index([organizationId])
-}
-
-model GroupPost {
-  id           String   @id @default(uuid()) @db.Uuid
-  groupId      String   @db.Uuid
-  authorOrgId  String   @db.Uuid
-  authorUserId String   @db.Uuid
-  content      String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  authorOrg  Organization  @relation(fields: [authorOrgId], references: [id], onDelete: Cascade)
-  authorUser User          @relation(fields: [authorUserId], references: [id])
-
-  @@index([groupId])
-}
-
-model IndustryGroupEvent {
-  id           String   @id @default(uuid()) @db.Uuid
-  groupId      String   @db.Uuid
-  eventId      String   @db.Uuid
-  addedByOrgId String   @db.Uuid
-  createdAt    DateTime @default(now())
-
-  group      IndustryGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  event      Events        @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  addedByOrg Organization  @relation(fields: [addedByOrgId], references: [id], onDelete: Cascade)
-
-  @@unique([groupId, eventId])
-  @@index([groupId])
 }

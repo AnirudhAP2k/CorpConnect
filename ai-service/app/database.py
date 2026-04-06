@@ -56,8 +56,6 @@ def get_pool() -> asyncpg.Pool:
     return _pool
 
 
-# ─── Vector helpers ───────────────────────────────────────────────────────────
-
 async def save_event_embedding(event_id: str, embedding: list[float]) -> None:
     pool = get_pool()
     async with pool.acquire() as conn:

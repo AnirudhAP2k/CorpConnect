@@ -16,11 +16,15 @@ from app.database import init_db_pool, close_db_pool
 from app.embeddings import load_model
 from app.cache import init_cache
 from app.llm import is_llm_configured
-from app.routers import embed, recommend, search, ingest, generate
+from app.routers import embed, recommend, search, ingest, generate, chat
+from app.logging_config import setup_logging
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup / shutdown lifecycle."""
+    # Initialize logging first to capture all following startup events
+    setup_logging()
+
     # Initialise DB connection pool, load embedding model, and init cache on startup
     await init_db_pool()
     await init_cache()
@@ -60,6 +64,7 @@ app.include_router(recommend.router, prefix="/recommend", tags=["Recommendations
 app.include_router(search.router,    prefix="/search",    tags=["Search"])
 app.include_router(ingest.router,    prefix="/ingest",    tags=["Document Ingestion"])
 app.include_router(generate.router,  prefix="/generate",  tags=["Content Generation"])
+app.include_router(chat.router,      prefix="/chat",      tags=["Chat"])
 
 
 @app.get("/health", tags=["Health"])

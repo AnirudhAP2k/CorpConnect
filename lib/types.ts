@@ -186,3 +186,11 @@ export interface MeetingRequest {
 }
 
 export type MeetingEmailEvent = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+
+export interface OptionsTypes {
+  title: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  label: string;
+}

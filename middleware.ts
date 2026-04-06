@@ -44,8 +44,6 @@ export default auth(async (req) => {
     return;
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-
   const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
   const isAuthRoute = authRoutes.includes(nextUrl.pathname);
   const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);

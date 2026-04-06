@@ -14,7 +14,7 @@ import {
 } from "@/data/dashboard";
 import { format } from "date-fns";
 import Link from "next/link";
-import { getAdminAIStats } from "@/lib/actions/admin-ai";
+import { getAdminAIStats } from "@/actions/ai.actions";
 
 export default async function AdminDashboardPage() {
     const [platformStats, revenueStats, { orgs }, jobHealth, aiStats] = await Promise.all([
@@ -200,7 +200,7 @@ export default async function AdminDashboardPage() {
                             event summaries, sentiment analysis, and organization match-making across the platform.
                         </CardDescription>
                     </div>
-                     <Badge variant="default" className="bg-primary text-primary-foreground">
+                    <Badge variant="default" className="bg-primary text-primary-foreground">
                         Active API Platform
                     </Badge>
                 </CardHeader>

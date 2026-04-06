@@ -38,16 +38,19 @@ This document outlines the stepwise implementation of the Large Language Model (
 ## Phase 3: Conversational AI & RAG (Chatbot)
 *Goal: Provide a stateful AI concierge for events and organizations.*
 
-- [ ] **Database: Chat Persistence**
-    - [ ] Update `prisma/schema.prisma` with `ChatSession` and `ChatMessage` models.
-    - [ ] Run `npx prisma migrate dev`.
-- [ ] **AI Service: Multi-Context RAG Router**
-    - [ ] Implement `app/routers/chat.py` with cross-context retrieval (Event items + Org Bio + Global Legal/Compliance docs).
-- [ ] **Next.js: Chat Backend**
-    - [ ] Implement `lib/actions/chat.ts` for managing sessions and sending messages.
-- [ ] **Frontend: Chat Interface**
-    - [ ] Build `ChatWidget.tsx` floating component.
-    - [ ] Embed widget on Event and Organization pages.
+- [x] **Database: Chat Persistence**
+    - [x] Added `ChatSession` + `ChatMessage` models + `ChatContextType` + `ChatRole` enums to `schema.prisma`.
+    - [x] Ran `npx prisma db push` — tables created and Prisma Client regenerated.
+- [x] **AI Service: Multi-Context RAG Router**
+    - [x] Implemented `app/routers/chat.py` — session upsert, 10-message rolling history, 3 parallel RAG retrievals (event/org/legal), LLM call, dual-message DB persist.
+    - [x] Registered `/chat` router in `main.py`.
+- [x] **Next.js: Chat Backend**
+    - [x] Extended `lib/ai-service.ts` with `AIChatRequest`, `AIChatResponse`, `AIChatHistoryMessage` types + `chat()` and `getChatHistory()` methods.
+    - [x] Created `lib/actions/chat.ts` — `sendChatMessage`, `getChatHistory`, `getExistingSession` server actions (auth + access gated).
+- [x] **Frontend: Chat Interface**
+    - [x] Built `components/ai/ChatWidget.tsx` — floating FAB → 480px slide-up panel, user/assistant bubbles, typing indicator, source doc badges, session resume on reopen.
+    - [x] Embedded widget on Event detail page (`app/(protected)/events/[id]/page.tsx`).
+    - [x] Embedded widget on Org dashboard page (`app/(protected)/organizations/[id]/dashboard/page.tsx`).
 
 ## Phase 4: Sentiment Analysis & Feedback Loop
 *Goal: Provide actionable insights to organizers.*
