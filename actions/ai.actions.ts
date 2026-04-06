@@ -1,5 +1,9 @@
 "use server";
 
+/**
+ * This file contains the AI-related actions for the application.
+ * It is used to get AI-generated content, such as event descriptions, recommendations, and matchmaking.
+ */
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import { aiService, AIChatResponse, AIChatHistoryMessage, AIGeneratedContent, AIMatchmakingReason } from "@/lib/ai-service";
