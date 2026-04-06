@@ -16,8 +16,6 @@ import { TRIGGER_LABELS } from "@/lib/actions/automation";
 import { AddRuleSheet } from "@/components/automation/AddRuleSheet";
 import { formatDistanceToNow } from "date-fns";
 
-// ─── Trigger badge color map ───────────────────────────────────────────────────
-
 const TRIGGER_COLORS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "bg-blue-100 text-blue-700",
     EVENT_CANCELLED: "bg-red-100 text-red-700",
@@ -27,15 +25,11 @@ const TRIGGER_COLORS: Record<AutomationTriggerType, string> = {
     NEW_MEMBER_JOINED: "bg-teal-100 text-teal-700",
 };
 
-// ─── Status indicator ──────────────────────────────────────────────────────────
-
 function StatusDot({ status, lastRunStatus }: { status: string; lastRunStatus: string | null }) {
     if (status === "PAUSED") return <span className="h-2 w-2 rounded-full bg-amber-400 inline-block" title="Paused" />;
     if (lastRunStatus === "error" || lastRunStatus === "timeout") return <span className="h-2 w-2 rounded-full bg-red-500 inline-block" title="Last run failed" />;
     return <span className="h-2 w-2 rounded-full bg-green-500 inline-block" title="Active" />;
 }
-
-// ─── Rule Row ─────────────────────────────────────────────────────────────────
 
 function RuleRow({ rule, onToggle, onDelete, onTest }: {
     rule: AutomationRuleData;
