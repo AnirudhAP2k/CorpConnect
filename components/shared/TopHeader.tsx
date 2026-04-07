@@ -47,8 +47,13 @@ const TopHeader = async () => {
                             />
                         </div>
                     )}
-                    <Link href='/dashboard' className='flex flex-row items-center gap-2'>
-                        <Image src='/assets/images/logo.svg' width={110} height={110} alt='logo' />
+                    <Link href='/dashboard' className='flex flex-row items-center gap-2 hover:opacity-90 transition-opacity'>
+                        <div className="bg-nx-primary text-white p-1 rounded-lg flex items-center justify-center shadow-nx-primary">
+                            <span className="material-symbols-outlined text-2xl leading-none">hub</span>
+                        </div>
+                        <span className="font-headline font-bold text-xl tracking-tight text-nx-primary hidden md:block">
+                            CorpConnect
+                        </span>
                     </Link>
                 </div>
 
