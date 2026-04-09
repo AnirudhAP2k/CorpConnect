@@ -1,13 +1,23 @@
 import type { Metadata } from "next";
-import { Poppins } from "next/font/google";
+import { Manrope, Inter } from "next/font/google";
 import "@/app/globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+// Nexus Corporate Design System — Headline font
+const manrope = Manrope({
+  variable: "--font-manrope",
   subsets: ["latin"],
-  weight: ['400', '500', '600', '700']
+  weight: ["400", "600", "700", "800"],
+  display: "swap",
+});
+
+// Nexus Corporate Design System — Body / Label font
+const inter = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -22,9 +32,14 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body
-        className={poppins.variable}
-      >
+      <head>
+        {/* Material Symbols for icon support (used in Nexus Corporate screens) */}
+        <link
+          rel="stylesheet"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap"
+        />
+      </head>
+      <body className={`${manrope.variable} ${inter.variable}`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"

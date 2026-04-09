@@ -11,10 +11,11 @@ import {
     deleteAutomationRule,
     testAutomationRule,
 } from "@/actions/automation.actions";
-import type { AutomationRuleData, AutomationTriggerType } from "@/actions/automation.actions";
+import type { AutomationRuleData } from "@/actions/automation.actions";
 import { TRIGGER_LABELS } from "@/actions/automation.actions";
 import { AddRuleSheet } from "@/components/automation/AddRuleSheet";
 import { formatDistanceToNow } from "date-fns";
+import { AutomationTriggerType } from "@/lib/types";
 
 const TRIGGER_COLORS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "bg-blue-100 text-blue-700",

@@ -2,6 +2,7 @@ import TopHeader from "@/components/shared/TopHeader";
 import Sidebar from "@/components/shared/Sidebar";
 import { SessionProvider } from 'next-auth/react';
 import { auth } from "@/auth";
+import Footer from "@/components/shared/Footer";
 
 export default async function RootLayout({
   children,
@@ -17,9 +18,12 @@ export default async function RootLayout({
       <TopHeader />
       <SessionProvider>
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar activeOrganizationId={activeOrganizationId} isAdmin={isAdmin} />
-          <main className="flex-1 overflow-y-auto">
-            {children}
+          {session?.user && <Sidebar activeOrganizationId={activeOrganizationId} isAdmin={isAdmin} />}
+          <main className="flex-1 overflow-y-auto flex flex-col">
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
           </main>
         </div>
       </SessionProvider>

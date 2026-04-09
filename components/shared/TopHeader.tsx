@@ -8,6 +8,7 @@ import { prisma } from '@/lib/db'
 import MobileSidebar from '@/components/shared/MobileSidebar'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { logout } from '@/actions/logout.actions'
+import { TopNavLinks } from '@/components/shared/TopNavLinks'
 
 const TopHeader = async () => {
     const session = await auth();
@@ -47,10 +48,18 @@ const TopHeader = async () => {
                             />
                         </div>
                     )}
-                    <Link href='/dashboard' className='flex flex-row items-center gap-2'>
-                        <Image src='/assets/images/logo.svg' width={110} height={110} alt='logo' />
+                    <Link href='/dashboard' className='flex flex-row items-center gap-2 hover:opacity-90 transition-opacity'>
+                        <div className="bg-nx-primary text-white p-1 rounded-lg flex items-center justify-center shadow-nx-primary">
+                            <span className="material-symbols-outlined text-2xl leading-none">hub</span>
+                        </div>
+                        <span className="font-headline font-bold text-xl tracking-tight text-nx-primary hidden md:block">
+                            CorpConnect
+                        </span>
                     </Link>
                 </div>
+
+                {/* Centre nav — active-aware, client component */}
+                <TopNavLinks />
 
                 <div className='flex items-center gap-4'>
                     {session && session?.user ? (
@@ -82,6 +91,12 @@ const TopHeader = async () => {
                     ) : (
                         <div className='flex items-center gap-3'>
                             <ThemeToggle />
+                            <Link
+                                href="/pricing"
+                                className="hidden sm:inline-flex text-nx-on-surface-variant hover:text-nx-primary font-label font-semibold text-xs uppercase tracking-widest transition-colors"
+                            >
+                                Membership
+                            </Link>
                             <Button asChild className="rounded-full" size="lg">
                                 <Link href="/login">Login</Link>
                             </Button>

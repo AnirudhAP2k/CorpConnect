@@ -11,6 +11,9 @@ export const authRoutes = [
 export const publicRoutes = [
     '/',
     '/about',
+    '/events',
+    '/organizations/discover',
+    '/pricing',
 ];
 
 export const organizationRoutes = [
