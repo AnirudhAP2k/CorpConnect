@@ -18,7 +18,7 @@ export default async function RootLayout({
       <TopHeader />
       <SessionProvider>
         <div className="flex flex-1 overflow-hidden">
-          <Sidebar activeOrganizationId={activeOrganizationId} isAdmin={isAdmin} />
+          {session?.user && <Sidebar activeOrganizationId={activeOrganizationId} isAdmin={isAdmin} />}
           <main className="flex-1 overflow-y-auto flex flex-col">
             <div className="flex-1">
               {children}
