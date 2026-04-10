@@ -18,7 +18,7 @@ import { getMatchingOrgsForEvent } from "@/data/events";
 import type { MeetingStatus } from "@/lib/types";
 import { ChatWidget } from "@/components/ai/ChatWidget";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
-import { getUserFeedback } from "@/lib/actions/feedback";
+import { getUserFeedback } from "@/actions/feedback.actions";
 
 interface EventDetailPageProps {
     params: Promise<{

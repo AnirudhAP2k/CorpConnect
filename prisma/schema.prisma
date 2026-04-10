@@ -205,6 +205,7 @@ model Organization {
   addedGroupEvents        IndustryGroupEvent[]
   embedding               Unsupported("vector(1536)")?
   orgDocuments            OrgDocument[]
+  automationRules         AutomationRule[]
 
   @@index([industryId])
   @@index([createdBy])
@@ -545,6 +546,25 @@ model EventFeedback {
   @@index([eventId, sentiment])
 }
 
+model AutomationRule {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  name           String
+  description    String?
+  trigger        AutomationTrigger
+  webhookUrl     String
+  filterJson     Json?             // Optional fine-grained filter (e.g. specific eventId)
+  status         AutomationStatus  @default(ACTIVE)
+  runCount       Int               @default(0)
+  lastRunAt      DateTime?
+  lastRunStatus  String?           // "success" | "error" | "timeout"
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, trigger, status])
+}
+
 model EmailLog {
   id           String         @id @default(uuid()) @db.Uuid
   fromAddress  String
@@ -626,6 +646,21 @@ enum ChatContextType {
 enum ChatRole {
   USER
   ASSISTANT
+}
+
+enum AutomationTrigger {
+  EVENT_REGISTRATION
+  EVENT_CANCELLED
+  FEEDBACK_RECEIVED
+  CONNECTION_ACCEPTED
+  MEETING_SCHEDULED
+  NEW_MEMBER_JOINED
+}
+
+enum AutomationStatus {
+  ACTIVE
+  PAUSED
+  DELETED
 }
 
 enum FeedbackSentiment {

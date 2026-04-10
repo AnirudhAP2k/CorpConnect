@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 // POST /api/events/[id]/participate - Join event
 export const POST = async (
@@ -119,6 +120,15 @@ export const POST = async (
             } catch {
                 // Non-fatal: silently skip if it fails
             }
+        }
+
+        // Fire automation rules for the hosting org (EVENT_REGISTRATION trigger)
+        if (hostOrgId) {
+            enqueueMatchingRules("EVENT_REGISTRATION", hostOrgId, {
+                eventId,
+                userId,
+                attendeeOrgId: organizationId ?? null,
+            }).catch(() => { });
         }
 
         revalidatePath(`/events/${eventId}`);

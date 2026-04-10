@@ -20,6 +20,7 @@ import { prisma } from "@/lib/db";
 import OrgAIPanel from "@/components/organizations/OrgAIPanel";
 import { ChatWidget } from "@/components/ai/ChatWidget";
 import { SentimentPanel } from "@/components/feedback/SentimentPanel";
+import { AutomationRulesPanel } from "@/components/automation/AutomationRulesPanel";
 
 interface OrgDashboardPageProps {
     params: Promise<{ id: string }>;
@@ -306,6 +307,9 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
 
                     {/* Sentiment & Feedback Intelligence Panel */}
                     <SentimentPanel orgId={orgId} />
+
+                    {/* Automation Rules Panel */}
+                    <AutomationRulesPanel orgId={orgId} />
 
                     {/* Org Connections Panel */}
                     <OrgConnectionsPanel

@@ -16,8 +16,9 @@ import {
     Mail,
     User,
     Shield,
-    PanelLeftClose,
-    PanelLeftOpen
+    ChevronLeft,
+    ChevronRight,
+    Calendar,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -34,143 +35,175 @@ interface SidebarProps {
     className?: string;
 }
 
+/* ─── Nexus Corporate: Section label ─────────────────────────────── */
+function SectionLabel({ label }: { label: string }) {
+    return (
+        <p className="px-4 text-[10px] font-label font-semibold text-nx-on-surface-variant/60 uppercase tracking-[0.08em] mb-1 mt-2">
+            {label}
+        </p>
+    );
+}
+
+/* ─── Nexus Corporate: Nav item ──────────────────────────────────── */
+function NavItem({
+    href,
+    icon,
+    label,
+    isActive,
+    isCollapsed,
+}: {
+    href: string;
+    icon: React.ReactNode;
+    label: string;
+    isActive: boolean;
+    isCollapsed: boolean;
+}) {
+    return (
+        <Link
+            href={href}
+            title={isCollapsed ? label : undefined}
+            className={cn(
+                "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
+                isCollapsed && "justify-center px-3",
+                isActive
+                    ? "bg-white text-nx-on-tertiary-container shadow-nx-card font-semibold scale-[0.97]"
+                    : "text-nx-on-surface-variant hover:bg-white/60 hover:text-nx-on-surface hover:translate-x-0.5"
+            )}
+        >
+            <span className={cn("shrink-0", isActive ? "text-nx-on-tertiary-container" : "")}>
+                {icon}
+            </span>
+            {!isCollapsed && <span className="truncate">{label}</span>}
+        </Link>
+    );
+}
+
 export default function Sidebar({ activeOrganizationId, isAdmin, className }: SidebarProps) {
     const pathname = usePathname();
     const [isCollapsed, setIsCollapsed] = useState(false);
 
     return (
-        <aside className={cn(
-            "border-r bg-card h-[calc(100vh-4rem)] sticky top-16 hidden md:flex flex-col shrink-0 transition-all duration-300",
-            isCollapsed ? "w-20" : "w-64",
-            className
-        )}>
-            <div className="p-4 flex-1 space-y-6 overflow-y-auto overflow-x-hidden relative">
+        <aside
+            className={cn(
+                // Nexus Corporate: warm slate-50 background, no border — depth via color shift
+                "bg-[#f8f7f8] h-[calc(100vh-4rem)] sticky top-16 hidden md:flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
+                isCollapsed ? "w-[72px]" : "w-64",
+                className
+            )}
+        >
+            {/* ── Wordmark (visible when expanded) ── */}
+            {!isCollapsed && (
+                <div className="px-6 pt-6 pb-4">
+                    <h2 className="text-base font-headline font-bold text-nx-primary tracking-tight">
+                        CorpConnect
+                    </h2>
+                    <p className="text-[10px] font-label font-semibold text-nx-on-surface-variant/50 uppercase tracking-[0.08em] mt-0.5">
+                        Elite Networking
+                    </p>
+                </div>
+            )}
+            {isCollapsed && <div className="pt-6 pb-4" />}
 
-                {/* Main Navigation */}
-                <div className="space-y-1">
-                    {!isCollapsed && (
-                        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                            Platform
-                        </h3>
-                    )}
-                    {sidebarLinks.map((link) => {
-                        // For Dashboard, exact match. For others, allow active on sub-routes
-                        const isActive = link.route === '/dashboard'
+            {/* ── Scrollable nav area ── */}
+            <div className="flex-1 overflow-y-auto overflow-x-hidden px-3 space-y-0.5">
+
+                {/* Platform */}
+                {!isCollapsed && <SectionLabel label="Platform" />}
+                {sidebarLinks.map((link) => {
+                    const isActive =
+                        link.route === "/dashboard"
                             ? pathname === link.route
                             : pathname === link.route || pathname.startsWith(`${link.route}/`);
+                    return (
+                        <NavItem
+                            key={link.route}
+                            href={link.route}
+                            icon={iconMap[link.icon as string]}
+                            label={link.label}
+                            isActive={isActive}
+                            isCollapsed={isCollapsed}
+                        />
+                    );
+                })}
 
-                        return (
-                            <Link
-                                key={link.route}
-                                href={link.route}
-                                title={isCollapsed ? link.label : undefined}
-                                className={cn(
-                                    "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                    isCollapsed ? "justify-center" : "gap-3",
-                                    isActive
-                                        ? "bg-primary text-primary-foreground"
-                                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                                )}
-                            >
-                                <span className="shrink-0">{iconMap[link.icon as string]}</span>
-                                {!isCollapsed && <span className="truncate">{link.label}</span>}
-                            </Link>
-                        );
-                    })}
-                </div>
-
-                {/* Organization Management */}
+                {/* My Organization */}
                 {activeOrganizationId && (
-                    <div className="space-y-1">
-                        {!isCollapsed && (
-                            <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
-                                My Organization
-                            </h3>
-                        )}
-                        <Link
+                    <>
+                        {!isCollapsed && <SectionLabel label="My Organization" />}
+                        <NavItem
                             href={`/organizations/${activeOrganizationId}`}
-                            title={isCollapsed ? "Profile" : undefined}
-                            className={cn(
-                                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                isCollapsed ? "justify-center" : "gap-3",
-                                pathname === `/organizations/${activeOrganizationId}` ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
-                        >
-                            <span className="shrink-0"><Settings className="w-5 h-5" /></span>
-                            {!isCollapsed && <span className="truncate">Profile</span>}
-                        </Link>
-                        <Link
+                            icon={<Settings className="w-5 h-5" />}
+                            label="Profile"
+                            isActive={pathname === `/organizations/${activeOrganizationId}`}
+                            isCollapsed={isCollapsed}
+                        />
+                        <NavItem
                             href={`/organizations/${activeOrganizationId}/dashboard`}
-                            title={isCollapsed ? "Dashboard" : undefined}
-                            className={cn(
-                                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                isCollapsed ? "justify-center" : "gap-3",
-                                pathname === `/organizations/${activeOrganizationId}/dashboard` ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
-                        >
-                            <span className="shrink-0"><BarChart3 className="w-5 h-5" /></span>
-                            {!isCollapsed && <span className="truncate">Dashboard</span>}
-                        </Link>
-                        <Link
+                            icon={<BarChart3 className="w-5 h-5" />}
+                            label="Dashboard"
+                            isActive={pathname === `/organizations/${activeOrganizationId}/dashboard`}
+                            isCollapsed={isCollapsed}
+                        />
+                        <NavItem
                             href={`/organizations/${activeOrganizationId}/dashboard?tab=connections`}
-                            title={isCollapsed ? "Connections" : undefined}
-                            className={cn(
-                                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                isCollapsed ? "justify-center" : "gap-3",
-                                "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
+                            icon={<Mail className="w-5 h-5" />}
+                            label="Connections"
+                            isActive={false}
+                            isCollapsed={isCollapsed}
+                        />
+                    </>
+                )}
+
+                {/* Account */}
+                {!isCollapsed && <SectionLabel label="Account" />}
+                <NavItem
+                    href="/profile"
+                    icon={<User className="w-5 h-5" />}
+                    label="My Profile"
+                    isActive={pathname === "/profile"}
+                    isCollapsed={isCollapsed}
+                />
+                {isAdmin && (
+                    <NavItem
+                        href="/admin/dashboard"
+                        icon={<Shield className="w-5 h-5" />}
+                        label="Admin Console"
+                        isActive={pathname.startsWith("/admin")}
+                        isCollapsed={isCollapsed}
+                    />
+                )}
+            </div>
+
+            {/* ── CTA + Collapse toggle ── */}
+            <div className="p-3 space-y-2">
+                {/* Book Meeting CTA — Nexus Corporate primary gradient */}
+                {!isCollapsed && (
+                    <div className="bg-nx-primary-container rounded-xl p-4">
+                        <Link
+                            href="/events"
+                            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-nx-primary text-white rounded-lg text-sm font-semibold font-headline hover:opacity-90 transition-opacity shadow-nx-primary"
                         >
-                            <span className="shrink-0"><Mail className="w-5 h-5" /></span>
-                            {!isCollapsed && <span className="truncate">Connections</span>}
+                            <Calendar className="w-4 h-4" />
+                            Browse Events
                         </Link>
                     </div>
                 )}
 
-                {/* Administration */}
-                <div className="space-y-1">
-                    {!isCollapsed && (
-                        <h3 className="px-3 text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 mt-4">
-                            Account
-                        </h3>
-                    )}
-                    <Link
-                        href="/profile"
-                        title={isCollapsed ? "My Profile" : undefined}
-                        className={cn(
-                            "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                            isCollapsed ? "justify-center" : "gap-3",
-                            pathname === "/profile" ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                        )}
-                    >
-                        <span className="shrink-0"><User className="w-5 h-5" /></span>
-                        {!isCollapsed && <span className="truncate">My Profile</span>}
-                    </Link>
-                    {isAdmin && (
-                        <Link
-                            href="/admin/dashboard"
-                            title={isCollapsed ? "Admin Console" : undefined}
-                            className={cn(
-                                "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors",
-                                isCollapsed ? "justify-center" : "gap-3",
-                                pathname.startsWith("/admin") ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                            )}
-                        >
-                            <span className="shrink-0"><Shield className="w-5 h-5" /></span>
-                            {!isCollapsed && <span className="truncate">Admin Console</span>}
-                        </Link>
-                    )}
-                </div>
-
-            </div>
-
-            {/* Toggle Button */}
-            <div className="p-4 border-t border-border mt-auto">
+                {/* Collapse toggle — no border, tonal */}
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-                    className="flex w-full items-center justify-center p-2 rounded-md hover:bg-muted text-muted-foreground transition-colors"
+                    className="flex w-full items-center justify-center p-2.5 rounded-lg hover:bg-white/80 text-nx-on-surface-variant transition-colors duration-200"
                 >
-                    {isCollapsed ? <PanelLeftOpen className="w-5 h-5" /> : <PanelLeftClose className="w-5 h-5" />}
+                    {isCollapsed
+                        ? <ChevronRight className="w-4 h-4" />
+                        : <ChevronLeft className="w-4 h-4" />
+                    }
+                    {!isCollapsed && (
+                        <span className="ml-2 text-xs font-label text-nx-on-surface-variant">
+                            Collapse
+                        </span>
+                    )}
                 </button>
             </div>
         </aside>

@@ -9,8 +9,8 @@ import { TrendingUp, MessageSquare, Star, RefreshCw, AlertCircle } from "lucide-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { getOrgFeedbackSummary } from "@/lib/actions/feedback";
-import type { FeedbackSummary } from "@/lib/actions/feedback";
+import { getOrgFeedbackSummary } from "@/actions/feedback.actions";
+import type { FeedbackSummary } from "@/actions/feedback.actions";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
