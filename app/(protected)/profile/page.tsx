@@ -82,6 +82,12 @@ export default async function ProfilePage() {
   const org = user.organization;
   const orgCount = org ? 1 : 0
 
+  const stats = [
+    { label: "Organizations", value: orgCount },
+    { label: "Platform Role", value: user.role === "ADMIN" ? "Admin" : "Member" },
+    { label: "Member Since", value: new Date(user.createdAt).getFullYear() },
+  ];
+
   return (
     <div className="min-h-screen bg-nx-background">
       <div className="pt-8 pb-16 px-6 md:px-10 max-w-7xl mx-auto">
@@ -133,11 +139,7 @@ export default async function ProfilePage() {
 
             {/* Stats row */}
             <div className="flex flex-wrap gap-6 mb-8">
-              {[
-                { label: "Organizations", value: orgCount },
-                { label: "Platform Role", value: user.role === "ADMIN" ? "Admin" : "Member" },
-                { label: "Member Since", value: new Date(user.createdAt).getFullYear() },
-              ].map((stat) => (
+              {stats.map((stat) => (
                 <div key={stat.label} className="flex flex-col">
                   <span className="text-2xl font-headline font-bold text-nx-primary">{stat.value}</span>
                   <span className="text-[11px] font-label text-nx-on-surface-variant uppercase tracking-widest">{stat.label}</span>
