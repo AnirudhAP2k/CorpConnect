@@ -12,6 +12,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { createHmac } from "crypto";
+import { PLAN_API_LIMITS } from "@/constants";
 
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET ?? "";
 
@@ -76,17 +77,21 @@ async function handleSubscriptionActivated(payload: any) {
 
     const currentPeriodStart = new Date(rzpSub.current_start * 1000);
     const currentPeriodEnd = new Date(rzpSub.current_end * 1000);
+    const usageLimit = PLAN_API_LIMITS[plan] ?? PLAN_API_LIMITS.FREE;
 
-    await prisma.$transaction([
-        prisma.organization.update({
+    await prisma.$transaction(async (tx) => {
+        // 1. Upgrade org subscription fields
+        await tx.organization.update({
             where: { id: orgId },
             data: {
                 subscriptionPlan: plan,
                 subscriptionStatus: "ACTIVE",
                 subscriptionExpiresAt: currentPeriodEnd,
             },
-        }),
-        prisma.orgSubscription.upsert({
+        });
+
+        // 2. Record subscription history
+        await tx.orgSubscription.upsert({
             where: { providerSubscriptionId: rzpSub.id },
             create: {
                 organizationId: orgId,
@@ -98,10 +103,21 @@ async function handleSubscriptionActivated(payload: any) {
                 currentPeriodEnd,
             },
             update: { plan, status: "ACTIVE", currentPeriodStart, currentPeriodEnd },
-        }),
-    ]);
+        });
 
-    console.log(`[rzp-webhook] ✓ Activated ${plan} for org ${orgId}`);
+        // 3. Sync ApiCredential tier + usageLimit (if credential exists)
+        const existing = await tx.apiCredential.findUnique({
+            where: { organizationId: orgId },
+        });
+        if (existing) {
+            await tx.apiCredential.update({
+                where: { organizationId: orgId },
+                data: { tier: plan, usageLimit },
+            });
+        }
+    });
+
+    console.log(`[rzp-webhook] ✓ Activated ${plan} for org ${orgId} (API limit → ${usageLimit})`);
 }
 
 async function handleSubscriptionCancelled(payload: any) {
@@ -113,20 +129,30 @@ async function handleSubscriptionCancelled(payload: any) {
     });
     if (!orgSub) return;
 
-    await prisma.$transaction([
-        prisma.orgSubscription.update({
+    await prisma.$transaction(async (tx) => {
+        await tx.orgSubscription.update({
             where: { providerSubscriptionId: rzpSub.id },
             data: { status: "CANCELLED", cancelledAt: new Date() },
-        }),
-        prisma.organization.update({
+        });
+        await tx.organization.update({
             where: { id: orgSub.organizationId },
             data: {
                 subscriptionPlan: "FREE",
                 subscriptionStatus: "CANCELLED",
                 subscriptionExpiresAt: null,
             },
-        }),
-    ]);
+        });
+        // Downgrade ApiCredential back to FREE limits
+        const existing = await tx.apiCredential.findUnique({
+            where: { organizationId: orgSub.organizationId },
+        });
+        if (existing) {
+            await tx.apiCredential.update({
+                where: { organizationId: orgSub.organizationId },
+                data: { tier: "FREE", usageLimit: PLAN_API_LIMITS.FREE },
+            });
+        }
+    });
 
     console.log(`[rzp-webhook] ✓ Downgraded org ${orgSub.organizationId} to FREE`);
 }
