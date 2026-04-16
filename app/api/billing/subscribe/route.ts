@@ -18,6 +18,8 @@ import { prisma } from "@/lib/db";
 import { getStripe, STRIPE_PRICE_IDS } from "@/lib/payment/stripe";
 import { getRazorpay } from "@/lib/payment/razorpay";
 import { NextRequest, NextResponse } from "next/server";
+import { paymentProviders, subscriptionPlans } from "@/constants";
+import { Subscriptions } from "razorpay/dist/types/subscriptions";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -33,10 +35,10 @@ export const POST = async (req: NextRequest) => {
             provider: "stripe" | "razorpay";
         };
 
-        if (!["PRO", "ENTERPRISE"].includes(plan)) {
+        if (!subscriptionPlans.includes(plan)) {
             return NextResponse.json({ error: "Invalid plan" }, { status: 400 });
         }
-        if (!["stripe", "razorpay"].includes(provider)) {
+        if (!paymentProviders.includes(provider)) {
             return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
         }
 
@@ -118,24 +120,21 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ url: checkoutSession.url }, { status: 200 });
         }
 
-        // ── Razorpay ────────────────────────────────────────────────────────────
         const razorpay = getRazorpay();
 
-        // Ensure RZP customer exists
         let rzpCustomerId = org.razorpayCustomerId ?? undefined;
         if (!rzpCustomerId) {
             const customer = await razorpay.customers.create({
                 name: org.name,
                 notes: { orgId },
-            } as any);
-            rzpCustomerId = (customer as any).id as string;
+            });
+            rzpCustomerId = customer.id;
             await prisma.organization.update({
                 where: { id: orgId },
                 data: { razorpayCustomerId: rzpCustomerId },
             });
         }
 
-        // Razorpay plan IDs from env (set up manually in RZP dashboard)
         const rzpPlanId =
             plan === "PRO"
                 ? process.env.RAZORPAY_PRO_PLAN_ID
@@ -148,17 +147,30 @@ export const POST = async (req: NextRequest) => {
             );
         }
 
-        const subscription = await razorpay.subscriptions.create({
+        const subscription = await (razorpay.subscriptions.create({
             plan_id: rzpPlanId,
             customer_notify: 1,
-            total_count: 120, // 10 years — effectively perpetual
+            total_count: 120,
             notes: { orgId, plan },
-        } as any);
+        }) as Promise<Subscriptions.RazorpaySubscription>);
 
-        const shortUrl = `https://rzp.io/l/${(subscription as any).short_url ?? (subscription as any).id}`;
-        return NextResponse.json({ url: shortUrl }, { status: 200 });
+        const checkoutUrl = subscription.short_url;
+        if (!checkoutUrl) {
+            throw new Error("Razorpay did not return a short_url for the subscription");
+        }
+
+        return NextResponse.json({ url: checkoutUrl, subscriptionId: subscription.id }, { status: 200 });
     } catch (error: any) {
-        console.error("[billing/subscribe]", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        const razorpayMsg = error?.error?.description ?? error?.description ?? null;
+        const stripeMsg = error?.raw?.message ?? null;
+        const detail = razorpayMsg ?? stripeMsg ?? error?.message ?? "Unknown error";
+        console.error("[billing/subscribe] Error:", detail, "\nFull error:", JSON.stringify(error, null, 2));
+        return NextResponse.json(
+            {
+                error: "Subscription creation failed",
+                detail,
+            },
+            { status: 500 }
+        );
     }
 };
