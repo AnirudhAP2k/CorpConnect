@@ -1,3 +1,5 @@
+import { AutomationTriggerType } from "@/lib/types";
+
 export const headerLinks = [
     {
         label: "Home",
@@ -76,3 +78,16 @@ export const SESSION_COOKIE_NAME =
 export const JWT_MAX_AGE_SECONDS = 15 * 60;
 
 export const JWT_REFRESH_EARLY_MS = 2 * 60 * 1000;
+
+export const subscriptionPlans = ["PRO", "ENTERPRISE"];
+
+export const paymentProviders = ["stripe", "razorpay"];
+
+export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
+    EVENT_REGISTRATION: "New Event Registration",
+    EVENT_CANCELLED: "Event Cancelled",
+    FEEDBACK_RECEIVED: "Feedback Submitted",
+    CONNECTION_ACCEPTED: "Connection Accepted",
+    MEETING_SCHEDULED: "Meeting Request Accepted",
+    NEW_MEMBER_JOINED: "New Member Joined",
+};
