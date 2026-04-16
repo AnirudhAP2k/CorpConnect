@@ -71,7 +71,7 @@ export const POST = async (
         } else {
             const razorpay = getRazorpay();
             const payment = await razorpay.payments.fetch(providerPaymentId);
-            isCapture = (payment as any).status === "captured";
+            isCapture = payment.status === "captured";
         }
 
         if (!isCapture) {
