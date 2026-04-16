@@ -12,7 +12,7 @@ import {
     testAutomationRule,
 } from "@/actions/automation.actions";
 import type { AutomationRuleData } from "@/actions/automation.actions";
-import { TRIGGER_LABELS } from "@/actions/automation.actions";
+import { TRIGGER_LABELS } from "@/constants";
 import { AddRuleSheet } from "@/components/automation/AddRuleSheet";
 import { formatDistanceToNow } from "date-fns";
 import { AutomationTriggerType } from "@/lib/types";
