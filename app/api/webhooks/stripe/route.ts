@@ -39,23 +39,23 @@ export const POST = async (req: NextRequest) => {
     try {
         switch (event.type) {
             case "checkout.session.completed":
-                await handleCheckoutCompleted(event.data.object as any);
+                await handleCheckoutCompleted(event.data.object);
                 break;
 
             case "invoice.payment_succeeded":
-                await handleInvoicePaymentSucceeded(event.data.object as any);
+                await handleInvoicePaymentSucceeded(event.data.object);
                 break;
 
             case "invoice.payment_failed":
-                await handleInvoicePaymentFailed(event.data.object as any);
+                await handleInvoicePaymentFailed(event.data.object);
                 break;
 
             case "customer.subscription.deleted":
-                await handleSubscriptionDeleted(event.data.object as any);
+                await handleSubscriptionDeleted(event.data.object);
                 break;
 
             case "payment_intent.succeeded":
-                await handlePaymentIntentSucceeded(event.data.object as any);
+                await handlePaymentIntentSucceeded(event.data.object);
                 break;
 
             default:
@@ -81,7 +81,7 @@ async function handleCheckoutCompleted(session: any) {
 
     // Fetch the actual subscription to get period dates
     const stripe = getStripe();
-    const sub = (await stripe.subscriptions.retrieve(subscriptionId)) as any;
+    const sub = await stripe.subscriptions.retrieve(subscriptionId) as any;
 
     await prisma.$transaction([
         prisma.organization.update({
