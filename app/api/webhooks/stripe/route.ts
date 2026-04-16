@@ -15,6 +15,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import type { SubscriptionPlan } from "@prisma/client";
+import { PLAN_API_LIMITS } from "@/constants";
+
 
 export const POST = async (req: NextRequest) => {
     const stripe = getStripe();
@@ -79,20 +81,20 @@ async function handleCheckoutCompleted(session: any) {
 
     if (!orgId || !plan || !subscriptionId) return;
 
-    // Fetch the actual subscription to get period dates
     const stripe = getStripe();
     const sub = await stripe.subscriptions.retrieve(subscriptionId) as any;
+    const usageLimit = PLAN_API_LIMITS[plan] ?? PLAN_API_LIMITS.FREE;
 
-    await prisma.$transaction([
-        prisma.organization.update({
+    await prisma.$transaction(async (tx) => {
+        await tx.organization.update({
             where: { id: orgId },
             data: {
                 subscriptionPlan: plan,
                 subscriptionStatus: "ACTIVE",
                 subscriptionExpiresAt: new Date(sub.current_period_end * 1000),
             },
-        }),
-        prisma.orgSubscription.upsert({
+        });
+        await tx.orgSubscription.upsert({
             where: { providerSubscriptionId: subscriptionId },
             create: {
                 organizationId: orgId,
@@ -109,10 +111,18 @@ async function handleCheckoutCompleted(session: any) {
                 currentPeriodStart: new Date(sub.current_period_start * 1000),
                 currentPeriodEnd: new Date(sub.current_period_end * 1000),
             },
-        }),
-    ]);
+        });
+        // Sync ApiCredential tier + limits
+        const existing = await tx.apiCredential.findUnique({ where: { organizationId: orgId } });
+        if (existing) {
+            await tx.apiCredential.update({
+                where: { organizationId: orgId },
+                data: { tier: plan, usageLimit },
+            });
+        }
+    });
 
-    console.log(`[stripe-webhook] ✓ Activated ${plan} for org ${orgId}`);
+    console.log(`[stripe-webhook] ✓ Activated ${plan} for org ${orgId} (API limit → ${usageLimit})`);
 }
 
 async function handleInvoicePaymentSucceeded(invoice: any) {
@@ -174,23 +184,30 @@ async function handleSubscriptionDeleted(subscription: any) {
     });
     if (!orgSub) return;
 
-    await prisma.$transaction([
-        prisma.orgSubscription.update({
+    await prisma.$transaction(async (tx) => {
+        await tx.orgSubscription.update({
             where: { providerSubscriptionId: subscription.id },
-            data: {
-                status: "CANCELLED",
-                cancelledAt: new Date(),
-            },
-        }),
-        prisma.organization.update({
+            data: { status: "CANCELLED", cancelledAt: new Date() },
+        });
+        await tx.organization.update({
             where: { id: orgSub.organizationId },
             data: {
                 subscriptionPlan: "FREE",
                 subscriptionStatus: "CANCELLED",
                 subscriptionExpiresAt: null,
             },
-        }),
-    ]);
+        });
+        // Downgrade ApiCredential back to FREE limits
+        const existing = await tx.apiCredential.findUnique({
+            where: { organizationId: orgSub.organizationId },
+        });
+        if (existing) {
+            await tx.apiCredential.update({
+                where: { organizationId: orgSub.organizationId },
+                data: { tier: "FREE", usageLimit: PLAN_API_LIMITS.FREE },
+            });
+        }
+    });
 
     console.log(`[stripe-webhook] ✓ Downgraded org ${orgSub.organizationId} to FREE`);
 }
