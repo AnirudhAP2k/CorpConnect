@@ -161,7 +161,7 @@ export const POST = async (
                 eventId,
                 userId,
             },
-        } as any);
+        });
 
         // Create pending EventPayment record
         await prisma.eventPayment.upsert({
@@ -170,7 +170,7 @@ export const POST = async (
                 participationId,
                 eventId,
                 provider: "RAZORPAY",
-                providerPaymentId: (order as any).id,
+                providerPaymentId: order.id,
                 amount: amountPaise,
                 currency,
                 status: "PENDING",
@@ -182,7 +182,7 @@ export const POST = async (
             {
                 mode: "platform",
                 provider: "razorpay",
-                orderId: (order as any).id,
+                orderId: order.id,
                 amount: amountPaise,
                 currency,
                 keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
