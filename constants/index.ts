@@ -83,6 +83,13 @@ export const subscriptionPlans = ["PRO", "ENTERPRISE"];
 
 export const paymentProviders = ["stripe", "razorpay"];
 
+export const PLAN_API_LIMITS: Record<string, number> = {
+    FREE: 100,
+    PRO: 5_000,
+    ENTERPRISE: 50_000,
+};
+
+
 export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "New Event Registration",
     EVENT_CANCELLED: "Event Cancelled",
