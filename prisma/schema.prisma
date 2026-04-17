@@ -140,10 +140,9 @@ model Events {
   maxAttendees        Int?
   attendeeCount       Int                          @default(0)
   viewCount           Int                          @default(0)
-  // Phase 6: payment fields
   paymentMode         EventPaymentMode             @default(FREE)
   currency            String                       @default("INR")
-  externalPayUrl      String? // for EXTERNAL mode
+  externalPayUrl      String?
   participations      EventParticipation[]
   eventTags           EventTag[]
   eventViews          EventView[]
@@ -191,13 +190,12 @@ model Organization {
   services                String[]                     @default([])
   technologies            String[]                     @default([])
   twitterUrl              String?
-  // Phase 6: billing & payment fields
   stripeCustomerId        String?
   razorpayCustomerId      String?
   subscriptionPlan        SubscriptionPlan             @default(FREE)
   subscriptionStatus      SubscriptionStatus           @default(ACTIVE)
   subscriptionExpiresAt   DateTime?
-  paymentWebhookUrl       String? // org's own webhook for event payment events
+  paymentWebhookUrl       String?
   preferredCurrency       String                       @default("INR")
   apiCredential           ApiCredential?
   participations          EventParticipation[]
@@ -500,6 +498,45 @@ model GroupPost {
   @@index([groupId])
 }
 
+model OrgSubscription {
+  id                     String             @id @default(uuid()) @db.Uuid
+  organizationId         String             @db.Uuid
+  provider               PaymentProvider
+  providerSubscriptionId String             @unique
+  plan                   SubscriptionPlan
+  status                 SubscriptionStatus
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelledAt            DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([provider, status])
+}
+
+model EventPayment {
+  id                String             @id @default(uuid()) @db.Uuid
+  participationId   String             @unique @db.Uuid
+  eventId           String             @db.Uuid
+  provider          PaymentProvider
+  providerPaymentId String             @unique
+  amount            Int
+  currency          String
+  status            PaymentStatus      @default(PENDING)
+  receiptUrl        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  participation     EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  event             Events             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([participationId])
+  @@index([eventId])
+  @@index([providerPaymentId])
+  @@index([status])
+}
+
 model IndustryGroupEvent {
   id           String   @id @default(uuid()) @db.Uuid
   groupId      String   @db.Uuid
@@ -570,11 +607,11 @@ model AutomationRule {
   description    String?
   trigger        AutomationTrigger
   webhookUrl     String
-  filterJson     Json? // Optional fine-grained filter (e.g. specific eventId)
+  filterJson     Json?
   status         AutomationStatus  @default(ACTIVE)
   runCount       Int               @default(0)
   lastRunAt      DateTime?
-  lastRunStatus  String? // "success" | "error" | "timeout"
+  lastRunStatus  String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -736,8 +773,6 @@ enum MeetingRequestStatus {
   CANCELLED
 }
 
-// ─── Phase 6: Payment ─────────────────────────────────────────────────────────
-
 enum PaymentProvider {
   STRIPE
   RAZORPAY
@@ -767,43 +802,4 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
-}
-
-model OrgSubscription {
-  id                     String             @id @default(uuid()) @db.Uuid
-  organizationId         String             @db.Uuid
-  provider               PaymentProvider
-  providerSubscriptionId String             @unique
-  plan                   SubscriptionPlan
-  status                 SubscriptionStatus
-  currentPeriodStart     DateTime
-  currentPeriodEnd       DateTime
-  cancelledAt            DateTime?
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
-  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-
-  @@index([organizationId])
-  @@index([provider, status])
-}
-
-model EventPayment {
-  id                String             @id @default(uuid()) @db.Uuid
-  participationId   String             @unique @db.Uuid
-  eventId           String             @db.Uuid
-  provider          PaymentProvider
-  providerPaymentId String             @unique // Stripe PaymentIntent ID or RZP order_id
-  amount            Int // smallest unit (paise / cents)
-  currency          String
-  status            PaymentStatus      @default(PENDING)
-  receiptUrl        String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  participation     EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
-  event             Events             @relation(fields: [eventId], references: [id], onDelete: Cascade)
-
-  @@index([participationId])
-  @@index([eventId])
-  @@index([providerPaymentId])
-  @@index([status])
 }

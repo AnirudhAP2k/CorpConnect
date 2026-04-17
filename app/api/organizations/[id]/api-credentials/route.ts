@@ -60,12 +60,10 @@ export const POST = async (
     if (!(await assertOwner(session.user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    // Generate a secure random key:  evtly_live_<48 hex chars>
     const rawKey = `evtly_live_${randomBytes(24).toString("hex")}`;
-    const prefix = rawKey.slice(0, 18);     // "evtly_live_xxxxxx" (display only)
+    const prefix = rawKey.slice(0, 18);
     const hashed = await bcrypt.hash(rawKey, 12);
 
-    // Look up the org's current subscription plan to assign the correct tier
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         select: { subscriptionPlan: true },
