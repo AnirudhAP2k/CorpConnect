@@ -7,15 +7,6 @@ import { z } from "zod";
 import { CreateRuleSchema } from "@/lib/validation";
 import { AutomationTriggerType } from "@/lib/types";
 
-export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
-    EVENT_REGISTRATION: "New Event Registration",
-    EVENT_CANCELLED: "Event Cancelled",
-    FEEDBACK_RECEIVED: "Feedback Submitted",
-    CONNECTION_ACCEPTED: "Connection Accepted",
-    MEETING_SCHEDULED: "Meeting Request Accepted",
-    NEW_MEMBER_JOINED: "New Member Joined",
-};
-
 export interface AutomationRuleData {
     id: string;
     name: string;

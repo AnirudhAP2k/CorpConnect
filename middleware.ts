@@ -8,6 +8,7 @@ import {
   protectedRoutes,
   apiAuthRoutes,
   apiRoutes,
+  publicApiPrefixes,
   onboardingRoutes,
   adminRoutes,
   organizationRoutes
@@ -28,13 +29,16 @@ export default auth(async (req) => {
     return;
   }
 
-  // ── Hybrid Mobile Auth ────────────────────────────────────────────────────
-  // If an API call carries a valid Bearer token, bypass all cookie-session
-  // checks and let the request through. The individual route handler is
-  // responsible for calling requireMobileAuth() to validate the token.
   if (isApiRoute) {
-    const mobilePayload = await verifyMobileAccessToken(req);
 
+    const isPublicApiRoute = publicApiPrefixes.some((prefix) =>
+      nextUrl.pathname.startsWith(prefix)
+    );
+
+    if (isPublicApiRoute) return;
+
+    // ── Hybrid Mobile Auth ─────────────────────────────────────────────────
+    const mobilePayload = await verifyMobileAccessToken(req);
     if (mobilePayload) return;
 
     if (!isLoggedIn) {

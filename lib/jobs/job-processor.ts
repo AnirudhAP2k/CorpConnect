@@ -7,6 +7,10 @@ import { processEmbedEvent, processEmbedOrg } from "@/lib/jobs/embed-generation"
 import { processSentimentAnalysis } from "@/lib/jobs/sentiment-analysis";
 import { processN8nWorkflow } from "@/lib/jobs/n8n-trigger";
 import type { N8nJobPayload } from "@/lib/jobs/automation";
+import { processPaymentReceipt } from "@/lib/jobs/payment-receipt";
+import { processOrgWebhookDelivery } from "@/lib/jobs/org-webhook-delivery";
+import type { PaymentReceiptPayload } from "@/lib/jobs/payment-receipt";
+import type { OrgWebhookPayload } from "@/lib/jobs/org-webhook-delivery";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -215,6 +219,19 @@ async function processJob(job: any) {
 
         case "TRIGGER_N8N_WORKFLOW":
             await processN8nWorkflow(payload as N8nJobPayload);
+            break;
+
+        case "SEND_PAYMENT_RECEIPT":
+            await processPaymentReceipt(payload as PaymentReceiptPayload);
+            break;
+
+        case "ORG_WEBHOOK_DELIVERY":
+            await processOrgWebhookDelivery(payload as OrgWebhookPayload);
+            break;
+
+        case "PROCESS_REFUND":
+            // TODO: Implement refund processing via Stripe/Razorpay APIs
+            console.log("[Job] Processing refund:", payload);
             break;
 
         default:

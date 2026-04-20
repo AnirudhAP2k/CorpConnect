@@ -110,20 +110,53 @@
 - [x] UI
   - [x] TagInput component (autocomplete, keyboard nav, chip display)
 
-## Phase 6: Payment Gateway Integration 💳 *(Deferred — see docs/phase6_implementation_plan.md)*
-> Integration with Stripe (international) + Razorpay (India) for org subscriptions and event payments.
-> **Full plan documented.** Resuming after B2B differentiation (Phase 8) is complete.
+## Phase 6: Payment Gateway Integration 💳 ✅
 
-### Key Design Decisions (Locked)
-- **Dual provider**: Razorpay (UPI/INR) + Stripe (international) — user picks at checkout
-- **Org subscription tiers**: FREE / PRO / ENTERPRISE
-- **Event payment modes**: FREE (no change) / PLATFORM (app collects) / EXTERNAL (org's own link)
-- **Org webhook delivery**: Platform signs + POSTs payment events to org's configured URL
-- **Abuse prevention (4 layers)**:
-  - Layer 1: Paid event modes blocked for FREE tier orgs (API returns 402)
-  - Layer 2: FREE tier limits — max 3 active public events, max 50 attendees/event
-  - Layer 3: Platform fee on PLATFORM payments — 2% (PRO), 1% (ENTERPRISE)
-  - Layer 4: `isVerified = true` required to create paid events
+### Database Schema ✅
+- [x] Added `paymentMode` (EventPaymentMode), `currency`, `externalPayUrl` to `Events`
+- [x] Added `stripeCustomerId`, `razorpayCustomerId`, `subscriptionPlan`, `subscriptionStatus`, `subscriptionExpiresAt`, `paymentWebhookUrl`, `preferredCurrency` to `Organization`
+- [x] New model: `OrgSubscription` (billing history per provider)
+- [x] New model: `EventPayment` (per-event payment record linked to `EventParticipation`)
+- [x] New enums: `PaymentProvider`, `SubscriptionPlan`, `SubscriptionStatus`, `EventPaymentMode`, `PaymentStatus`
+- [x] Added `PENDING_PAYMENT` to `ParticipationStatus`
+- [x] Added `SEND_PAYMENT_RECEIPT`, `ORG_WEBHOOK_DELIVERY`, `PROCESS_REFUND` to `JobType`
+- [x] `prisma db push` applied — Prisma client regenerated
+
+### Billing API Routes ✅
+- [x] `POST /api/billing/subscribe` — Stripe Checkout / Razorpay subscription order
+- [x] `POST /api/billing/portal` — Stripe Customer Portal session
+- [x] `GET /api/billing/status` — org's current plan + status
+
+### Webhook Handlers ✅
+- [x] `POST /api/webhooks/stripe` — handles checkout.session.completed, invoice events, subscription deletion, payment_intent.succeeded
+- [x] `POST /api/webhooks/razorpay` — handles subscription.activated, subscription.cancelled, payment.captured
+
+### Event Payment Flow ✅
+- [x] `POST /api/events/[id]/checkout` — creates Stripe Checkout or Razorpay Order for PLATFORM events; handles all 3 modes
+- [x] `POST /api/events/[id]/payment-verify` — belt-and-suspenders post-redirect verification
+- [x] Modified `POST /api/events/[id]/participate` — enforces all 4 abuse-prevention layers
+
+### Abuse Prevention ✅
+- [x] Layer 1: PLATFORM/EXTERNAL blocked with 402 for FREE tier orgs
+- [x] Layer 2: 50-attendee cap per event enforced for FREE org hosts
+- [x] Layer 3: 2% (PRO) / 1% (ENTERPRISE) platform fee applied at checkout creation
+- [x] Layer 4: `isVerified = true` required for paid event modes
+
+### Org Webhook Delivery ✅
+- [x] `lib/jobs/org-webhook-delivery.ts` — HMAC-SHA256 signed POST to org's `paymentWebhookUrl`
+- [x] `lib/jobs/payment-receipt.ts` — receipt email after payment success
+- [x] Both wired into `job-processor.ts`
+
+### UI Components ✅
+- [x] `components/billing/PricingPlans.tsx` — FREE/PRO/ENTERPRISE cards, monthly/yearly toggle, Stripe/Razorpay picker
+- [x] `components/billing/ProviderPicker.tsx` — checkout provider modal for event registration
+- [x] `app/(protected)/billing/page.tsx` — billing management page (plan, metrics, history)
+
+### Infrastructure ✅
+- [x] `lib/payment/stripe.ts` — Stripe singleton + price ID map + fee constants
+- [x] `lib/payment/razorpay.ts` — Razorpay singleton
+- [x] `npm install stripe razorpay`
+- [x] `docs/phase6_env_vars.md` — all required env vars documented
 
 ## Phase 7: AI Microservice Integration 🤖 ✅
 > Python/FastAPI service at `ai-service/`. Same PostgreSQL DB + pgvector. Multi-tenant auth.

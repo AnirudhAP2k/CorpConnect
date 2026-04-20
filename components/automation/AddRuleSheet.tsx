@@ -14,10 +14,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { createAutomationRule, TRIGGER_LABELS } from "@/actions/automation.actions";
-import type { AutomationRuleData, AutomationTriggerType } from "@/actions/automation.actions";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
+import { createAutomationRule } from "@/actions/automation.actions";
+import type { AutomationRuleData } from "@/actions/automation.actions";
+import { TRIGGER_LABELS } from "@/constants";
+import { AutomationTriggerType } from "@/lib/types";
 
 interface AddRuleSheetProps {
     orgId: string;
@@ -27,8 +27,6 @@ interface AddRuleSheetProps {
 }
 
 const ALL_TRIGGERS = Object.entries(TRIGGER_LABELS) as [AutomationTriggerType, string][];
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function AddRuleSheet({ orgId, open, onOpenChange, onRuleCreated }: AddRuleSheetProps) {
     const [name, setName] = useState("");

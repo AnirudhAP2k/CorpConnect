@@ -140,10 +140,14 @@ model Events {
   maxAttendees        Int?
   attendeeCount       Int                          @default(0)
   viewCount           Int                          @default(0)
+  paymentMode         EventPaymentMode             @default(FREE)
+  currency            String                       @default("INR")
+  externalPayUrl      String?
   participations      EventParticipation[]
   eventTags           EventTag[]
   eventViews          EventView[]
   meetingRequests     MeetingRequest[]
+  eventPayments       EventPayment[]
   category            Category                     @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   organization        Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   User                User?                        @relation(fields: [userId], references: [id])
@@ -156,6 +160,7 @@ model Events {
   @@index([categoryId])
   @@index([startDateTime])
   @@index([visibility])
+  @@index([paymentMode])
 }
 
 model Category {
@@ -185,6 +190,13 @@ model Organization {
   services                String[]                     @default([])
   technologies            String[]                     @default([])
   twitterUrl              String?
+  stripeCustomerId        String?
+  razorpayCustomerId      String?
+  subscriptionPlan        SubscriptionPlan             @default(FREE)
+  subscriptionStatus      SubscriptionStatus           @default(ACTIVE)
+  subscriptionExpiresAt   DateTime?
+  paymentWebhookUrl       String?
+  preferredCurrency       String                       @default("INR")
   apiCredential           ApiCredential?
   participations          EventParticipation[]
   events                  Events[]
@@ -206,10 +218,12 @@ model Organization {
   embedding               Unsupported("vector(1536)")?
   orgDocuments            OrgDocument[]
   automationRules         AutomationRule[]
+  orgSubscriptions        OrgSubscription[]
 
   @@index([industryId])
   @@index([createdBy])
   @@index([hiringStatus])
+  @@index([subscriptionPlan])
 }
 
 // ─── RAG document store ─────────────────────────────────────────────────────
@@ -301,6 +315,7 @@ model EventParticipation {
   event          Events              @relation(fields: [eventId], references: [id], onDelete: Cascade)
   organization   Organization?       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   user           User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  eventPayment   EventPayment?
 
   @@unique([eventId, userId])
   @@index([userId])
@@ -483,6 +498,45 @@ model GroupPost {
   @@index([groupId])
 }
 
+model OrgSubscription {
+  id                     String             @id @default(uuid()) @db.Uuid
+  organizationId         String             @db.Uuid
+  provider               PaymentProvider
+  providerSubscriptionId String             @unique
+  plan                   SubscriptionPlan
+  status                 SubscriptionStatus
+  currentPeriodStart     DateTime
+  currentPeriodEnd       DateTime
+  cancelledAt            DateTime?
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
+  @@index([provider, status])
+}
+
+model EventPayment {
+  id                String             @id @default(uuid()) @db.Uuid
+  participationId   String             @unique @db.Uuid
+  eventId           String             @db.Uuid
+  provider          PaymentProvider
+  providerPaymentId String             @unique
+  amount            Int
+  currency          String
+  status            PaymentStatus      @default(PENDING)
+  receiptUrl        String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  participation     EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
+  event             Events             @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([participationId])
+  @@index([eventId])
+  @@index([providerPaymentId])
+  @@index([status])
+}
+
 model IndustryGroupEvent {
   id           String   @id @default(uuid()) @db.Uuid
   groupId      String   @db.Uuid
@@ -553,11 +607,11 @@ model AutomationRule {
   description    String?
   trigger        AutomationTrigger
   webhookUrl     String
-  filterJson     Json?             // Optional fine-grained filter (e.g. specific eventId)
+  filterJson     Json?
   status         AutomationStatus  @default(ACTIVE)
   runCount       Int               @default(0)
   lastRunAt      DateTime?
-  lastRunStatus  String?           // "success" | "error" | "timeout"
+  lastRunStatus  String?
   createdAt      DateTime          @default(now())
   updatedAt      DateTime          @updatedAt
   organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
@@ -627,6 +681,7 @@ enum ParticipationStatus {
   ATTENDED
   CANCELLED
   WAITLISTED
+  PENDING_PAYMENT
 }
 
 enum InviteStatus {
@@ -680,6 +735,9 @@ enum JobType {
   ANALYSE_FEEDBACK_SENTIMENT
   TRIGGER_N8N_WORKFLOW
   GENERATE_MATCHMAKING_REASON
+  SEND_PAYMENT_RECEIPT
+  ORG_WEBHOOK_DELIVERY
+  PROCESS_REFUND
 }
 
 enum OrgDocumentType {
@@ -713,4 +771,35 @@ enum MeetingRequestStatus {
   ACCEPTED
   DECLINED
   CANCELLED
+}
+
+enum PaymentProvider {
+  STRIPE
+  RAZORPAY
+}
+
+enum SubscriptionPlan {
+  FREE
+  PRO
+  ENTERPRISE
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  PAST_DUE
+  CANCELLED
+  TRIALING
+}
+
+enum EventPaymentMode {
+  FREE
+  PLATFORM
+  EXTERNAL
+}
+
+enum PaymentStatus {
+  PENDING
+  SUCCEEDED
+  FAILED
+  REFUNDED
 }

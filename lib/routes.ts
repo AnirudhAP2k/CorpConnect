@@ -36,6 +36,10 @@ export const apiRoutes = "/api/";
 
 export const apiAuthRoutes = "/api/auth";
 
+export const publicApiPrefixes = [
+    "/api/webhooks/",
+];
+
 export const onboardingRoutes = [
     '/onboarding'
 ];
