@@ -70,6 +70,11 @@ const TopHeader = async () => {
                                     activeOrganizationId={activeOrganizationId}
                                 />
                             </div>
+                            <div className="hidden md:flex items-center gap-2">
+                                <span className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    {session.user.apiTier}
+                                </span>
+                            </div>
                             <div className='flex items-center gap-3'>
                                 <form action={logout}>
                                     <Button className="rounded-full" size="lg" type="submit">
@@ -91,12 +96,6 @@ const TopHeader = async () => {
                     ) : (
                         <div className='flex items-center gap-3'>
                             <ThemeToggle />
-                            <Link
-                                href="/pricing"
-                                className="hidden sm:inline-flex text-nx-on-surface-variant hover:text-nx-primary font-label font-semibold text-xs uppercase tracking-widest transition-colors"
-                            >
-                                Membership
-                            </Link>
                             <Button asChild className="rounded-full" size="lg">
                                 <Link href="/login">Login</Link>
                             </Button>

@@ -1,4 +1,4 @@
-import { OrganizationRole } from "@prisma/client"
+import { ApiTier, OrganizationRole } from "@prisma/client"
 import { DefaultSession } from "next-auth"
 
 export type ExtendedUser =
@@ -10,6 +10,7 @@ export type ExtendedUser =
         hasCompletedOnboarding?: boolean;
         activeOrganizationId?: string | null;
         emailVerified?: Date | null;
+        apiTier?: ApiTier;
     }
 
 declare module "next-auth" {
@@ -34,6 +35,7 @@ declare module "next-auth/jwt" {
         isAppAdmin?: boolean;
         hasCompletedOnboarding?: boolean;
         activeOrganizationId?: string | null;
+        apiTier?: ApiTier;
         refreshToken?: string;
         accessTokenExpires?: number;
         error?: string | null;

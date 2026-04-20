@@ -14,6 +14,7 @@ export function mapTokenToSession(session: Session, token: JWT): Session {
         session.user.isAppAdmin = token.isAppAdmin ?? false;
         session.user.hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
         session.user.activeOrganizationId = token.activeOrganizationId ?? null;
+        session.user.apiTier = token.apiTier ?? "FREE";
     }
 
     return session;

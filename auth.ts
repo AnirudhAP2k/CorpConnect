@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import { prisma } from "@/lib/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import authConfig from "@/auth.config";
-import { getUserById } from "./data/user";
+import { getUserById, getUserTierWithActiveOrg } from "./data/user";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
 import { mapTokenToSession } from "@/auth.session";
 import { generateRefreshToken, revokeToken } from "@/lib/tokens";
@@ -68,11 +68,14 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 const refreshToken = await generateRefreshToken(user.id);
                 await storeRefreshToken(refreshToken.token);
 
+                const apiTier = await getUserTierWithActiveOrg(user);
+
                 token.sub = user.id;
                 token.role = user.role;
                 token.isAppAdmin = user.isAppAdmin;
                 token.activeOrganizationId = user.activeOrganizationId;
                 token.hasCompletedOnboarding = user.hasCompletedOnboarding;
+                token.apiTier = apiTier;
             }
 
             return token;
