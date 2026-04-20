@@ -7,7 +7,13 @@ import { JobType } from "@prisma/client";
 
 export const POST = async (req: NextRequest) => {
     try {
+        const session = await auth();
         const data = await req.json();
+
+        const userId = session?.user?.id;
+
+        data.logoUrl = data.logo;
+        data.createdBy = userId;
 
         const validated = OrganizationSubmitSchema.safeParse(data);
 
@@ -16,10 +22,14 @@ export const POST = async (req: NextRequest) => {
         }
 
         const { logoUrl, industryId, ...restData } = validated.data;
-        const session = await auth();
-        const userId = session?.user?.id;
 
-        if (!userId) {
+        const userRecord = await prisma.user.findUnique({
+            where: { id: userId },
+            select: { email: true },
+        });
+        const creatorEmail = userRecord?.email;
+
+        if (!userId || !creatorEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
@@ -27,29 +37,38 @@ export const POST = async (req: NextRequest) => {
             data: {
                 ...restData,
                 logo: logoUrl,
-                createdBy: userId,
-                industry: {
-                    connect: { id: industryId }
-                }
-            }
+                industry: { connect: { id: industryId } },
+                meta: { create: {} },
+            },
         });
 
         if (!organization) {
             return NextResponse.json({ error: "Organization creation failed" }, { status: 400 });
         }
 
-        // Enqueue embedding job — handler fetches & builds the text itself
         prisma.jobQueue.create({
-            data: {
-                type: JobType.EMBED_ORG,
-                payload: { orgId: organization.id },
-            },
+            data: { type: JobType.EMBED_ORG, payload: { orgId: organization.id } },
         }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_ORG:", err));
 
-        return NextResponse.json({ message: "Organization creation successful!", organization: organization.id }, { status: 200 });
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.VERIFY_ORG_LEVEL_1,
+                payload: { orgId: organization.id, creatorEmail },
+            },
+        }).catch((err) => console.error("[OrgVerification] Failed to enqueue L1:", err));
+
+        return NextResponse.json(
+            {
+                success: true,
+                message: "Organization created! Complete your KYB documents to unlock all features.",
+                organization: organization.id,
+                kybUrl: `/organizations/${organization.id}/complete-verification`,
+            },
+            { status: 200 }
+        );
     } catch (error: any) {
         console.error("Organization creation error:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        return NextResponse.json({ success: false, error: "Internal Server Error" }, { status: 500 });
     }
 };
 
