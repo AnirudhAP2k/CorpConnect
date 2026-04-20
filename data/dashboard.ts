@@ -337,6 +337,62 @@ export async function getAdminOrgsList(skip = 0, take = 20, search?: string) {
 }
 
 /**
+ * Orgs pending admin manual verification (passed Level 1, awaiting review).
+ */
+export async function getAdminVerificationQueue(skip = 0, take = 20) {
+    const where = {
+        meta: { verificationStatus: "IN_REVIEW" as const }
+    };
+
+    const [orgs, total] = await Promise.all([
+        prisma.organization.findMany({
+            where,
+            include: {
+                industry: { select: { label: true } },
+                meta: true,
+                _count: { select: { members: true, events: true } },
+            },
+            orderBy: { createdAt: "desc" },
+            skip,
+            take,
+        }),
+        prisma.organization.count({ where }),
+    ]);
+
+    return { orgs, total };
+}
+
+/**
+ * Full org detail for the admin verification review page.
+ */
+export async function getAdminOrgDetail(orgId: string) {
+    return prisma.organization.findUnique({
+        where: { id: orgId },
+        include: {
+            industry: { select: { label: true } },
+            meta: true,
+            orgDocuments: {
+                where: {
+                    docType: {
+                        in: ["INCORPORATION_CERT", "TAX_CERTIFICATE", "ADDRESS_PROOF", "OTHER_KYB", "LEGAL_COMPLIANCE"] as any[],
+                    },
+                },
+                select: {
+                    id: true,
+                    docType: true,
+                    title: true,
+                    taxRefNumber: true,
+                    sourceUrl: true,
+                    createdAt: true,
+                },
+                orderBy: { createdAt: "asc" },
+            },
+            _count: { select: { members: true, events: true, participations: true } },
+        },
+    });
+}
+
+/**
  * Users list for admin.
  */
 export async function getAdminUsersList(skip = 0, take = 20, search?: string) {
