@@ -89,7 +89,6 @@ export const PLAN_API_LIMITS: Record<string, number> = {
     ENTERPRISE: 50_000,
 };
 
-
 export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "New Event Registration",
     EVENT_CANCELLED: "Event Cancelled",
@@ -98,3 +97,36 @@ export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
     MEETING_SCHEDULED: "Meeting Request Accepted",
     NEW_MEMBER_JOINED: "New Member Joined",
 };
+
+export const FREE_FEATURES = [
+    "Organisation profile & discovery",
+    "Browse the events directory",
+    "Join up to 2 industry groups",
+    "Up to 5 connection requests / month",
+    "Basic AI-powered organisation search",
+    "Attend public events",
+];
+
+export const PRO_FEATURES = [
+    "Everything in Free",
+    "Unlimited connection requests",
+    "Priority meeting request inbox",
+    "Send & receive partnership proposals",
+    "Full AI matchmaking & recommendations",
+    "Host private & invite-only events",
+    "Featured organisation profile badge",
+    "Advanced event analytics dashboard",
+    "100 AI API calls / month",
+];
+
+export const ENTERPRISE_FEATURES = [
+    "Everything in Pro",
+    "Unlimited AI API calls with SLA",
+    "Dedicated account manager",
+    "Custom automation rules & webhooks",
+    "Bulk organisation networking tools",
+    "Private industry group creation",
+    "White-label event pages",
+    "Priority support & onboarding",
+    "Custom contract & invoicing",
+];
