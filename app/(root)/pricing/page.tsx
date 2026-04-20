@@ -79,7 +79,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild variant="outline" className="w-full py-6 rounded-xl border-2 border-nx-primary text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:bg-nx-primary hover:text-white transition-all duration-200">
-                            <Link href="/sign-up">Get Started — Free</Link>
+                            <Link href="/register">Get Started — Free</Link>
                         </Button>
                     </div>
 
@@ -108,7 +108,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild className="w-full py-6 rounded-xl bg-nx-on-tertiary-container text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:scale-[1.02] transition-all duration-200 shadow-lg">
-                            <Link href="/sign-up">Join Pro Now</Link>
+                            <Link href="/register">Join Pro Now</Link>
                         </Button>
                     </div>
 
