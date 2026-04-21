@@ -8,6 +8,7 @@
  * Level 2 (KYB Submission): Marks IN_REVIEW and notifies Admins to manual verify.
  */
 
+import { GENERIC_EMAIL_PROVIDERS } from "@/constants";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/mailer";
 
@@ -15,11 +16,6 @@ export interface OrgVerificationPayload {
     orgId: string;
     creatorEmail: string;
 }
-
-const GENERIC_EMAIL_PROVIDERS = [
-    "gmail.com", "yahoo.com", "hotmail.com", "outlook.com",
-    "icloud.com", "protonmail.com", "aol.com", "mail.com",
-];
 
 export async function processOrgLevel1(payload: OrgVerificationPayload): Promise<void> {
     const { orgId, creatorEmail } = payload;
