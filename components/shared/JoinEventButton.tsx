@@ -72,11 +72,6 @@ export default function JoinEventButton({
 
             const data = await res.json();
 
-            if (!res.ok) {
-                setError(data.error || "Failed to join event");
-                return;
-            }
-
             if (data.needsCheckout) {
                 setShowPicker(true);
                 return;
@@ -84,6 +79,11 @@ export default function JoinEventButton({
 
             if (data.redirectUrl) {
                 router.push(data.redirectUrl);
+                return;
+            }
+
+            if (!res.ok) {
+                setError(data.error || "Failed to join event");
                 return;
             }
 
