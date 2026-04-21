@@ -61,9 +61,9 @@ export const eventDefaultValues = {
     categoryId: "",
 }
 
-export const tokenVerificationBaseLink = `${process.env.NEXTAUTH_URL}/verify-token?token=`
+export const tokenVerificationBaseLink = `${process.env.NEXT_PUBLIC_APP_URL}/verify-token?token=`
 
-export const passwordResetTokenBaseLink = `${process.env.NEXTAUTH_URL}/new-password?token=`
+export const passwordResetTokenBaseLink = `${process.env.NEXT_PUBLIC_APP_URL}/new-password?token=`
 
 export const emailFooter = `<div class="footer">
       <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
@@ -129,4 +129,11 @@ export const ENTERPRISE_FEATURES = [
     "White-label event pages",
     "Priority support & onboarding",
     "Custom contract & invoicing",
+];
+
+export const GENERIC_EMAIL_PROVIDERS = [
+    "yahoo.com", "hotmail.com", "outlook.com",
+    "icloud.com", "protonmail.com", "aol.com", "mail.com",
+    "yopmail.com", "tempmail.com", "10minutemail.com", "guerrillamail.com",
+    "mailinator.com", "throwawaymail.com", "getnada.com", "temp-mail.org",
 ];
