@@ -3,11 +3,16 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Loader2, UserCheck, LogIn } from "lucide-react";
+import { Loader2, UserCheck, LogIn, CreditCard } from "lucide-react";
 import Link from "next/link";
+import { ProviderPicker } from "@/components/billing/ProviderPicker";
 
 interface JoinEventButtonProps {
     eventId: string;
+    eventTitle?: string;
+    price?: string;
+    currency?: string;
+    isFree?: boolean;
     isFull: boolean;
     isLoggedIn: boolean;
     activeOrganizationId?: string | null;
@@ -15,12 +20,17 @@ interface JoinEventButtonProps {
 
 export default function JoinEventButton({
     eventId,
+    eventTitle,
+    price,
+    currency,
+    isFree = false,
     isFull,
     isLoggedIn,
     activeOrganizationId,
 }: JoinEventButtonProps) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [showPicker, setShowPicker] = useState(false);
     const router = useRouter();
 
     if (!isLoggedIn) {
@@ -67,6 +77,16 @@ export default function JoinEventButton({
                 return;
             }
 
+            if (data.needsCheckout) {
+                setShowPicker(true);
+                return;
+            }
+
+            if (data.redirectUrl) {
+                router.push(data.redirectUrl);
+                return;
+            }
+
             router.refresh();
         } catch {
             setError("Something went wrong. Please try again.");
@@ -76,28 +96,44 @@ export default function JoinEventButton({
     };
 
     return (
-        <div className="space-y-2">
-            <Button
-                className="w-full"
-                size="lg"
-                onClick={handleJoin}
-                disabled={loading}
-            >
-                {loading ? (
-                    <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Joining...
-                    </>
-                ) : (
-                    <>
-                        <UserCheck className="w-4 h-4 mr-2" />
-                        Join Event
-                    </>
+        <>
+            <div className="space-y-2">
+                <Button
+                    className="w-full"
+                    size="lg"
+                    onClick={handleJoin}
+                    disabled={loading}
+                >
+                    {loading ? (
+                        <>
+                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                            Joining...
+                        </>
+                    ) : (
+                        <>
+                            {!isFree ? (
+                                <CreditCard className="w-4 h-4 mr-2" />
+                            ) : (
+                                <UserCheck className="w-4 h-4 mr-2" />
+                            )}
+                            {isFree ? "Join Event" : "Register & Pay"}
+                        </>
+                    )}
+                </Button>
+                {error && (
+                    <p className="text-sm text-destructive text-center">{error}</p>
                 )}
-            </Button>
-            {error && (
-                <p className="text-sm text-destructive text-center">{error}</p>
+            </div>
+            {showPicker && (
+                <ProviderPicker
+                    eventId={eventId}
+                    eventTitle={eventTitle || "Event"}
+                    price={price || "0"}
+                    currency={currency || "INR"}
+                    onClose={() => setShowPicker(false)}
+                    onSuccess={() => router.refresh()}
+                />
             )}
-        </div>
+        </>
     );
 }
