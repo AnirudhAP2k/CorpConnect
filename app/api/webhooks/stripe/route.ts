@@ -248,7 +248,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     if (!participationId) return; // Not an event payment
 
     const eventPayment = await prisma.eventPayment.findFirst({
-        where: { providerPaymentId: paymentIntent.id },
+        where: { participationId },
         include: {
             participation: {
                 include: {
@@ -266,9 +266,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     });
 
     if (!eventPayment) {
-        // Payment was recorded optimistically at checkout — update status
         await prisma.eventPayment.updateMany({
-            where: { providerPaymentId: paymentIntent.id },
+            where: { participationId },
             data: { status: "SUCCEEDED", receiptUrl: paymentIntent.charges?.data?.[0]?.receipt_url },
         });
         return;
