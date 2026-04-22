@@ -3,7 +3,8 @@
 import { useEffect, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { OrgKybSchema, type OrgKybValues } from "@/lib/validation";
+import { OrgKybSchema } from "@/lib/validation";
+import { type OrgKybValues } from "@/lib/types";
 import {
     Form, FormControl, FormField, FormItem,
     FormLabel, FormMessage,

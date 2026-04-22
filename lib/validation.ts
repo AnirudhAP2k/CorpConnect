@@ -169,5 +169,3 @@ export const OrgKybSchema = z.object({
     incorporationDate: z.string().optional().or(z.literal("")),
     registeredAddress: z.string().max(500).optional().or(z.literal("")),
 });
-
-export type OrgKybValues = z.infer<typeof OrgKybSchema>;
