@@ -47,7 +47,6 @@ export const POST = async (req: NextRequest) => {
 
         revalidatePath('/events');
 
-        // Enqueue embedding job — handler fetches & builds the text itself
         prisma.jobQueue.create({
             data: {
                 type: JobType.EMBED_EVENT,

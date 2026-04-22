@@ -121,7 +121,12 @@ export const POST = async (
                     },
                 ],
                 payment_intent_data: {
-                    application_fee_amount: platformFee,
+                    // TODO: add this after implementing stripe connect with the organization hosting event
+                    // application_fee_amount: platformFee,
+                    // transfer_data: {
+                    //     destination: event.organization.stripeId, // The Org's account
+                    // },
+
                     metadata: { participationId, eventId, userId },
                 },
                 success_url: `${appUrl}/events/${eventId}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -156,6 +161,8 @@ export const POST = async (
         const order = await razorpay.orders.create({
             amount: amountPaise,
             currency,
+            // TODO: add transfers array here after implementing razorpay route with the organization hosting event
+            // transfers: [{ account: "acc_...", amount: amountPaise - platformFee, currency }]
             notes: {
                 participationId,
                 eventId,
@@ -185,7 +192,7 @@ export const POST = async (
                 orderId: order.id,
                 amount: amountPaise,
                 currency,
-                keyId: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+                keyId: process.env.RAZORPAY_KEY_ID,
                 prefill: { name: "", email: "" },
                 eventTitle: event.title,
                 callbackUrl: `${appUrl}/events/${eventId}/payment-success`,
