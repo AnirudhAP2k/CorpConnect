@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import { sendMeetingRequestEmail } from "@/lib/email-templates/meeting-request";
 import type { MeetingEmailEvent } from "@/lib/types";
+import { createNotification } from "@/actions/notifications.actions";
 
 interface MeetingNotificationPayload {
     type: "MEETING_REQUEST" | "MEETING_ACCEPTED" | "MEETING_DECLINED" | "MEETING_CANCELLED";
@@ -23,7 +24,7 @@ export async function processMeetingNotification(payload: MeetingNotificationPay
                     name: true,
                     members: {
                         where: { role: { in: ["OWNER", "ADMIN"] } },
-                        select: { user: { select: { name: true, email: true } } },
+                        select: { user: { select: { id: true, name: true, email: true } } },
                     },
                 },
             },
@@ -33,7 +34,7 @@ export async function processMeetingNotification(payload: MeetingNotificationPay
                     name: true,
                     members: {
                         where: { role: { in: ["OWNER", "ADMIN"] } },
-                        select: { user: { select: { name: true, email: true } } },
+                        select: { user: { select: { id: true, name: true, email: true } } },
                     },
                 },
             },
@@ -59,14 +60,14 @@ export async function processMeetingNotification(payload: MeetingNotificationPay
     if (!meta) { console.warn(`[Job] Unknown meeting notif type: ${type}`); return; }
 
     const recipients = (meta.notifyOrg.members as any[])
-        .map((m: any) => ({ name: m.user.name || "Admin", email: m.user.email }))
+        .map((m: any) => ({ id: m.user.id, name: m.user.name || "Admin", email: m.user.email }))
         .filter((r: any) => !!r.email);
 
     if (recipients.length === 0) { console.warn(`[Job] No admin emails for org ${meta.notifyOrg.id}`); return; }
 
     await Promise.allSettled(
-        recipients.map((r: any) =>
-            sendMeetingRequestEmail({
+        recipients.map(async (r: any) => {
+            await sendMeetingRequestEmail({
                 event: meta.emailEvent,
                 recipientEmail: r.email,
                 recipientName: r.name,
@@ -75,8 +76,18 @@ export async function processMeetingNotification(payload: MeetingNotificationPay
                 agenda: mr.agenda ?? undefined,
                 proposedTime: mr.proposedTime?.toISOString() ?? undefined,
                 eventLink,
-            })
-        )
+            });
+
+            await createNotification({
+                userId: r.id,
+                type: "MEETING",
+                title: `Meeting ${meta.emailEvent}`,
+                description: meta.emailEvent === "REQUESTED"
+                    ? `${meta.actorOrg.name} requested a meeting regarding "${mr.event.title}".`
+                    : `${meta.actorOrg.name} ${meta.emailEvent.toLowerCase()} your meeting request.`,
+                link: eventLink,
+            });
+        })
     );
 
     console.log(`[Job] ✓ ${meta.emailEvent} meeting notification sent for request ${meetingRequestId}`);

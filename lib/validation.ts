@@ -132,7 +132,7 @@ export const OrganizationCreateSchema = z.object({
 });
 
 export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: true }).extend({
-    userId: z.string(),
+    createdBy: z.string(),
     logoUrl: z.string(),
 });
 
@@ -160,4 +160,12 @@ export const CreateRuleSchema = z.object({
     ]),
     webhookUrl: z.string().url().startsWith("https://", { message: "Webhook URL must start with https://" }),
     filterJson: z.record(z.unknown()).optional(),
+});
+
+export const OrgKybSchema = z.object({
+    registrationNumber: z.string().max(100).optional().or(z.literal("")),
+    jurisdiction: z.string().max(2).min(2, "Use a 2-letter country code e.g. IN, GB, US").optional().or(z.literal("")),
+    taxId: z.string().max(50).optional().or(z.literal("")),
+    incorporationDate: z.string().optional().or(z.literal("")),
+    registeredAddress: z.string().max(500).optional().or(z.literal("")),
 });

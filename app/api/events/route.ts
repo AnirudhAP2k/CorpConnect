@@ -3,6 +3,7 @@ import { EventSubmitSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { JobType } from "@prisma/client";
+import { assertVerifiedOrgSync } from "@/lib/org-guards";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -19,24 +20,24 @@ export const POST = async (req: NextRequest) => {
 
         const { imageUrl, organizationId, ...restData } = validated.data;
 
-        // Verify organization exists
         const organization = await prisma.organization.findUnique({
             where: { id: organizationId },
+            select: { isVerified: true, name: true },
         });
 
         if (!organization) {
-            return NextResponse.json(
-                { error: "Organization not found" },
-                { status: 404 }
-            );
+            return NextResponse.json({ error: "Organization not found" }, { status: 404 });
         }
+
+        const guard = assertVerifiedOrgSync(organization.isVerified, organization.name);
+        if (guard) return guard;
 
         const event = await prisma.events.create({
             data: {
                 ...restData,
                 image: imageUrl,
                 organizationId,
-                attendeeCount: 0, // Initialize to 0
+                attendeeCount: 0,
             }
         });
 
@@ -46,7 +47,6 @@ export const POST = async (req: NextRequest) => {
 
         revalidatePath('/events');
 
-        // Enqueue embedding job — handler fetches & builds the text itself
         prisma.jobQueue.create({
             data: {
                 type: JobType.EMBED_EVENT,

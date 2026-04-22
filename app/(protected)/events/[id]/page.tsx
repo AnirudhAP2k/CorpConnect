@@ -338,6 +338,10 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                 ) : (
                                     <JoinEventButton
                                         eventId={event.id}
+                                        eventTitle={event.title}
+                                        price={event.price || "0"}
+                                        currency={event.currency || "INR"}
+                                        isFree={event.isFree ?? event.paymentMode === "FREE"}
                                         isFull={isFull}
                                         isLoggedIn={!!userId}
                                         activeOrganizationId={activeOrgId}

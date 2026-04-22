@@ -1,42 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
 import { Check, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { FREE_FEATURES, PRO_FEATURES, ENTERPRISE_FEATURES } from "@/constants";
+import { useSession } from "next-auth/react";
 
-const FREE_FEATURES = [
-    "Organisation profile & discovery",
-    "Browse the events directory",
-    "Join up to 2 industry groups",
-    "Up to 5 connection requests / month",
-    "Basic AI-powered organisation search",
-    "Attend public events",
-];
-
-const PRO_FEATURES = [
-    "Everything in Free",
-    "Unlimited connection requests",
-    "Priority meeting request inbox",
-    "Send & receive partnership proposals",
-    "Full AI matchmaking & recommendations",
-    "Host private & invite-only events",
-    "Featured organisation profile badge",
-    "Advanced event analytics dashboard",
-    "100 AI API calls / month",
-];
-
-const ENTERPRISE_FEATURES = [
-    "Everything in Pro",
-    "Unlimited AI API calls with SLA",
-    "Dedicated account manager",
-    "Custom automation rules & webhooks",
-    "Bulk organisation networking tools",
-    "Private industry group creation",
-    "White-label event pages",
-    "Priority support & onboarding",
-    "Custom contract & invoicing",
-];
 
 export default function PricingPage() {
+    const session = useSession();
+    const user = session?.data?.user;
+
     return (
         <div className="bg-nx-surface min-h-screen">
             {/* ── Header ── */}
@@ -79,7 +54,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild variant="outline" className="w-full py-6 rounded-xl border-2 border-nx-primary text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:bg-nx-primary hover:text-white transition-all duration-200">
-                            <Link href="/sign-up">Get Started — Free</Link>
+                            <Link href="/register">Get Started — Free</Link>
                         </Button>
                     </div>
 
@@ -108,7 +83,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild className="w-full py-6 rounded-xl bg-nx-on-tertiary-container text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:scale-[1.02] transition-all duration-200 shadow-lg">
-                            <Link href="/sign-up">Join Pro Now</Link>
+                            <Link href={user ? "/billing" : "/register"}>Join Pro Now</Link>
                         </Button>
                     </div>
 
@@ -131,7 +106,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild variant="outline" className="w-full py-6 rounded-xl border-2 border-nx-primary text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:bg-nx-primary hover:text-white transition-all duration-200">
-                            <Link href="mailto:sales@corpconnect.io">Contact Sales</Link>
+                            <Link href={user ? "/billing" : "/register"}>Contact Sales</Link>
                         </Button>
                     </div>
                 </div>
