@@ -19,6 +19,7 @@ import {
     ChevronLeft,
     ChevronRight,
     Calendar,
+    MessageSquare,
 } from "lucide-react";
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -27,6 +28,7 @@ const iconMap: Record<string, React.ReactNode> = {
     UsersRound: <UsersRound className="w-5 h-5" />,
     CalendarDays: <CalendarDays className="w-5 h-5" />,
     Ticket: <Ticket className="w-5 h-5" />,
+    MessageSquare: <MessageSquare className="w-5 h-5" />,
 };
 
 interface SidebarProps {
