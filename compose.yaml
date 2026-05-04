@@ -1,6 +1,26 @@
 version: "3.9"
 
 services:
+  ws-service:
+    build:
+      context: ./ws-service
+    container_name: corpconnect-ws
+    restart: always
+
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - .env
+
+    environment:
+      WS_PORT: 4000
+      REDIS_URL: redis://redis:6379
+      NEXTJS_URL: ${NEXTJS_URL:-http://localhost:3000}
+
+    depends_on:
+      - redis
+
   server:
     build:
       context: .
