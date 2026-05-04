@@ -16,7 +16,8 @@ import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import type { SubscriptionPlan } from "@prisma/client";
 import { PLAN_API_LIMITS } from "@/constants";
-
+import { randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
 
 export const POST = async (req: NextRequest) => {
     const stripe = getStripe();
@@ -85,13 +86,18 @@ async function handleCheckoutCompleted(session: any) {
     const sub = await stripe.subscriptions.retrieve(subscriptionId) as any;
     const usageLimit = PLAN_API_LIMITS[plan] ?? PLAN_API_LIMITS.FREE;
 
+    console.log(`[stripe-webhook] Retrieved subscription ${subscriptionId}`);
+
+    const periodStart = sub.current_period_start ? new Date(sub.current_period_start * 1000) : new Date();
+    const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     await prisma.$transaction(async (tx) => {
         await tx.organization.update({
             where: { id: orgId },
             data: {
                 subscriptionPlan: plan,
                 subscriptionStatus: "ACTIVE",
-                subscriptionExpiresAt: new Date(sub.current_period_end * 1000),
+                subscriptionExpiresAt: periodEnd,
             },
         });
         await tx.orgSubscription.upsert({
@@ -102,14 +108,14 @@ async function handleCheckoutCompleted(session: any) {
                 providerSubscriptionId: subscriptionId,
                 plan,
                 status: "ACTIVE",
-                currentPeriodStart: new Date(sub.current_period_start * 1000),
-                currentPeriodEnd: new Date(sub.current_period_end * 1000),
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
             },
             update: {
                 plan,
                 status: "ACTIVE",
-                currentPeriodStart: new Date(sub.current_period_start * 1000),
-                currentPeriodEnd: new Date(sub.current_period_end * 1000),
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
             },
         });
         // Sync ApiCredential tier + limits
@@ -118,6 +124,28 @@ async function handleCheckoutCompleted(session: any) {
             await tx.apiCredential.update({
                 where: { organizationId: orgId },
                 data: { tier: plan, usageLimit },
+            });
+        } else {
+            const rawKey = `evtly_live_${randomBytes(24).toString("hex")}`;
+            const prefix = rawKey.slice(0, 18);
+            const hashed = await bcrypt.hash(rawKey, 12);
+
+            await prisma.apiCredential.upsert({
+                where: { organizationId: orgId },
+                update: {
+                    apiKey: hashed,
+                    apiKeyPrefix: prefix,
+                    tier: plan,
+                    usageLimit,
+                    usageCount: 0,
+                },
+                create: {
+                    organizationId: orgId,
+                    apiKey: hashed,
+                    apiKeyPrefix: prefix,
+                    tier: plan,
+                    usageLimit,
+                },
             });
         }
     });
@@ -136,20 +164,23 @@ async function handleInvoicePaymentSucceeded(invoice: any) {
     });
     if (!orgSub) return;
 
+    const periodStart = sub.current_period_start ? new Date(sub.current_period_start * 1000) : new Date();
+    const periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+
     await prisma.$transaction([
         prisma.orgSubscription.update({
             where: { providerSubscriptionId: subscriptionId },
             data: {
                 status: "ACTIVE",
-                currentPeriodStart: new Date(sub.current_period_start * 1000),
-                currentPeriodEnd: new Date(sub.current_period_end * 1000),
+                currentPeriodStart: periodStart,
+                currentPeriodEnd: periodEnd,
             },
         }),
         prisma.organization.update({
             where: { id: orgSub.organizationId },
             data: {
                 subscriptionStatus: "ACTIVE",
-                subscriptionExpiresAt: new Date(sub.current_period_end * 1000),
+                subscriptionExpiresAt: periodEnd,
             },
         }),
     ]);
@@ -217,7 +248,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     if (!participationId) return; // Not an event payment
 
     const eventPayment = await prisma.eventPayment.findFirst({
-        where: { providerPaymentId: paymentIntent.id },
+        where: { participationId },
         include: {
             participation: {
                 include: {
@@ -235,9 +266,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     });
 
     if (!eventPayment) {
-        // Payment was recorded optimistically at checkout — update status
         await prisma.eventPayment.updateMany({
-            where: { providerPaymentId: paymentIntent.id },
+            where: { participationId },
             data: { status: "SUCCEEDED", receiptUrl: paymentIntent.charges?.data?.[0]?.receipt_url },
         });
         return;

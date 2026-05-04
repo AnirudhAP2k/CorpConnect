@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { ConnectionEmailEvent } from "@/lib/email-templates/connection-notification";
 import { sendConnectionNotificationEmail } from "@/lib/email-templates/connection-notification";
+import { createNotification } from "@/actions/notifications.actions";
 
 /**
  * Payload shape stored in JobQueue.payload for SEND_NOTIFICATION jobs
@@ -62,8 +63,8 @@ export async function processConnectionNotification(payload: ConnectionNotificat
     const actorOrg = meta.notifyOrgId === connection.sourceOrgId ? connection.targetOrg : connection.sourceOrg;
     const dashboardLink = `${appUrl}/organizations/${notifyOrg.id}/dashboard`;
 
-    const recipients: { name: string; email: string }[] = (notifyOrg.members as any[])
-        .map((m: any) => ({ name: m.user.name || "Admin", email: m.user.email }))
+    const recipients: { id: string; name: string; email: string }[] = (notifyOrg.members as any[])
+        .map((m: any) => ({ id: m.user.id, name: m.user.name || "Admin", email: m.user.email }))
         .filter((r: any) => !!r.email);
 
     if (recipients.length === 0) {
@@ -74,8 +75,8 @@ export async function processConnectionNotification(payload: ConnectionNotificat
     console.log(`[Job] Sending ${meta.emailEvent} notification to ${recipients.length} admin(s) of ${notifyOrg.name}`);
 
     await Promise.allSettled(
-        recipients.map((r) =>
-            sendConnectionNotificationEmail({
+        recipients.map(async (r) => {
+            await sendConnectionNotificationEmail({
                 event: meta.emailEvent,
                 recipientEmail: r.email,
                 recipientName: r.name,
@@ -83,8 +84,18 @@ export async function processConnectionNotification(payload: ConnectionNotificat
                 targetOrgName: notifyOrg.name,
                 message: meta.emailEvent === "REQUESTED" ? connection.message ?? undefined : undefined,
                 dashboardLink,
-            })
-        )
+            });
+
+            await createNotification({
+                userId: r.id,
+                type: "SYSTEM",
+                title: `Connection ${meta.emailEvent}`,
+                description: meta.emailEvent === "REQUESTED"
+                    ? `${actorOrg.name} wants to connect with your organization.`
+                    : `${actorOrg.name} ${meta.emailEvent.toLowerCase()} your connection request.`,
+                link: dashboardLink,
+            });
+        })
     );
 
     console.log(`[Job] ✓ Connection ${meta.emailEvent} notifications sent for connection ${connectionId}`);

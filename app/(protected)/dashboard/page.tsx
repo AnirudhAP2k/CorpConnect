@@ -10,13 +10,13 @@ import EventRow from "@/components/dashboard/EventRow";
 import { getUserDashboardStats, getRecommendedEvents } from "@/data/dashboard";
 import { getUserOrganizations } from "@/data/organization";
 import { prisma } from "@/lib/db";
+import { VerificationReminderBanner } from "@/components/shared/VerificationReminderBanner";
 
 const DashboardPage = async () => {
     const session = await auth();
     const userId = session?.user?.id;
     if (!userId) redirect("/login");
 
-    // Get user with industryId data via their org
     const user = await prisma.user.findUnique({
         where: { id: userId },
         select: {
@@ -26,7 +26,6 @@ const DashboardPage = async () => {
 
     });
 
-    // Get org industryId separately to avoid complex nested select
     const userWithOrg = await prisma.user.findUnique({
         where: { id: userId },
         include: { organization: { select: { industryId: true } } },
@@ -38,9 +37,40 @@ const DashboardPage = async () => {
         getRecommendedEvents(userId, userWithOrg?.organization?.industryId),
     ]);
 
+    const unverifiedOrgBanners = await prisma.organizationMember.findMany({
+        where: {
+            userId,
+            role: { in: ["OWNER", "ADMIN"] },
+            organization: { isVerified: false },
+        },
+        select: {
+            organization: {
+                select: {
+                    id: true, name: true,
+                    meta: { select: { verificationStatus: true } },
+                },
+            },
+        },
+        take: 3,
+    });
+
     return (
         <div className="wrapper py-8">
             <div className="flex flex-col gap-8">
+                {/* Verification Reminder Banners */}
+                {unverifiedOrgBanners.length > 0 && (
+                    <div className="flex flex-col gap-3">
+                        {unverifiedOrgBanners.map(({ organization: o }) => (
+                            <VerificationReminderBanner
+                                key={o.id}
+                                orgId={o.id}
+                                orgName={o.name}
+                                status={(o.meta?.verificationStatus ?? "PENDING") as any}
+                            />
+                        ))}
+                    </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between">
                     <div>

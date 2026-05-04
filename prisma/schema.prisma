@@ -38,6 +38,7 @@ model User {
   refreshTokens            RefreshToken[]
   chatSessions             ChatSession[]
   feedbacks                EventFeedback[]
+  notifications            Notification[]
 }
 
 model Account {
@@ -216,9 +217,10 @@ model Organization {
   groupPosts              GroupPost[]
   addedGroupEvents        IndustryGroupEvent[]
   embedding               Unsupported("vector(1536)")?
-  orgDocuments            OrgDocument[]
   automationRules         AutomationRule[]
   orgSubscriptions        OrgSubscription[]
+  orgDocuments            OrgDocument[]         
+  meta                    OrganizationMeta?     
 
   @@index([industryId])
   @@index([createdBy])
@@ -226,16 +228,39 @@ model Organization {
   @@index([subscriptionPlan])
 }
 
-// ─── RAG document store ─────────────────────────────────────────────────────
-// Stores chunked text (company bio, event FAQs, legal docs, etc.) with vector
-// embeddings for retrieval-augmented generation (RAG) across the AI features.
+model OrganizationMeta {
+  id                     String             @id @default(uuid()) @db.Uuid
+  organizationId         String             @unique @db.Uuid
+
+  verificationStatus     VerificationStatus @default(PENDING)
+  verificationScore      Int?               
+  verificationSummary    String?            
+  verificationReviewNote String?            
+  verifiedAt             DateTime?          
+
+  registrationNumber     String?            
+  jurisdiction           String?            
+  taxId                  String?            
+  incorporationDate      DateTime?          
+  registeredAddress      String?            
+
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+
+  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([verificationStatus])
+  @@index([organizationId])
+}
+
 model OrgDocument {
   id             String                       @id @default(uuid()) @db.Uuid
-  organizationId String?                      @db.Uuid // null = platform-wide doc (e.g. T&Cs)
+  organizationId String?                      @db.Uuid 
   docType        OrgDocumentType
-  title          String
-  content        String // Raw text chunk (≤ 512 tokens)
-  sourceUrl      String? // Optional link back to the original file
+  title          String                               
+  content        String                               
+  sourceUrl      String?                              
+  taxRefNumber   String?                              
   embedding      Unsupported("vector(1536)")?
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
@@ -639,6 +664,23 @@ model EmailLog {
   @@index([templateType, sentAt])
 }
 
+model Notification {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  type        String
+  title       String
+  description String
+  link        String?
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
 enum OrganizationRole {
   OWNER
   ADMIN
@@ -735,6 +777,8 @@ enum JobType {
   ANALYSE_FEEDBACK_SENTIMENT
   TRIGGER_N8N_WORKFLOW
   GENERATE_MATCHMAKING_REASON
+  VERIFY_ORG_LEVEL_1
+  VERIFY_ORG_LEVEL_2
   SEND_PAYMENT_RECEIPT
   ORG_WEBHOOK_DELIVERY
   PROCESS_REFUND
@@ -745,6 +789,10 @@ enum OrgDocumentType {
   EVENT_DESCRIPTION
   LEGAL_COMPLIANCE
   GENERAL
+  INCORPORATION_CERT
+  TAX_CERTIFICATE
+  ADDRESS_PROOF
+  OTHER_KYB
 }
 
 enum ApiTier {
@@ -771,6 +819,14 @@ enum MeetingRequestStatus {
   ACCEPTED
   DECLINED
   CANCELLED
+}
+
+enum VerificationStatus {
+  PENDING
+  AWAITING_DOCS
+  IN_REVIEW
+  VERIFIED
+  REJECTED
 }
 
 enum PaymentProvider {

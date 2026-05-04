@@ -55,6 +55,7 @@ const OrganizationForm = ({
   const [files, setFiles] = useState<File[]>([]);
   const [isPending, startTransition] = useTransition();
 
+
   const form = useForm<z.infer<typeof OrganizationCreateSchema>>({
     resolver: zodResolver(OrganizationCreateSchema),
     defaultValues: initialData || {
@@ -73,6 +74,7 @@ const OrganizationForm = ({
       twitterUrl: "",
     },
   });
+
 
   const onSubmit = async (values: z.infer<typeof OrganizationCreateSchema>) => {
     setError("");
@@ -126,7 +128,7 @@ const OrganizationForm = ({
 
         setTimeout(() => {
           if (type === "Create") {
-            router.push("/dashboard");
+            router.push(response.data.kybUrl);
           } else {
             router.push(`/organizations/${organizationId}`);
           }
@@ -137,6 +139,7 @@ const OrganizationForm = ({
       }
     });
   };
+
 
   return (
     <Form {...form}>

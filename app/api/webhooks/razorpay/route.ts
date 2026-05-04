@@ -162,10 +162,13 @@ async function handlePaymentCaptured(payload: any) {
     if (!rzpPayment?.id) return;
 
     const participationId = rzpPayment.notes?.participationId as string | undefined;
-    if (!participationId) return; // Not an event payment
+    if (!participationId) return;
+
+    const orderId = rzpPayment.order_id as string | undefined;
+    if (!orderId) return;
 
     const eventPayment = await prisma.eventPayment.findFirst({
-        where: { providerPaymentId: rzpPayment.id },
+        where: { providerPaymentId: orderId },
         include: {
             participation: { include: { event: { include: { organization: true } } } },
         },
@@ -176,7 +179,10 @@ async function handlePaymentCaptured(payload: any) {
     await prisma.$transaction([
         prisma.eventPayment.update({
             where: { id: eventPayment.id },
-            data: { status: "SUCCEEDED" },
+            data: {
+                status: "SUCCEEDED",
+                providerPaymentId: rzpPayment.id,
+            },
         }),
         prisma.eventParticipation.update({
             where: { id: participationId },

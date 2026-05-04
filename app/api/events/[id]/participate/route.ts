@@ -58,7 +58,7 @@ export const POST = async (
         const organizationId = body.organizationId ?? user.activeOrganizationId;
 
         // ── Phase 6: Payment-mode guards ─────────────────────────────────────
-        const hostOrg = event.organization as any;
+        const hostOrg = event.organization;
         const hostPlan = hostOrg?.subscriptionPlan ?? "FREE";
 
         // Layer 1: Paid events are blocked for FREE tier orgs
@@ -96,10 +96,11 @@ export const POST = async (
             if (!pending || pending.status !== "PENDING_PAYMENT") {
                 return NextResponse.json(
                     {
+                        needsCheckout: true,
                         error: "Please complete payment before registering for this event.",
                         code: "PAYMENT_REQUIRED",
                     },
-                    { status: 402 }
+                    { status: 302 }
                 );
             }
             // Participation already created by checkout — nothing more to do here

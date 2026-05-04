@@ -100,11 +100,11 @@ export const GET = async (
             }));
         }
 
-        return NextResponse.json(organization, { status: 200 });
+        return NextResponse.json({ success: true, organization }, { status: 200 });
     } catch (error) {
         console.error("Organization retrieval error:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { success: false, error: "Internal Server Error" },
             { status: 500 }
         );
     }
@@ -182,6 +182,7 @@ export const PUT = async (
 
         return NextResponse.json(
             {
+                success: true,
                 message: "Organization updated successfully",
                 organization,
             },
@@ -190,7 +191,7 @@ export const PUT = async (
     } catch (error: any) {
         console.error("Organization update error:", error);
         return NextResponse.json(
-            { error: "Internal Server Error" },
+            { success: false, error: "Internal Server Error" },
             { status: 500 }
         );
     }

@@ -1,3 +1,5 @@
+import { OrgKybSchema } from "@/lib/validation"
+import { z } from "zod"
 
 // ====== USER PARAMS
 export type CreateUserParams = {
@@ -202,3 +204,5 @@ export type AutomationTriggerType =
   | "CONNECTION_ACCEPTED"
   | "MEETING_SCHEDULED"
   | "NEW_MEMBER_JOINED";
+
+export type OrgKybValues = z.infer<typeof OrgKybSchema>;

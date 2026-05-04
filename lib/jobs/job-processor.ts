@@ -11,6 +11,8 @@ import { processPaymentReceipt } from "@/lib/jobs/payment-receipt";
 import { processOrgWebhookDelivery } from "@/lib/jobs/org-webhook-delivery";
 import type { PaymentReceiptPayload } from "@/lib/jobs/payment-receipt";
 import type { OrgWebhookPayload } from "@/lib/jobs/org-webhook-delivery";
+import { processOrgLevel1, processOrgLevel2 } from "@/lib/jobs/org-verification";
+import type { OrgVerificationPayload } from "@/lib/jobs/org-verification";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -227,6 +229,14 @@ async function processJob(job: any) {
 
         case "ORG_WEBHOOK_DELIVERY":
             await processOrgWebhookDelivery(payload as OrgWebhookPayload);
+            break;
+
+        case "VERIFY_ORG_LEVEL_1":
+            await processOrgLevel1(payload as OrgVerificationPayload);
+            break;
+
+        case "VERIFY_ORG_LEVEL_2":
+            await processOrgLevel2(payload as OrgVerificationPayload);
             break;
 
         case "PROCESS_REFUND":

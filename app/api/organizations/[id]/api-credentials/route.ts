@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
 import { PLAN_API_LIMITS } from "@/constants";
+import { isUUID } from "@/lib/utils";
 
 /**
  * API Credential management for an organization.
@@ -29,6 +30,11 @@ export const GET = async (
 ) => {
     const { id: orgId } = await params;
     const session = await auth();
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -55,6 +61,11 @@ export const POST = async (
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
@@ -104,6 +115,11 @@ export const DELETE = async (
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
