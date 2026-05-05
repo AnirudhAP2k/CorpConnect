@@ -58,12 +58,12 @@ async function main(): Promise<void> {
     console.log(`[ws-service] Redis adapter connected (${REDIS_URL})`);
 
     // ── Authentication middleware ───────────────────────────────────────────────
-    io.use((socket, next) => {
+    io.use(async (socket, next) => {
         try {
             const token = socket.handshake.auth["token"] as string | undefined;
             if (!token) throw new Error("No token provided");
 
-            const payload = verifySocketAuth(token);
+            const payload = await verifySocketAuth(token);
             socket.data["userId"] = payload.userId;
             socket.data["activeOrgId"] = payload.activeOrgId;
             next();
