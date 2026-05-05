@@ -21,7 +21,7 @@ export async function verifyMobileAccessToken(req: NextRequest) {
     try {
         const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
         const { payload } = await jwtVerify(token, secret, {
-            algorithms: ["HS256"],
+            algorithms: [process.env.HASHING_ALGO || "HS256"],
         });
 
         return payload;

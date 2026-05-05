@@ -69,7 +69,7 @@ export async function POST(req: Request) {
             hasCompletedOnboarding: user.hasCompletedOnboarding,
             activeOrganizationId: user.activeOrganizationId,
         })
-            .setProtectedHeader({ alg: "HS256" })
+            .setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
             .setExpirationTime("15m")
             .sign(secret);
 

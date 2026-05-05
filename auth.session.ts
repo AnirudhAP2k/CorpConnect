@@ -26,7 +26,7 @@ export async function mapTokenToSession(session: Session, token: JWT): Promise<S
             userId: token.sub,
             activeOrgId: token.activeOrganizationId,
         })
-            .setProtectedHeader({ alg: "HS256" })
+            .setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
             .setIssuedAt()
             .setExpirationTime("5m")
             .sign(secret);
