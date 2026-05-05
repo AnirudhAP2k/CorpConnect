@@ -56,7 +56,7 @@ def _tier_sufficient(user_tier: ApiTier, required_tier: ApiTier) -> bool:
 def _verify_master_jwt(token: str) -> bool:
     """Returns True if token is a valid master JWT."""
     try:
-        jwt.decode(token, settings.MASTER_KEY, algorithms=["HS256"])
+        jwt.decode(token, settings.MASTER_KEY, algorithms=[settings.HASHING_ALGO])
         return True
     except JWTError:
         return False

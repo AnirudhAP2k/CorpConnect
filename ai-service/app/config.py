@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     # HMAC secret used to sign/verify webhook payloads between Evently and n8n
     N8N_WEBHOOK_SECRET: str = ""
 
+    # ─── Hashing ──────────────────────────────────────────────────────────
+    HASHING_ALGO: str = "HS256"
+
     # Service version
     SERVICE_VERSION: str = "2.0.0"
 
