@@ -40,6 +40,8 @@ model User {
   feedbacks                EventFeedback[]
   notifications            Notification[]
   sentDirectMessages       DirectMessage[]
+  virtualRoomsCreated      VirtualRoom[]
+  virtualSessions          VirtualSession[]
 }
 
 model Account {
@@ -156,6 +158,7 @@ model Events {
   orgInteractions     OrgInteraction[]
   industryGroupEvents IndustryGroupEvent[]
   embedding           Unsupported("vector(1536)")?
+  virtualRooms        VirtualRoom[]
   feedbacks           EventFeedback[]
 
   @@index([organizationId])
@@ -225,6 +228,7 @@ model Organization {
   directConversationsAsA  DirectConversation[]         @relation("ConvOrgA")
   directConversationsAsB  DirectConversation[]         @relation("ConvOrgB")
   sentDirectMessages      DirectMessage[]
+  virtualSessions         VirtualSession[]
 
   @@index([industryId])
   @@index([createdBy])
@@ -718,6 +722,43 @@ model DirectMessage {
   @@index([conversationId, createdAt])
   @@index([senderOrgId])
   @@index([status])
+}
+
+model VirtualRoom {
+  id              String           @id @default(uuid()) @db.Uuid
+  eventId         String           @db.Uuid
+  name            String
+  livekitRoom     String           @unique
+  isActive        Boolean          @default(true)
+  maxParticipants Int?
+  createdByUserId String           @db.Uuid
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  event     Events           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  createdBy User             @relation(fields: [createdByUserId], references: [id])
+  sessions  VirtualSession[]
+
+  @@index([eventId])
+  @@index([isActive])
+}
+
+model VirtualSession {
+  id             String        @id @default(uuid()) @db.Uuid
+  roomId         String        @db.Uuid
+  userId         String        @db.Uuid
+  organizationId String?       @db.Uuid
+  joinedAt       DateTime      @default(now())
+  leftAt         DateTime?
+  durationSecs   Int?
+
+  room         VirtualRoom   @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user         User          @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id])
+
+  @@index([roomId])
+  @@index([userId])
+  @@index([organizationId])
 }
 
 enum OrganizationRole {
