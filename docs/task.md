@@ -278,3 +278,57 @@
   - [ ] Implement flex/grid layout for Sidebar + Main Content
 - [ ] Mobile Navigation
   - [ ] Build responsive overlay sheet for small screens
+
+## Phase 10: Business Messaging (Direct Org-to-Org Chat) 💬
+> Real-time WebSocket-powered DM system between connected organizations.
+> See `docs/phase10_business_messaging_plan.md` for full architecture details.
+
+### 10.1 Infrastructure & Schema ✅
+- [x] Added `DirectConversation` + `DirectMessage` models + `DirectMessageStatus` enum to `schema.prisma`
+- [x] Added relation fields to `Organization` and `User`
+- [ ] **RUN:** `npx prisma db push` in `d:\evently` to apply schema to DB
+- [x] Scaffolded `ws-service/` directory (package.json, tsconfig.json, Dockerfile)
+- [x] Added `ws-service` service block to `compose.yaml`
+- [x] Added `NEXT_PUBLIC_WS_URL`, `WS_PORT` to `.env.example`
+- [x] Added `wsToken` field to `Session` type in `next-auth.d.ts`
+- [x] Updated `auth.session.ts` — mints short-lived WS token on every session
+- [x] Added "Messages" link to `sidebarLinks` in `constants/index.ts`
+
+### 10.2 WebSocket Service ✅
+- [x] `ws-service/src/index.ts` — HTTP server + Socket.io + Redis adapter + auth middleware
+- [x] `ws-service/src/auth.ts` — JWT verification of WS token using `AUTH_SECRET`
+- [x] `ws-service/src/db.ts` — pg pool (same `DATABASE_URL` as Next.js)
+- [x] `ws-service/src/rooms.ts` — room naming helpers (`conv:*`, `org:*`)
+- [x] `ws-service/src/handlers/message.ts` — `join_conversation`, `send_message`, `mark_read`, `leave_conversation`
+- [ ] **RUN:** `npm install` in `d:\evently\ws-service`
+
+### 10.3 REST API Routes ✅
+- [x] `GET /api/messaging/conversations` — list with last message + unread count
+- [x] `POST /api/messaging/conversations` — create/get thread (connection gate + OWNER/ADMIN check)
+- [x] `GET /api/messaging/conversations/[id]/messages` — cursor-based paginated history
+- [x] `GET /api/messaging/unread` — global unread count for Navbar badge
+
+### 10.4 Client Hooks ✅
+- [x] `hooks/useSocket.ts` — singleton Socket.io connection, reconnects on org change
+- [x] `hooks/useConversation.ts` — room join/leave, real-time message state, markRead, loadOlderMessages
+- [x] **RUN:** `npm install socket.io-client` in `d:\evently`
+
+### 10.5 UI Components & Pages ✅
+- [x] `app/(protected)/messaging/layout.tsx` — two-panel shell
+- [x] `app/(protected)/messaging/page.tsx` — empty state when no conversation selected
+- [x] `app/(protected)/messaging/[conversationId]/page.tsx` — chat window (SSR initial messages)
+- [x] `components/messaging/ConversationList.tsx` — sidebar with last message + unread badge
+- [x] `components/messaging/ConversationItem.tsx` — org logo, name, snippet, timestamp
+- [x] `components/messaging/ChatWindow.tsx` — main client component using `useConversation`
+- [x] `components/messaging/MessageList.tsx` — scrollable bubbles with date separators
+- [x] `components/messaging/MessageBubble.tsx` — bubble with sender avatar + read receipt
+- [x] `components/messaging/MessageInput.tsx` — textarea (Enter = send, Shift+Enter = newline)
+- [x] `components/messaging/StartConversationButton.tsx` — on org profile, calls POST conversations
+- [x] `components/messaging/UnreadBadge.tsx` — Navbar badge polling `/api/messaging/unread`
+
+### 10.6 Polish & Testing
+- [x] Loading skeletons for ConversationList and MessageList (`MessagingSkeletons.tsx`)
+- [x] Empty state for /messaging (no conversations yet + CTA to connect with orgs)
+- [x] Disconnected banner ("Reconnecting…") when socket drops
+- [ ] Mobile-responsive two-panel layout
+- [ ] Integration test: two org sessions exchange messages in real time

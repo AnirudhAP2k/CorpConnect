@@ -40,6 +40,11 @@ export const sidebarLinks = [
         icon: "UsersRound",
     },
     {
+        label: "Messages",
+        route: "/messaging",
+        icon: "MessageSquare",
+    },
+    {
         label: "Events Directory",
         route: "/events",
         icon: "CalendarDays",

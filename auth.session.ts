@@ -1,7 +1,8 @@
 import { Session } from "next-auth";
 import { JWT } from "next-auth/jwt";
+import { SignJWT } from "jose";
 
-export function mapTokenToSession(session: Session, token: JWT): Session {
+export async function mapTokenToSession(session: Session, token: JWT): Promise<Session> {
     if (token.sub && session.user) {
         session.user.id = token.sub;
     }
@@ -15,6 +16,20 @@ export function mapTokenToSession(session: Session, token: JWT): Session {
         session.user.hasCompletedOnboarding = token.hasCompletedOnboarding ?? false;
         session.user.activeOrganizationId = token.activeOrganizationId ?? null;
         session.user.apiTier = token.apiTier ?? "FREE";
+    }
+
+    // Mint a short-lived WS token so the browser can authenticate with ws-service.
+    // Contains only the minimum required fields to reduce exposure.
+    if (token.sub && token.activeOrganizationId && process.env.AUTH_SECRET) {
+        const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
+        session.wsToken = await new SignJWT({
+            userId: token.sub,
+            activeOrgId: token.activeOrganizationId,
+        })
+            .setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
+            .setIssuedAt()
+            .setExpirationTime("5m")
+            .sign(secret);
     }
 
     return session;

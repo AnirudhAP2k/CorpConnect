@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import MemberCard from "@/components/shared/MemberCard";
 import ConnectButton from "@/components/organizations/ConnectButton";
+import { StartConversationButton } from "@/components/messaging/StartConversationButton";
 import type { Organization } from "@prisma/client";
 
 // ISR — org profile is semi-static, revalidate every 60 s
@@ -213,6 +214,13 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
                                     activeOrgId={activeOrgIdForButton ?? null}
                                     initialStatus={connectionStatus}
                                     connectionId={connectionId}
+                                />
+                            )}
+                            {/* Message button — only when already connected */}
+                            {!isMember && connectionStatus === "ACCEPTED" && (
+                                <StartConversationButton
+                                    targetOrgId={id}
+                                    targetOrgName={organization.name}
                                 />
                             )}
                             {canEdit && (

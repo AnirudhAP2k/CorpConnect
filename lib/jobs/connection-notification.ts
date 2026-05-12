@@ -16,7 +16,7 @@ export async function processConnectionNotification(payload: ConnectionNotificat
     const { type, connectionId } = payload;
 
     // Load the connection with both orgs and their OWNER/ADMIN members
-    const connection = await (prisma as any).orgConnection.findUnique({
+    const connection = await prisma.orgConnection.findUnique({
         where: { id: connectionId },
         include: {
             sourceOrg: {

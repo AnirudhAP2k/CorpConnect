@@ -10,6 +10,7 @@ import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { logout } from '@/actions/logout.actions'
 import { TopNavLinks } from '@/components/shared/TopNavLinks'
 import { NotificationBell, ReminderItem } from '@/components/shared/NotificationBell'
+import { UnreadBadge } from '@/components/messaging/UnreadBadge'
 const TopHeader = async () => {
     const session = await auth();
 
@@ -137,6 +138,7 @@ const TopHeader = async () => {
                             </div>
 
                             <NotificationBell reminders={reminders} />
+                            <UnreadBadge />
 
                             <div className='flex items-center gap-3'>
                                 <form action={logout}>

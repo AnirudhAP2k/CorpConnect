@@ -109,7 +109,7 @@ export interface AISentimentResult {
 export async function getMasterJwt(): Promise<string> {
     const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
     return new SignJWT({ role: "master" })
-        .setProtectedHeader({ alg: "HS256" })
+        .setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
         .setIssuedAt()
         .setExpirationTime("5m")
         .sign(secret);

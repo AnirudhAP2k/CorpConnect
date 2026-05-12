@@ -39,6 +39,7 @@ model User {
   chatSessions             ChatSession[]
   feedbacks                EventFeedback[]
   notifications            Notification[]
+  sentDirectMessages       DirectMessage[]
 }
 
 model Account {
@@ -219,8 +220,11 @@ model Organization {
   embedding               Unsupported("vector(1536)")?
   automationRules         AutomationRule[]
   orgSubscriptions        OrgSubscription[]
-  orgDocuments            OrgDocument[]         
-  meta                    OrganizationMeta?     
+  orgDocuments            OrgDocument[]
+  meta                    OrganizationMeta?
+  directConversationsAsA  DirectConversation[]         @relation("ConvOrgA")
+  directConversationsAsB  DirectConversation[]         @relation("ConvOrgB")
+  sentDirectMessages      DirectMessage[]
 
   @@index([industryId])
   @@index([createdBy])
@@ -229,25 +233,25 @@ model Organization {
 }
 
 model OrganizationMeta {
-  id                     String             @id @default(uuid()) @db.Uuid
-  organizationId         String             @unique @db.Uuid
+  id             String @id @default(uuid()) @db.Uuid
+  organizationId String @unique @db.Uuid
 
   verificationStatus     VerificationStatus @default(PENDING)
-  verificationScore      Int?               
-  verificationSummary    String?            
-  verificationReviewNote String?            
-  verifiedAt             DateTime?          
+  verificationScore      Int?
+  verificationSummary    String?
+  verificationReviewNote String?
+  verifiedAt             DateTime?
 
-  registrationNumber     String?            
-  jurisdiction           String?            
-  taxId                  String?            
-  incorporationDate      DateTime?          
-  registeredAddress      String?            
+  registrationNumber String?
+  jurisdiction       String?
+  taxId              String?
+  incorporationDate  DateTime?
+  registeredAddress  String?
 
-  createdAt              DateTime           @default(now())
-  updatedAt              DateTime           @updatedAt
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
-  organization           Organization       @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([verificationStatus])
   @@index([organizationId])
@@ -255,12 +259,12 @@ model OrganizationMeta {
 
 model OrgDocument {
   id             String                       @id @default(uuid()) @db.Uuid
-  organizationId String?                      @db.Uuid 
+  organizationId String?                      @db.Uuid
   docType        OrgDocumentType
-  title          String                               
-  content        String                               
-  sourceUrl      String?                              
-  taxRefNumber   String?                              
+  title          String
+  content        String
+  sourceUrl      String?
+  taxRefNumber   String?
   embedding      Unsupported("vector(1536)")?
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
@@ -681,6 +685,41 @@ model Notification {
   @@index([read])
 }
 
+model DirectConversation {
+  id        String   @id @default(uuid()) @db.Uuid
+  orgAId    String   @db.Uuid
+  orgBId    String   @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orgA     Organization    @relation("ConvOrgA", fields: [orgAId], references: [id], onDelete: Cascade)
+  orgB     Organization    @relation("ConvOrgB", fields: [orgBId], references: [id], onDelete: Cascade)
+  messages DirectMessage[]
+
+  @@unique([orgAId, orgBId])
+  @@index([orgAId])
+  @@index([orgBId])
+}
+
+model DirectMessage {
+  id             String              @id @default(uuid()) @db.Uuid
+  conversationId String              @db.Uuid
+  senderOrgId    String              @db.Uuid
+  senderUserId   String              @db.Uuid
+  content        String              @db.Text
+  status         DirectMessageStatus @default(SENT)
+  readAt         DateTime?
+  createdAt      DateTime            @default(now())
+
+  conversation DirectConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  senderOrg    Organization       @relation(fields: [senderOrgId], references: [id], onDelete: Cascade)
+  senderUser   User               @relation(fields: [senderUserId], references: [id])
+
+  @@index([conversationId, createdAt])
+  @@index([senderOrgId])
+  @@index([status])
+}
+
 enum OrganizationRole {
   OWNER
   ADMIN
@@ -858,4 +897,10 @@ enum PaymentStatus {
   SUCCEEDED
   FAILED
   REFUNDED
+}
+
+enum DirectMessageStatus {
+  SENT
+  DELIVERED
+  READ
 }
