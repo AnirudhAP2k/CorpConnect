@@ -406,13 +406,9 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                             ...r,
                                             createdAt: r.createdAt.toISOString(),
                                         }))}
-                                        onSelectRoom={(room) => {
-                                            // JoinVirtualButton handles navigation — noop here
-                                            void room;
-                                        }}
                                     />
                                     {/* Per-room join buttons for registered users */}
-                                    {isRegistered && virtualRooms.map((room) => (
+                                    {(isRegistered || isHost) && virtualRooms.map((room) => (
                                         <div key={room.id} className="mt-2">
                                             <JoinVirtualButton
                                                 eventId={id}

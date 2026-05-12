@@ -18,11 +18,9 @@ interface VirtualRoomListProps {
     eventId: string;
     isHost: boolean;
     initialRooms: VirtualRoom[];
-    /** Called when user wants to enter a room — parent renders JoinVirtualButton */
-    onSelectRoom: (room: VirtualRoom) => void;
 }
 
-export function VirtualRoomList({ eventId, isHost, initialRooms, onSelectRoom }: VirtualRoomListProps) {
+export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomListProps) {
     const [rooms, setRooms] = useState<VirtualRoom[]>(initialRooms);
     const [creating, setCreating] = useState(false);
     const [newRoomName, setNewRoomName] = useState("");
@@ -107,13 +105,6 @@ export function VirtualRoomList({ eventId, isHost, initialRooms, onSelectRoom }:
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
                         <Badge className="bg-green-100 text-green-700 text-xs">Live</Badge>
-                        <Button
-                            size="sm"
-                            onClick={() => onSelectRoom(room)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white text-xs h-7 px-3"
-                        >
-                            Join
-                        </Button>
                         {isHost && (
                             <Button
                                 size="sm"
