@@ -15,6 +15,7 @@ import {
 import { format } from "date-fns";
 import Link from "next/link";
 import { getAdminAIStats } from "@/actions/ai.actions";
+import Image from "next/image";
 
 export default async function AdminDashboardPage() {
     const [platformStats, revenueStats, { orgs }, jobHealth, aiStats] = await Promise.all([
@@ -158,7 +159,7 @@ export default async function AdminDashboardPage() {
                             <div key={org.id} className="flex items-center gap-4 py-3">
                                 <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     {org.logo ? (
-                                        <img src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
                                     ) : (
                                         <Building2 className="h-4 w-4 text-primary" />
                                     )}

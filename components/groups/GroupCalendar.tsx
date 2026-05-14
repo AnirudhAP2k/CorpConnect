@@ -8,6 +8,7 @@ import { Calendar, MapPin, Building2, Plus, ArrowRight } from "lucide-react";
 import Link from "next/link";
 import axios from "axios";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface GroupEvent {
     id: string;
@@ -77,7 +78,7 @@ export default function GroupCalendar({ groupId, initialEvents }: { groupId: str
                         <div key={ge.id} className="bg-card rounded-lg border overflow-hidden flex flex-col transition-all hover:border-primary/50">
                             <div className="h-32 bg-muted relative">
                                 {ge.event.image ? (
-                                    <img src={ge.event.image} alt={ge.event.title} className="w-full h-full object-cover" />
+                                    <Image src={ge.event.image} alt={ge.event.title} className="w-full h-full object-cover" />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-primary/10">
                                         <Calendar className="w-8 h-8 text-primary/40" />

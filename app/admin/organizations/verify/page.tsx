@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { Building2, Clock, CheckCircle2, XCircle, AlertTriangle, Users, Calendar } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import Image from "next/image";
 
 interface Props {
     searchParams: Promise<{ page?: string }>;
@@ -81,7 +82,7 @@ export default async function AdminVerifyPage({ searchParams }: Props) {
                                 {/* Logo */}
                                 <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-indigo-100">
                                     {org.logo ? (
-                                        <img src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
                                     ) : (
                                         <Building2 className="h-6 w-6 text-indigo-400" />
                                     )}

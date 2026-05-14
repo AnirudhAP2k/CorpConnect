@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Building2, MapPin } from "lucide-react";
+import Image from "next/image";
 
 export default function GroupMembers({ members }: { members: any[] }) {
     if (!members || members.length === 0) {
@@ -21,7 +22,7 @@ export default function GroupMembers({ members }: { members: any[] }) {
                     <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                             {member.organization.logo ? (
-                                <img
+                                <Image
                                     src={member.organization.logo}
                                     alt={member.organization.name}
                                     className="w-full h-full object-cover rounded-lg"

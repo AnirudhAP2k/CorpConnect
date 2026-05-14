@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Building2, Calendar, Mail, User, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import axios from "axios";
+import Image from "next/image";
 
 const InvitationsPage = async () => {
     const session = await auth();
@@ -122,7 +123,7 @@ function InvitationCard({ invitation, getRoleBadge }: any) {
                 <div className="flex-1">
                     <div className="flex items-start gap-4">
                         {invitation.organization.logo ? (
-                            <img
+                            <Image
                                 src={invitation.organization.logo}
                                 alt={invitation.organization.name}
                                 className="w-16 h-16 rounded-lg object-cover"

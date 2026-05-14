@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { format } from "date-fns";
+import Image from "next/image";
 
 // ─── Types ─────────────────────────────────────────────────────────────────
 
@@ -128,7 +129,7 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
             <div className="flex items-center gap-4">
                 <div className="h-16 w-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {org.logo
-                        ? <img src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                        ? <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
                         : <Building2 className="h-8 w-8 text-indigo-400" />}
                 </div>
                 <div>

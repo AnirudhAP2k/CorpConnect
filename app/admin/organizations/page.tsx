@@ -4,6 +4,7 @@ import { Building2, Users, Calendar } from "lucide-react";
 import { getAdminOrgsList } from "@/data/dashboard";
 import { format } from "date-fns";
 import Link from "next/link";
+import Image from "next/image";
 
 interface AdminOrgsPageProps {
     searchParams: Promise<{ search?: string; page?: string }>;
@@ -51,7 +52,7 @@ export default async function AdminOrgsPage({ searchParams }: AdminOrgsPageProps
                             <div key={org.id} className="flex items-center gap-4 p-4 hover:bg-muted/30 transition-colors">
                                 <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     {org.logo ? (
-                                        <img src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
                                     ) : (
                                         <Building2 className="h-5 w-5 text-primary" />
                                     )}

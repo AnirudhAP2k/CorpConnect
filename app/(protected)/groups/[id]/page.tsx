@@ -10,6 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Building2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import JoinLeaveGroupButton from "@/components/groups/JoinLeaveGroupButton";
+import Image from "next/image";
 
 export const metadata = {
     title: "Group Details | CorpConnect",
@@ -82,7 +83,7 @@ export default async function GroupDetailsPage({
             <div className="flex flex-col md:flex-row gap-6 items-start md:items-center bg-card p-6 rounded-lg border">
                 <div className="w-20 h-20 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
                     {group.logo ? (
-                        <img src={group.logo} alt={group.name} className="w-full h-full object-cover rounded-lg" />
+                        <Image src={group.logo} alt={group.name} className="w-full h-full object-cover rounded-lg" />
                     ) : (
                         <Building2 className="w-10 h-10 text-primary" />
                     )}

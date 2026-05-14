@@ -7,6 +7,7 @@ import { Send, User as UserIcon } from "lucide-react";
 import axios from "axios";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Post {
     id: string;
@@ -69,7 +70,7 @@ export default function GroupFeed({ groupId, initialPosts }: { groupId: string, 
                             <div className="flex items-center gap-3">
                                 <div className="w-10 h-10 rounded-full bg-muted border flex items-center justify-center shrink-0 overflow-hidden">
                                     {(post.authorUser.image || post.authorOrg.logo) ? (
-                                        <img src={post.authorUser.image || post.authorOrg.logo || undefined} alt="avatar" className="w-full h-full object-cover" />
+                                        <Image src={post.authorUser.image || post.authorOrg.logo || ""} alt="avatar" className="w-full h-full object-cover" />
                                     ) : (
                                         <UserIcon className="w-5 h-5 text-muted-foreground" />
                                     )}

@@ -2,6 +2,7 @@ import axios from "axios";
 import React, { useState, useCallback, useEffect } from "react";
 import { Button } from "../ui/button";
 import { CloudUpload, X } from "lucide-react";
+import Image from "next/image";
 
 interface FileUploaderProps {
     image: File | undefined | null;
@@ -9,7 +10,7 @@ interface FileUploaderProps {
     setFiles: React.Dispatch<React.SetStateAction<File[]>>;
 }
 
-const FileUploader = ({ onFieldChange, image, setFiles } : FileUploaderProps) => {
+const FileUploader = ({ onFieldChange, image, setFiles }: FileUploaderProps) => {
     const [localFiles, setLocalFiles] = useState<File[]>([]);
     const [preview, setPreview] = useState<string | null>(null);
     const [file, setFile] = useState<File | null>(null);
@@ -22,11 +23,11 @@ const FileUploader = ({ onFieldChange, image, setFiles } : FileUploaderProps) =>
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files.length > 0) {
             const selectedFile = e.target.files[0];
-    
+
             setPreview(URL.createObjectURL(selectedFile));
             setFile(selectedFile);
             setFiles([selectedFile]);
-    
+
             onFieldChange(selectedFile);
         }
     };
@@ -36,11 +37,11 @@ const FileUploader = ({ onFieldChange, image, setFiles } : FileUploaderProps) =>
         const droppedFiles = Array.from(e.dataTransfer.files);
         if (droppedFiles.length > 0) {
             const selectedFile = droppedFiles[0];
-    
+
             setPreview(URL.createObjectURL(selectedFile));
             setFile(selectedFile);
             setFiles([selectedFile]);
-    
+
             onFieldChange(selectedFile);
         }
     };
@@ -58,9 +59,9 @@ const FileUploader = ({ onFieldChange, image, setFiles } : FileUploaderProps) =>
             onDragOver={(e) => e.preventDefault()}
             className="flex flex-col md:h-52 items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer transition-all hover:border-blue-500"
         >
-            { preview ? (
+            {preview ? (
                 <div className="relative w-full">
-                    <img
+                    <Image
                         src={preview}
                         alt="Preview"
                         className="w-full max-h-40 object-contain rounded-lg shadow-md"
