@@ -1,4 +1,4 @@
-# Evently AI Service — Python Dependencies
+# CorpConnect AI Service — Python Dependencies
 # Pin exact versions for reproducible builds
 
 # Web framework

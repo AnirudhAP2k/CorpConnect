@@ -2,7 +2,7 @@
 
 ## Goal
 
-Shift the user experience from "event management tool" to "B2B networking graph." Based on competitive analysis: Eventbrite and Luma are event-first; Evently's differentiator is **organization-first networking with AI-powered relationship discovery**.
+Shift the user experience from "event management tool" to "B2B networking graph." Based on competitive analysis: Eventbrite and Luma are event-first; CorpConnect's differentiator is **organization-first networking with AI-powered relationship discovery**.
 
 > Events should act as a catalyst for connections, not the main product.
 

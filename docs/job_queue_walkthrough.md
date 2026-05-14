@@ -43,7 +43,7 @@ Generic job queue for future tasks:
 
 **Features:**
 - Professional HTML design
-- Evently branding
+- CorpConnect branding
 - Organization name and inviter
 - Role badge
 - Accept invitation button
@@ -380,7 +380,7 @@ SMTP_SERVER_HOST=smtp.gmail.com
 SMTP_TRANSPORTER_SERVICE=gmail
 SMTP_SERVER_USERNAME=your-email@gmail.com
 SMTP_SERVER_PASSWORD=your-app-password
-SENDER_EMAIL=noreply@evently.com
+SENDER_EMAIL=noreply@corpconnect.com
 
 # App URL
 NEXT_PUBLIC_APP_URL=http://localhost:3000

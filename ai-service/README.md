@@ -1,6 +1,6 @@
-# Evently AI Service
+# CorpConnect AI Service
 
-Python/FastAPI microservice for AI-powered recommendations, embeddings, and semantic search. Lives in the Evently monorepo at `ai-service/`.
+Python/FastAPI microservice for AI-powered recommendations, embeddings, and semantic search. Lives in the CorpConnect monorepo at `ai-service/`.
 
 ## Setup
 
@@ -47,8 +47,8 @@ First run downloads the `all-MiniLM-L6-v2` model (~90MB). Cached to `~/.cache/to
 ### 5. Run (production via Docker)
 
 ```bash
-docker build -t evently-ai .
-docker run -p 8000:8000 --env-file .env evently-ai
+docker build -t corpconnect-ai .
+docker run -p 8000:8000 --env-file .env corpconnect-ai
 ```
 
 ---

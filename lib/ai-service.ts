@@ -1,7 +1,7 @@
 /**
  * lib/ai-service.ts
  *
- * Typed HTTP client for the Evently AI microservice.
+ * Typed HTTP client for the CorpConnect AI microservice.
  * Uses a master JWT for auth — bypasses tenant tier gates.
  *
  * All methods fail gracefully — if the AI service is unreachable,

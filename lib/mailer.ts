@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 
 const SMTP_SERVER_HOST = process.env.SMTP_SERVER_HOST ?? "";
-const SENDER_EMAIL = process.env.SENDER_EMAIL ?? "noreply@evently.com";
+const SENDER_EMAIL = process.env.SENDER_EMAIL ?? "noreply@corpconnect.com";
 const SMTP_TRANSPORTER_SERVICE = process.env.SMTP_TRANSPORTER_SERVICE ?? "";
 const SMTP_SERVER_USERNAME = process.env.SMTP_SERVER_USERNAME ?? "";
 const SMTP_SERVER_PASSWORD = process.env.SMTP_SERVER_PASSWORD ?? "";

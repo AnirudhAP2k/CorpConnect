@@ -71,7 +71,7 @@ export const tokenVerificationBaseLink = `${process.env.NEXT_PUBLIC_APP_URL}/ver
 export const passwordResetTokenBaseLink = `${process.env.NEXT_PUBLIC_APP_URL}/new-password?token=`
 
 export const emailFooter = `<div class="footer">
-      <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
+      <p>© ${new Date().getFullYear()} CorpConnect. All rights reserved.</p>
       <p style="font-size:12px;color:#999;">This is an automated email. Please do not reply to this message.</p>
     </div>`
 

@@ -22,7 +22,7 @@ export async function sendConnectionNotificationEmail(data: ConnectionEmailData)
   const html = getConnectionEmailTemplate(data);
 
   return await sendMail({
-    email: process.env.SENDER_EMAIL || "noreply@evently.com",
+    email: process.env.SENDER_EMAIL || "noreply@CorpConnect.com",
     sendTo: data.recipientEmail,
     subject,
     html,
@@ -40,10 +40,10 @@ export async function sendConnectionNotificationEmail(data: ConnectionEmailData)
 
 function getSubject({ event, actorOrgName }: ConnectionEmailData): string {
   switch (event) {
-    case "REQUESTED": return `${actorOrgName} wants to connect with your organization on Evently`;
-    case "ACCEPTED": return `${actorOrgName} accepted your connection request on Evently`;
-    case "DECLINED": return `${actorOrgName} declined your connection request on Evently`;
-    case "WITHDRAWN": return `${actorOrgName} withdrew their connection request on Evently`;
+    case "REQUESTED": return `${actorOrgName} wants to connect with your organization on CorpConnect`;
+    case "ACCEPTED": return `${actorOrgName} accepted your connection request on CorpConnect`;
+    case "DECLINED": return `${actorOrgName} declined your connection request on CorpConnect`;
+    case "WITHDRAWN": return `${actorOrgName} withdrew their connection request on CorpConnect`;
   }
 }
 
@@ -54,7 +54,7 @@ export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
     REQUESTED: {
       icon: "🤝",
       headline: `${actorOrgName} wants to connect!`,
-      body: `<strong>${actorOrgName}</strong> has sent a connection request to <strong>${targetOrgName}</strong> on Evently. Review the request on your dashboard and accept or decline.`,
+      body: `<strong>${actorOrgName}</strong> has sent a connection request to <strong>${targetOrgName}</strong> on CorpConnect. Review the request on your dashboard and accept or decline.`,
       cta: "View Connection Request",
       accentColor: "#624CF5",
     },
@@ -68,7 +68,7 @@ export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
     DECLINED: {
       icon: "❌",
       headline: "Connection request declined",
-      body: `<strong>${actorOrgName}</strong> has declined your connection request from <strong>${targetOrgName}</strong>. You can discover other organizations on Evently.`,
+      body: `<strong>${actorOrgName}</strong> has declined your connection request from <strong>${targetOrgName}</strong>. You can discover other organizations on CorpConnect.`,
       cta: "Discover Organizations",
       accentColor: "#dc2626",
     },
@@ -111,7 +111,7 @@ export function getConnectionEmailTemplate(data: ConnectionEmailData): string {
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">Evently</div>
+      <div class="logo">CorpConnect</div>
       <div class="icon">${meta.icon}</div>
     </div>
 

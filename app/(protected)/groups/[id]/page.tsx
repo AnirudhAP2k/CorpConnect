@@ -12,7 +12,7 @@ import Link from "next/link";
 import JoinLeaveGroupButton from "@/components/groups/JoinLeaveGroupButton";
 
 export const metadata = {
-    title: "Group Details | Evently",
+    title: "Group Details | CorpConnect",
 };
 
 export default async function GroupDetailsPage({

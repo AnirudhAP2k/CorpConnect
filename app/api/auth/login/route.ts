@@ -47,7 +47,7 @@ export const POST = async (req: NextRequest) => {
             }
 
             const verificationEmail = await sendMail({
-                email: process.env.SENDER_EMAIL || "alerts@evently.com",
+                email: process.env.SENDER_EMAIL || "alerts@corpconnect.com",
                 sendTo: verificationToken.email,
                 subject: "Verify your email address",
                 html: `<p>To verify your email, please <a href="${tokenVerificationBaseLink}${verificationToken.token}">click here</a>. <br></br> This link will expire in 1 hour.</p>`
@@ -99,7 +99,7 @@ export const POST = async (req: NextRequest) => {
                 }
 
                 const sendTwoFactorEmail = await sendMail({
-                    email: process.env.SENDER_EMAIL || "alerts@evently.com",
+                    email: process.env.SENDER_EMAIL || "alerts@corpconnect.com",
                     sendTo: twoFactorToken.email,
                     subject: "Verify your login",
                     html: `<p>Here is your 2FA code, please verify: ${twoFactorToken.token} <br></br> This code will expire in 15 minutes.</p>`

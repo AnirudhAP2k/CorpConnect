@@ -2,108 +2,108 @@ import { sendMail } from "@/lib/mailer";
 import type { MeetingEmailEvent } from "@/lib/types";
 
 interface MeetingEmailData {
-    event: MeetingEmailEvent;
-    recipientEmail: string;
-    recipientName: string;
-    /** Org that initiated the action */
-    actorOrgName: string;
-    /** Event name the meeting is for */
-    eventTitle: string;
-    /** Optional agenda from the request */
-    agenda?: string;
-    /** Optional proposed meeting time */
-    proposedTime?: string;
-    /** Link to the event page for the recipient */
-    eventLink: string;
+  event: MeetingEmailEvent;
+  recipientEmail: string;
+  recipientName: string;
+  /** Org that initiated the action */
+  actorOrgName: string;
+  /** Event name the meeting is for */
+  eventTitle: string;
+  /** Optional agenda from the request */
+  agenda?: string;
+  /** Optional proposed meeting time */
+  proposedTime?: string;
+  /** Link to the event page for the recipient */
+  eventLink: string;
 }
 
 // ─── Send helper ─────────────────────────────────────────────────────────────
 
 export async function sendMeetingRequestEmail(data: MeetingEmailData) {
-    const subject = getSubject(data);
-    const html = getMeetingEmailTemplate(data);
+  const subject = getSubject(data);
+  const html = getMeetingEmailTemplate(data);
 
-    return await sendMail({
-        email: process.env.SENDER_EMAIL || "noreply@evently.com",
-        sendTo: data.recipientEmail,
-        subject,
-        html,
-        templateType: `MEETING_${data.event}`,
-        payload: {
-            event: data.event,
-            recipientEmail: data.recipientEmail,
-            recipientName: data.recipientName,
-            actorOrgName: data.actorOrgName,
-            eventTitle: data.eventTitle,
-            agenda: data.agenda ?? null,
-            proposedTime: data.proposedTime ?? null,
-        },
-    });
+  return await sendMail({
+    email: process.env.SENDER_EMAIL || "noreply@corpconnect.com",
+    sendTo: data.recipientEmail,
+    subject,
+    html,
+    templateType: `MEETING_${data.event}`,
+    payload: {
+      event: data.event,
+      recipientEmail: data.recipientEmail,
+      recipientName: data.recipientName,
+      actorOrgName: data.actorOrgName,
+      eventTitle: data.eventTitle,
+      agenda: data.agenda ?? null,
+      proposedTime: data.proposedTime ?? null,
+    },
+  });
 }
 
 function getSubject({ event, actorOrgName, eventTitle }: MeetingEmailData): string {
-    switch (event) {
-        case "REQUESTED": return `${actorOrgName} wants to meet you at ${eventTitle}`;
-        case "ACCEPTED": return `${actorOrgName} accepted your meeting request for ${eventTitle}`;
-        case "DECLINED": return `${actorOrgName} declined your meeting request for ${eventTitle}`;
-        case "CANCELLED": return `${actorOrgName} cancelled their meeting request for ${eventTitle}`;
-    }
+  switch (event) {
+    case "REQUESTED": return `${actorOrgName} wants to meet you at ${eventTitle}`;
+    case "ACCEPTED": return `${actorOrgName} accepted your meeting request for ${eventTitle}`;
+    case "DECLINED": return `${actorOrgName} declined your meeting request for ${eventTitle}`;
+    case "CANCELLED": return `${actorOrgName} cancelled their meeting request for ${eventTitle}`;
+  }
 }
 
 // ─── HTML Template ────────────────────────────────────────────────────────────
 
 export function getMeetingEmailTemplate(data: MeetingEmailData): string {
-    const { event, recipientName, actorOrgName, eventTitle, agenda, proposedTime, eventLink } = data;
+  const { event, recipientName, actorOrgName, eventTitle, agenda, proposedTime, eventLink } = data;
 
-    type EventMeta = { icon: string; headline: string; body: string; cta: string; accentColor: string };
-    const eventMeta: Record<MeetingEmailEvent, EventMeta> = {
-        REQUESTED: {
-            icon: "🤝",
-            headline: `Meeting request from ${actorOrgName}`,
-            body: `<strong>${actorOrgName}</strong> would like to schedule a meeting with you at <strong>${eventTitle}</strong>. Visit the event page to accept or decline.`,
-            cta: "View Meeting Request",
-            accentColor: "#624CF5",
-        },
-        ACCEPTED: {
-            icon: "✅",
-            headline: "Meeting confirmed!",
-            body: `<strong>${actorOrgName}</strong> has accepted your meeting request at <strong>${eventTitle}</strong>. You&apos;re all set to connect!`,
-            cta: "View Event",
-            accentColor: "#16a34a",
-        },
-        DECLINED: {
-            icon: "❌",
-            headline: "Meeting request declined",
-            body: `<strong>${actorOrgName}</strong> has declined your meeting request at <strong>${eventTitle}</strong>. You can explore other attendees to connect with.`,
-            cta: "View Event",
-            accentColor: "#dc2626",
-        },
-        CANCELLED: {
-            icon: "↩️",
-            headline: "Meeting request cancelled",
-            body: `<strong>${actorOrgName}</strong> has cancelled their pending meeting request at <strong>${eventTitle}</strong>.`,
-            cta: "View Event",
-            accentColor: "#d97706",
-        },
-    };
+  type EventMeta = { icon: string; headline: string; body: string; cta: string; accentColor: string };
+  const eventMeta: Record<MeetingEmailEvent, EventMeta> = {
+    REQUESTED: {
+      icon: "🤝",
+      headline: `Meeting request from ${actorOrgName}`,
+      body: `<strong>${actorOrgName}</strong> would like to schedule a meeting with you at <strong>${eventTitle}</strong>. Visit the event page to accept or decline.`,
+      cta: "View Meeting Request",
+      accentColor: "#624CF5",
+    },
+    ACCEPTED: {
+      icon: "✅",
+      headline: "Meeting confirmed!",
+      body: `<strong>${actorOrgName}</strong> has accepted your meeting request at <strong>${eventTitle}</strong>. You&apos;re all set to connect!`,
+      cta: "View Event",
+      accentColor: "#16a34a",
+    },
+    DECLINED: {
+      icon: "❌",
+      headline: "Meeting request declined",
+      body: `<strong>${actorOrgName}</strong> has declined your meeting request at <strong>${eventTitle}</strong>. You can explore other attendees to connect with.`,
+      cta: "View Event",
+      accentColor: "#dc2626",
+    },
+    CANCELLED: {
+      icon: "↩️",
+      headline: "Meeting request cancelled",
+      body: `<strong>${actorOrgName}</strong> has cancelled their pending meeting request at <strong>${eventTitle}</strong>.`,
+      cta: "View Event",
+      accentColor: "#d97706",
+    },
+  };
 
-    const meta = eventMeta[event];
+  const meta = eventMeta[event];
 
-    const agendaBlock = agenda
-        ? `<div style="background:#f8f7ff;border-left:3px solid #624CF5;padding:14px 18px;border-radius:4px;margin:16px 0;font-style:italic;color:#555;">
+  const agendaBlock = agenda
+    ? `<div style="background:#f8f7ff;border-left:3px solid #624CF5;padding:14px 18px;border-radius:4px;margin:16px 0;font-style:italic;color:#555;">
              <strong style="font-style:normal;font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Agenda</strong><br/>
              "${agenda}"
            </div>`
-        : "";
+    : "";
 
-    const timeBlock = proposedTime
-        ? `<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 18px;border-radius:4px;margin:16px 0;">
+  const timeBlock = proposedTime
+    ? `<div style="background:#f0fdf4;border-left:3px solid #16a34a;padding:12px 18px;border-radius:4px;margin:16px 0;">
              <strong style="font-size:12px;color:#888;text-transform:uppercase;letter-spacing:.5px;">Proposed Time</strong><br/>
              <span style="color:#15803d;font-weight:600;">${new Date(proposedTime).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })}</span>
            </div>`
-        : "";
+    : "";
 
-    return `<!DOCTYPE html>
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -125,7 +125,7 @@ export function getMeetingEmailTemplate(data: MeetingEmailData): string {
 <body>
   <div class="container">
     <div class="header">
-      <div class="logo">Evently</div>
+      <div class="logo">CorpConnect</div>
       <div class="icon">${meta.icon}</div>
     </div>
 
@@ -144,7 +144,7 @@ export function getMeetingEmailTemplate(data: MeetingEmailData): string {
     </div>
 
     <div class="footer">
-      <p>© ${new Date().getFullYear()} Evently. All rights reserved.</p>
+      <p>© ${new Date().getFullYear()} CorpConnect. All rights reserved.</p>
       <p style="font-size:12px;color:#999;">This is an automated email. Please do not reply.</p>
     </div>
   </div>

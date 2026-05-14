@@ -1,5 +1,5 @@
 """
-Evently AI Service — main.py
+CorpConnect AI Service — main.py
 FastAPI application entry point.
 
 Auth modes:
@@ -40,12 +40,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Evently AI Service",
-    description=(
-        "AI-powered recommendations, embeddings, semantic search, "
-        "generative content, RAG chat, and n8n automation for the Evently platform."
-    ),
-    version="2.0.0",
+    title="CorpConnect AI Service",
+    description="AI-powered recommendations, embeddings, and semantic search for the CorpConnect platform.",
+    version="1.0.0",
     lifespan=lifespan,
 )
 
