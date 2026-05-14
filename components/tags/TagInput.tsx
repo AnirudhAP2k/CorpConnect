@@ -38,12 +38,15 @@ export function TagInput({
     const inputRef = useRef<HTMLInputElement>(null);
     const debounceRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-    // Fetch suggestions from API
+    // Fetch suggestions via the /api/tags route (thin wrapper over the domain query).
+    // Using fetch here instead of a Server Action import is correct — Server Actions
+    // are for mutations, not for data fetching in Client Components.
     const fetchSuggestions = useCallback(async (query: string) => {
         if (!query.trim()) { setSuggestions([]); return; }
         setLoading(true);
         try {
             const res = await fetch(`/api/tags?q=${encodeURIComponent(query)}`);
+            if (!res.ok) throw new Error("Failed to fetch suggestions");
             const data: TagOption[] = await res.json();
             // Filter out already-selected tags
             setSuggestions(data.filter((t) => !value.includes(t.label)));
