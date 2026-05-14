@@ -1,29 +1,8 @@
-"use server";
-
-import { prisma } from "@/lib/db";
-
-export const getPasswordResetTokenByToken = async (token: string) => {
-    try {
-        const passwordResetToken = await prisma.passwordResetToken.findFirst({
-            where: { token }
-        })
-
-        return passwordResetToken;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
-
-export const getPasswordResetTokenByEmail = async (email: string) => {
-    try {
-        const passwordResetToken = await prisma.passwordResetToken.findFirst({
-            where: { email }
-        })
-
-        return passwordResetToken;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-}
+/**
+ * Password Reset Token Data — BACKWARD-COMPAT BRIDGE
+ * Canonical: @/domain/auth
+ */
+export {
+    getPasswordResetTokenByToken,
+    getPasswordResetTokenByEmail,
+} from "@/domain/auth";
