@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign } from "lucide-react";
+import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign, Video } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { getEventById, getMeetingRequestsForEvent } from "@/data/events";
@@ -19,6 +19,8 @@ import type { MeetingStatus } from "@/lib/types";
 import { ChatWidget } from "@/components/ai/ChatWidget";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { getUserFeedback } from "@/actions/feedback.actions";
+import { VirtualRoomList } from "@/components/virtual/VirtualRoomList";
+import { JoinVirtualButton } from "@/components/virtual/JoinVirtualButton";
 
 interface EventDetailPageProps {
     params: Promise<{
@@ -121,6 +123,16 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
             [],
             canLeaveFeedback ? await getUserFeedback(id) : null,
         ];
+
+    // Fetch virtual rooms for ONLINE/HYBRID events
+    const isVirtualEvent = ["ONLINE", "HYBRID"].includes(event.eventType);
+    const virtualRooms = isVirtualEvent
+        ? await prisma.virtualRoom.findMany({
+            where: { eventId: id, isActive: true },
+            select: { id: true, name: true, livekitRoom: true, isActive: true, maxParticipants: true, createdAt: true },
+            orderBy: { createdAt: "asc" },
+        })
+        : [];
 
     // Build meetingStatusMap for OrgMatchWidget
     const meetingStatusMap: Record<string, { status: MeetingStatus; requestId?: string }> = {};
@@ -374,6 +386,43 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                             </div>
                                         </div>
                                     </Link>
+                                </div>
+                            )}
+
+                            {/* Virtual rooms — ONLINE/HYBRID events only */}
+                            {isVirtualEvent && (isRegistered || isHost) && (
+                                <div className="bg-white rounded-lg border border-gray-200 p-6">
+                                    <div className="flex items-center gap-2 mb-4">
+                                        <Video className="w-5 h-5 text-blue-600" />
+                                        <h3 className="font-bold">Virtual Sessions</h3>
+                                        <Badge className="bg-blue-100 text-blue-700 text-xs ml-auto">
+                                            {event.eventType === "HYBRID" ? "Hybrid" : "Online"}
+                                        </Badge>
+                                    </div>
+                                    <VirtualRoomList
+                                        eventId={id}
+                                        isHost={!!isHost}
+                                        initialRooms={virtualRooms.map(r => ({
+                                            ...r,
+                                            createdAt: r.createdAt.toISOString(),
+                                        }))}
+                                    />
+                                    {/* Per-room join buttons for registered users */}
+                                    {(isRegistered || isHost) && virtualRooms.map((room) => (
+                                        <div key={room.id} className="mt-2">
+                                            <JoinVirtualButton
+                                                eventId={id}
+                                                roomId={room.id}
+                                                roomName={room.name}
+                                                eventType={event.eventType as "ONLINE" | "HYBRID"}
+                                                isRegistered={!!userParticipation}
+                                                isPaid={userParticipation?.isPaid ?? false}
+                                                isFree={event.isFree ?? true}
+                                                startDateTime={event.startDateTime.toISOString()}
+                                                endDateTime={event.endDateTime.toISOString()}
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
                             )}
 

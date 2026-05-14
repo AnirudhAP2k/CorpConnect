@@ -5,6 +5,7 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
 import { verifySocketAuth } from "@/auth";
 import { registerMessageHandlers } from "@/handlers/message";
+import { registerVirtualEventHandlers } from "@/handlers/virtual-event";
 import { orgNotificationRoom } from "@/rooms";
 
 const PORT = parseInt(process.env.WS_PORT ?? "4000", 10);
@@ -82,6 +83,7 @@ async function main(): Promise<void> {
         socket.join(orgNotificationRoom(orgId));
 
         registerMessageHandlers(io, socket);
+        registerVirtualEventHandlers(io, socket, socket.data["userId"], orgId);
 
         socket.on("disconnect", (reason) => {
             console.log(`[ws-service] Disconnected: socket=${socket.id} reason=${reason}`);
