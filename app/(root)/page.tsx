@@ -1,11 +1,7 @@
-"use client";
-
 import Collection from "@/components/shared/Collection";
 import { Button } from "@/components/ui/button";
-import axios from "axios";
 import Image from "next/image";
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
 import {
     CalendarDays,
     Globe,
@@ -17,31 +13,19 @@ import {
     Mail,
     CalendarCheck
 } from "lucide-react";
+import { getEvents } from "@/domain/events";
 
-export default function Home() {
-    const [events, setEvents] = useState([]);
-    const [totalPages, setTotalPages] = useState(0);
+// ISR: revalidate every 5 minutes — events feed stays fresh without full rebuilds
+export const revalidate = 300;
 
-    const getAllEvents = useCallback(async () => {
-        const params = {
-            query: '',
-            category: '',
-            limit: 6,
-            page: 1,
-        }
-
-        try {
-            const response = await axios.get("/api/events", { params });
-            setEvents(response.data.data);
-            setTotalPages(response.data.totalPages);
-        } catch (error: any) {
-            console.error(error.response?.data?.error || error.message);
-        }
-    }, []);
-
-    useEffect(() => {
-        getAllEvents();
-    }, [getAllEvents]);
+export default async function Home() {
+    const { events, totalPages } = await getEvents({
+        q: "",
+        visibility: "PUBLIC",
+        upcoming: true,
+        page: 1,
+        limit: 6,
+    });
 
     return (
         <div className="bg-nx-surface min-h-screen">
@@ -249,7 +233,7 @@ export default function Home() {
                                     <p className="text-[10px] font-bold text-nx-primary uppercase">New Message</p>
                                 </div>
                                 <p className="text-xs font-semibold text-nx-primary mb-1">Sarah Chen (CEO, Vertex)</p>
-                                <p className="text-[10px] text-nx-secondary leading-tight italic">"Let's discuss the infrastructure expansion during the next summit..."</p>
+                                <p className="text-[10px] text-nx-secondary leading-tight italic">&ldquo;Let&apos;s discuss the infrastructure expansion during the next summit...&rdquo;</p>
                             </div>
                         </div>
 
@@ -283,7 +267,7 @@ export default function Home() {
                             <h2 className="text-4xl md:text-5xl font-headline font-bold text-white mb-8 leading-tight">
                                 Elevate your professional architecture.
                             </h2>
-                            <p className="text-nx-on-primary-container text-lg mb-12">CorpConnect is more than a platform; it's a competitive advantage. Apply for membership today to begin your integration.</p>
+                            <p className="text-nx-on-primary-container text-lg mb-12">CorpConnect is more than a platform; it&apos;s a competitive advantage. Apply for membership today to begin your integration.</p>
                             <div className="flex flex-col sm:flex-row justify-center gap-6">
                                 <Button asChild className="bg-white text-nx-primary px-12 py-7 rounded-xl font-headline font-bold text-base shadow-xl hover:scale-[1.02] transition-transform duration-200">
                                     <Link href="/sign-up">Apply for Access</Link>
