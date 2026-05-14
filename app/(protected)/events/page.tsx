@@ -4,7 +4,7 @@ import EventCard from "@/components/shared/EventCard";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { Plus } from "lucide-react";
-import { getAllEvents } from "@/data/events";
+import { getEvents } from "@/domain/events";
 import { getAllCategories } from "@/actions/category.actions";
 import { Category } from "@prisma/client";
 import DateRangeFilter from "@/components/shared/DateRangeFilter";
@@ -25,43 +25,16 @@ const EventsPage = async ({ searchParams }: EventsPageProps) => {
 
     const params = await searchParams;
 
-    const where: any = {
+    const filterCleared = !params.fromDate && !params.toDate;
+
+    const { events } = await getEvents({
+        q: params.search ?? "",
+        categoryId: params.category,
         visibility: "PUBLIC",
-    };
-
-    let filterCleared = false;
-
-    if (params.fromDate || params.toDate) {
-        where.startDateTime = {};
-        if (params.fromDate) {
-            where.startDateTime.gte = new Date(params.fromDate);
-        }
-        if (params.toDate) {
-            where.startDateTime.lte = new Date(params.toDate);
-        }
-    } else {
-        where.startDateTime = {
-            gte: new Date(),
-        };
-        filterCleared = true;
-    }
-
-    if (params.category) {
-        where.categoryId = params.category;
-    }
-
-    if (params.type) {
-        where.eventType = params.type;
-    }
-
-    if (params.search) {
-        where.OR = [
-            { title: { contains: params.search, mode: "insensitive" } },
-            { description: { contains: params.search, mode: "insensitive" } },
-        ];
-    }
-
-    const events = await getAllEvents(where, 20);
+        upcoming: filterCleared,
+        page: 1,
+        limit: 60,
+    });
 
     const categories = await getAllCategories();
 
