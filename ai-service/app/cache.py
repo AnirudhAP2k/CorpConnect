@@ -69,3 +69,15 @@ def search_key(query: str, limit: int) -> str:
     import hashlib
     h = hashlib.md5(f"{query}:{limit}".encode()).hexdigest()[:12]
     return f"search:{h}"
+
+
+def tenant_credential_key(tenant_id: str) -> str:
+    return f"tenant:cred:{tenant_id}"
+
+
+def llm_generation_key(prompt_hash: str) -> str:
+    return f"llm:gen:{prompt_hash}"
+
+
+def matchmaking_reason_key(source_id: str, target_id: str) -> str:
+    return f"match:reason:{source_id}:{target_id}"

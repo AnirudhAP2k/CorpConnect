@@ -132,7 +132,7 @@ export const OrganizationCreateSchema = z.object({
 });
 
 export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: true }).extend({
-    userId: z.string(),
+    createdBy: z.string(),
     logoUrl: z.string(),
 });
 
@@ -149,4 +149,23 @@ export const createGroupEventSchema = z.object({
 
 export const createPostSchema = z.object({
     content: z.string().min(1, "Post cannot be empty").max(1000, "Post is too long"),
+});
+
+export const CreateRuleSchema = z.object({
+    name: z.string().min(2).max(80),
+    description: z.string().max(300).optional(),
+    trigger: z.enum([
+        "EVENT_REGISTRATION", "EVENT_CANCELLED", "FEEDBACK_RECEIVED",
+        "CONNECTION_ACCEPTED", "MEETING_SCHEDULED", "NEW_MEMBER_JOINED",
+    ]),
+    webhookUrl: z.string().url().startsWith("https://", { message: "Webhook URL must start with https://" }),
+    filterJson: z.record(z.unknown()).optional(),
+});
+
+export const OrgKybSchema = z.object({
+    registrationNumber: z.string().max(100).optional().or(z.literal("")),
+    jurisdiction: z.string().max(2).min(2, "Use a 2-letter country code e.g. IN, GB, US").optional().or(z.literal("")),
+    taxId: z.string().max(50).optional().or(z.literal("")),
+    incorporationDate: z.string().optional().or(z.literal("")),
+    registeredAddress: z.string().max(500).optional().or(z.literal("")),
 });

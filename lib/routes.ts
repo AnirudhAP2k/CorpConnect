@@ -11,12 +11,12 @@ export const authRoutes = [
 export const publicRoutes = [
     '/',
     '/about',
+    '/events',
+    '/organizations/discover',
+    '/pricing',
 ];
 
-export const protectedRoutes = [
-    '/dashboard',
-    '/events/create',
-    '/profile',
+export const organizationRoutes = [
     '/organizations/:id',
     '/organizations/:id/members',
     '/organizations/:id/events',
@@ -25,7 +25,20 @@ export const protectedRoutes = [
     '/organizations/:id/events/:eventId/invites',
 ];
 
+export const protectedRoutes = [
+    '/dashboard',
+    '/events/create',
+    '/profile',
+    ...organizationRoutes
+];
+
+export const apiRoutes = "/api/";
+
 export const apiAuthRoutes = "/api/auth";
+
+export const publicApiPrefixes = [
+    "/api/webhooks/",
+];
 
 export const onboardingRoutes = [
     '/onboarding'

@@ -1,0 +1,39 @@
+# Environment Variables — Phase 6 Payment Gateway
+# Add these to your .env (development) and your hosting platform (production)
+# NEVER commit .env to git.
+
+# ─── Stripe ─────────────────────────────────────────────────────────────────
+# Get these from https://dashboard.stripe.com/apikeys
+# Use sk_test_ / pk_test_ in development, sk_live_ / pk_live_ in production
+
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# Webhook secret — get from: stripe listen --print-secret
+# OR from Dashboard → Developers → Webhooks
+STRIPE_WEBHOOK_SECRET=whsec_...
+
+# Price IDs for recurring subscription plans
+# Create these in Stripe Dashboard → Products → Add Product
+STRIPE_PRO_PRICE_ID=price_...
+STRIPE_ENTERPRISE_PRICE_ID=price_...
+
+# Exposed to the browser (Next.js public env)
+NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=pk_test_...
+
+# ─── Razorpay ────────────────────────────────────────────────────────────────
+# Get these from https://dashboard.razorpay.com/app/keys
+# Use test keys in development
+
+RAZORPAY_KEY_ID=rzp_test_...
+RAZORPAY_KEY_SECRET=...
+
+# Webhook secret — set in Razorpay Dashboard → Settings → Webhooks
+RAZORPAY_WEBHOOK_SECRET=...
+
+# Subscription Plan IDs — create in Razorpay Dashboard → Plans
+RAZORPAY_PRO_PLAN_ID=plan_...
+RAZORPAY_ENTERPRISE_PLAN_ID=plan_...
+
+# Exposed to the browser for inline checkout
+NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_...

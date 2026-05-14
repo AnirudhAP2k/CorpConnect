@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 // POST /api/events/[id]/participate - Join event
 export const POST = async (
@@ -52,6 +53,60 @@ export const POST = async (
             return NextResponse.json({ error: "Event not found" }, { status: 404 });
         }
 
+        // Get organizationId from request body or fall back to user's active org
+        const body = await req.json().catch(() => ({}));
+        const organizationId = body.organizationId ?? user.activeOrganizationId;
+
+        // ── Phase 6: Payment-mode guards ─────────────────────────────────────
+        const hostOrg = event.organization;
+        const hostPlan = hostOrg?.subscriptionPlan ?? "FREE";
+
+        // Layer 1: Paid events are blocked for FREE tier orgs
+        if (
+            (event.paymentMode === "PLATFORM" || event.paymentMode === "EXTERNAL") &&
+            hostPlan === "FREE"
+        ) {
+            return NextResponse.json(
+                {
+                    error: "This event requires a paid plan. The organizing org must upgrade to PRO or ENTERPRISE.",
+                    code: "UPGRADE_REQUIRED",
+                },
+                { status: 402 }
+            );
+        }
+
+        // Layer 4: isVerified gate
+        if (
+            (event.paymentMode === "PLATFORM" || event.paymentMode === "EXTERNAL") &&
+            !hostOrg?.isVerified
+        ) {
+            return NextResponse.json(
+                { error: "The organizing org is not yet verified to host paid events.", code: "ORG_NOT_VERIFIED" },
+                { status: 403 }
+            );
+        }
+
+        // PLATFORM mode: block direct registration — user must go through checkout first
+        if (event.paymentMode === "PLATFORM") {
+            // Allow if already has a PENDING_PAYMENT participation (created by checkout route)
+            const pending = await prisma.eventParticipation.findUnique({
+                where: { eventId_userId: { eventId, userId } },
+                select: { id: true, status: true },
+            });
+            if (!pending || pending.status !== "PENDING_PAYMENT") {
+                return NextResponse.json(
+                    {
+                        needsCheckout: true,
+                        error: "Please complete payment before registering for this event.",
+                        code: "PAYMENT_REQUIRED",
+                    },
+                    { status: 302 }
+                );
+            }
+            // Participation already created by checkout — nothing more to do here
+            return NextResponse.json({ message: "Awaiting payment confirmation" }, { status: 200 });
+        }
+
         // Check if already participating
         if (event.participations.length > 0) {
             return NextResponse.json(
@@ -72,16 +127,19 @@ export const POST = async (
         }
 
         // Check capacity
-        if (event.maxAttendees && event.attendeeCount >= event.maxAttendees) {
+        // Layer 2: FREE tier attendee cap (50 per event)
+        const effectiveMax =
+            event.maxAttendees ??
+            (hostPlan === "FREE" ? 50 : null);
+        if (effectiveMax && event.attendeeCount >= effectiveMax) {
             return NextResponse.json(
-                { error: "Event is full" },
+                { error: hostPlan === "FREE" ? "Event has reached the FREE tier attendee limit (50)." : "Event is full" },
                 { status: 400 }
             );
         }
 
-        // Get organizationId from request body or fall back to user's active org
-        const body = await req.json().catch(() => ({}));
-        const organizationId = body.organizationId ?? user.activeOrganizationId;
+        // Determine participation status
+        const participationStatus = event.paymentMode === "EXTERNAL" ? "PENDING_PAYMENT" : "REGISTERED";
 
         // Create participation
         await prisma.$transaction(async (tx) => {
@@ -90,7 +148,7 @@ export const POST = async (
                     eventId,
                     userId,
                     organizationId,
-                    status: "REGISTERED",
+                    status: participationStatus,
                 },
             });
 
@@ -119,6 +177,15 @@ export const POST = async (
             } catch {
                 // Non-fatal: silently skip if it fails
             }
+        }
+
+        // Fire automation rules for the hosting org (EVENT_REGISTRATION trigger)
+        if (hostOrgId) {
+            enqueueMatchingRules("EVENT_REGISTRATION", hostOrgId, {
+                eventId,
+                userId,
+                attendeeOrgId: organizationId ?? null,
+            }).catch(() => { });
         }
 
         revalidatePath(`/events/${eventId}`);

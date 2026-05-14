@@ -1,31 +1,58 @@
 import NextAuth from "next-auth"
 import authConfig from "@/auth.config"
+import { verifyMobileAccessToken } from "@/lib/mobile-auth";
 import {
   defaultRoute,
   authRoutes,
   publicRoutes,
   protectedRoutes,
   apiAuthRoutes,
+  apiRoutes,
+  publicApiPrefixes,
   onboardingRoutes,
-  adminRoutes
+  adminRoutes,
+  organizationRoutes
 } from "@/lib/routes";
 
 const { auth } = NextAuth(authConfig);
+
+const SESSION_REFRESH_PATH = "/api/auth/session-refresh";
 
 export default auth(async (req) => {
   const { nextUrl } = req;
   const isLoggedIn = !!req.auth;
 
   const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthRoutes);
-  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
-  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-  const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
-  const isProtectedRoute = protectedRoutes.includes(nextUrl.pathname);
-  const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
+  const isApiRoute = nextUrl.pathname.startsWith(apiRoutes);
 
   if (isApiAuthRoute) {
     return;
   }
+
+  if (isApiRoute) {
+
+    const isPublicApiRoute = publicApiPrefixes.some((prefix) =>
+      nextUrl.pathname.startsWith(prefix)
+    );
+
+    if (isPublicApiRoute) return;
+
+    // ── Hybrid Mobile Auth ─────────────────────────────────────────────────
+    const mobilePayload = await verifyMobileAccessToken(req);
+    if (mobilePayload) return;
+
+    if (!isLoggedIn) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return;
+  }
+
+  const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+  const isAuthRoute = authRoutes.includes(nextUrl.pathname);
+  const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
+  const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
+  const isOrganizationRoute = organizationRoutes.includes(nextUrl.pathname);
 
   if (isAuthRoute) {
     if (isLoggedIn) {
@@ -35,22 +62,39 @@ export default auth(async (req) => {
   }
 
   if (!isPublicRoute && !isLoggedIn) {
-    return Response.redirect(new URL('/login', nextUrl));
+    const refreshToken = req.cookies.get("refresh_token")?.value;
+
+    if (refreshToken) {
+      const returnTo = encodeURIComponent(nextUrl.pathname + nextUrl.search);
+
+      return Response.redirect(
+        new URL(`${SESSION_REFRESH_PATH}?returnTo=${returnTo}`, nextUrl)
+      );
+    }
+
+    return Response.redirect(new URL("/login", nextUrl));
   }
 
   if (isAdminRoute && isLoggedIn && req.auth?.user) {
     const isAppAdmin = req.auth.user.isAppAdmin;
     if (!isAppAdmin) {
-      return Response.redirect(new URL('/dashboard', nextUrl));
+      return Response.redirect(new URL("/dashboard", nextUrl));
     }
   }
 
-  // Redirect to dashboard if user tries to access onboarding after completing it
   if (isOnboardingRoute && isLoggedIn && req.auth?.user) {
     const user = req.auth.user;
 
     if (user && user.hasCompletedOnboarding) {
-      return Response.redirect(new URL('/dashboard', nextUrl));
+      return Response.redirect(new URL("/dashboard", nextUrl));
+    }
+  }
+
+  if (isOrganizationRoute && isLoggedIn && req.auth?.user) {
+    const user = req.auth.user;
+
+    if (user && !user.hasCompletedOnboarding) {
+      return Response.redirect(new URL("/onboarding", nextUrl));
     }
   }
 

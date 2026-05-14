@@ -1,52 +1,105 @@
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Docker Compose reference guide at
-# https://docs.docker.com/go/compose-spec-reference/
+version: "3.9"
 
-# Here the instructions define your application as a service called "server".
-# This service is built from the Dockerfile in the current directory.
-# You can add other services your application may depend on here, such as a
-# database or a cache. For examples, see the Awesome Compose repository:
-# https://github.com/docker/awesome-compose
 services:
+  ws-service:
+    build:
+      context: ./ws-service
+    container_name: corpconnect-ws
+    restart: always
+
+    ports:
+      - "4000:4000"
+
+    env_file:
+      - .env
+
+    environment:
+      WS_PORT: 4000
+      REDIS_URL: redis://redis:6379
+      NEXTJS_URL: ${NEXTJS_URL:-http://localhost:3000}
+
+    depends_on:
+      - redis
+
+  lv-service:
+    build:
+      context: ./lv-service
+    container_name: corpconnect-lv
+    restart: always
+
+    ports:
+      - "5000:5000"
+
+    env_file:
+      - .env
+
+    environment:
+      LV_PORT: 5000
+      NODE_ENV: production
+      NEXTJS_URL: ${NEXTJS_URL:-http://localhost:3000}
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      # AUTH_SECRET and DATABASE_URL come from env_file
+
+    depends_on:
+      - redis
+
   server:
     build:
       context: .
+    container_name: corpconnect-server
+    restart: always
+
+    ports:
+      - "3000:3000"
+
+    env_file:
+      - .env
+
     environment:
       NODE_ENV: production
-    ports:
-      - 3000:3000
-    env_file:
-      - .env
 
-# The commented out section below is an example of how to define a PostgreSQL
-# database that your application can use. `depends_on` tells Docker Compose to
-# start the database before your application. The `db-data` volume persists the
-# database data between container restarts. The `db-password` secret is used
-# to set the database password. You must create `db/password.txt` and add
-# a password of your choosing to it before running `docker-compose up`.
     depends_on:
-      db:
-        condition: service_healthy
-  db:
-    image: postgres:16
-    restart: always
-    user: postgres
-    env_file:
-      - .env
-    # secrets:
-    #   - db-password
-    volumes:
-      - db-data:/var/lib/postgresql/data
-    ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $POSTGRES_USER -d $POSTGRES_DB"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-volumes:
-  db-data:
-# secrets:
-#   db-password:
-#     file: db_credentials.txt
+      - redis
 
+  redis:
+    image: redis:7-alpine
+    container_name: corpconnect-redis
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  n8n:
+    image: n8nio/n8n:latest
+    container_name: corpconnect-n8n
+    restart: always
+
+    ports:
+      - "5678:5678"
+
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_ADMIN_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:-changeme}
+
+      - DB_TYPE=postgresdb
+      - DB_POSTGRESDB_HOST=dpg-d7j01ilckfvc73ff3cdg-a.singapore-postgres.render.com
+      - DB_POSTGRESDB_PORT=5432
+      - DB_POSTGRESDB_DATABASE=corp_connect_s4f0
+      - DB_POSTGRESDB_USER=corp_connect_s4f0_user
+      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
+
+      - WEBHOOK_URL=${N8N_WEBHOOK_BASE_URL:-http://localhost:5678}
+
+    volumes:
+      - n8n_data:/home/node/.n8n
+
+    depends_on:
+      - redis
+
+volumes:
+  redis_data:
+  n8n_data:

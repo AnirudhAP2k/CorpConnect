@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 /**
  * PATCH /api/organizations/[id]/connections/[connectionId]
@@ -96,6 +97,13 @@ export const PATCH = async (
             },
         },
     }).catch(() => { });
+
+    // Fire automation rules for both orgs on accepted connections
+    if (action === "ACCEPT") {
+        const ctx = { connectionId, sourceOrgId: connection.sourceOrgId, targetOrgId: connection.targetOrgId };
+        enqueueMatchingRules("CONNECTION_ACCEPTED", connection.sourceOrgId, ctx).catch(() => { });
+        enqueueMatchingRules("CONNECTION_ACCEPTED", connection.targetOrgId, ctx).catch(() => { });
+    }
 
     return NextResponse.json({ connection: updated, message: `Connection ${statusMap[action].toLowerCase()}` });
 };

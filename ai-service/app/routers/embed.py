@@ -8,6 +8,7 @@ Only callable with a master JWT (ENTERPRISE tier gate enforced by auth middlewar
 but embed is only triggered by the Next.js job runner — not exposed to tenants).
 """
 
+import logging
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
@@ -16,6 +17,7 @@ from app.embeddings import encode
 from app.database import save_event_embedding, save_org_embedding
 from app import cache
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -47,6 +49,7 @@ async def embed_event(
     # (broad invalidation — fine for current scale)
     await cache.delete(f"event_emb:{body.eventId}")
 
+    logger.info("Embedding updated for event=%s", body.eventId)
     return EmbedResponse(ok=True, dimensions=len(vector))
 
 
@@ -61,4 +64,5 @@ async def embed_org(
 
     await cache.delete(f"org_emb:{body.orgId}")
 
+    logger.info("Embedding updated for org=%s", body.orgId)
     return EmbedResponse(ok=True, dimensions=len(vector))

@@ -18,6 +18,7 @@ Org recommendation logic:
   4. Return top-N with scores
 """
 
+import logging
 from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 
@@ -33,6 +34,7 @@ from app.database import (
 from app.config import settings
 from app import cache
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -114,6 +116,7 @@ async def recommend_events(
         )
 
     await cache.set(cache_key, response.model_dump(), ttl=settings.RECOMMENDATION_CACHE_TTL)
+    logger.info("Event recommendations for user=%s | source=%s | count=%d", user_id, response.source, len(response.recommendations))
     return response
 
 
@@ -212,4 +215,5 @@ async def recommend_orgs(
 
     response = RecommendOrgsResponse(orgId=org_id, recommendations=recommendations)
     await cache.set(cache_key, response.model_dump(), ttl=settings.RECOMMENDATION_CACHE_TTL)
+    logger.info("Org recommendations for org=%s | count=%d", org_id, len(response.recommendations))
     return response

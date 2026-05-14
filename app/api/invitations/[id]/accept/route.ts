@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 // POST /api/invitations/[id]/accept - Accept invitation
 export const POST = async (
@@ -98,6 +99,14 @@ export const POST = async (
                 data: { status: "ACCEPTED" },
             }),
         ]);
+
+        // Fire automation rules for the org
+        enqueueMatchingRules("NEW_MEMBER_JOINED", invitation.organizationId, {
+            userId,
+            email: userEmail,
+            role: invitation.role,
+            invitationId,
+        }).catch(() => { });
 
         revalidatePath("/invitations");
         revalidatePath(`/organizations/${invitation.organizationId}`);

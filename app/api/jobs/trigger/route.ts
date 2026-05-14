@@ -5,13 +5,10 @@ import {
     triggerCleanup,
 } from "@/lib/scheduler/cron-jobs";
 
-// Manual trigger endpoint for testing/debugging
-// POST /api/jobs/trigger
 export const POST = async (req: NextRequest) => {
     try {
         const { type } = await req.json();
 
-        // Simple auth check - only allow in development or with secret key
         const authHeader = req.headers.get("authorization");
         const isAuthorized =
             process.env.NODE_ENV === "development" ||

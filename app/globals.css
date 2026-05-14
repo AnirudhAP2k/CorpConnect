@@ -2,67 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
+/* =========================================
+   Nexus Corporate Design System
+   Source: Stitch — B2B Network Redesign
+   ========================================= */
+
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* ── Shadcn / Radix CSS vars (mapped to Nexus Corporate tokens) ── */
+    --background:   251 17% 98%;      /* #fbf9fa surface */
+    --foreground:   220 5%  11%;      /* #1b1c1d on-surface */
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card:         0   0%  100%;     /* #ffffff surface-container-lowest */
+    --card-foreground: 220 5% 11%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover:      0   0%  100%;
+    --popover-foreground: 220 5% 11%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary = Deep Navy #041627 */
+    --primary:      210 85% 9%;
+    --primary-foreground: 0 0% 100%; /* #ffffff on-primary */
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary = Slate Blue #545f72 */
+    --secondary:    220 15% 38%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted = surface-container #efedef */
+    --muted:        300 5%  94%;
+    --muted-foreground: 220 5% 28%; /* #44474c on-surface-variant */
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent = Professional Blue #4894e2 */
+    --accent:       210 70% 59%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive:  0   72% 41%;     /* #ba1a1a */
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Borders use outline-variant #c4c6cd at reduced opacity */
+    --border:       220 9%  80%;
+    --input:        251 17% 98%;     /* surface-container-lowest */
+    --ring:         210 85% 9%;      /* primary */
 
+    /* 8px base radius (ROUND_EIGHT from Stitch) */
     --radius: 0.5rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Dark mode: invert surface hierarchy */
+    --background:   220 8%  11%;     /* near on-surface #1b1c1d */
+    --foreground:   251 17% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card:         220 10% 14%;
+    --card-foreground: 251 17% 96%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover:      220 10% 14%;
+    --popover-foreground: 251 17% 96%;
 
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --primary:      207 67% 87%;     /* primary-fixed-dim #b7c8de */
+    --primary-foreground: 210 85% 9%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary:    220 15% 38%;
+    --secondary-foreground: 251 17% 96%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted:        220 10% 18%;
+    --muted-foreground: 220 9% 65%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent:       210 70% 59%;
+    --accent-foreground: 210 85% 9%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive:  0   72% 41%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
+    --border:       220 10% 22%;
+    --input:        220 10% 18%;
+    --ring:         207 67% 87%;
   }
 }
 
@@ -74,8 +87,20 @@
 }
 
 body {
-  font-family: var(--font-poppins)
+  /* Nexus Corporate body font: Inter */
+  font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
+  background-color: #fbf9fa;
+  color: #1b1c1d;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
+
+/* ── Material Symbols support ─────────────────────────────── */
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+  vertical-align: middle;
+}
+
 
 .filter-grey {
   filter: brightness(0) saturate(100%) invert(47%) sepia(0%) saturate(217%) hue-rotate(32deg) brightness(98%) contrast(92%);

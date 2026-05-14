@@ -30,6 +30,7 @@ import { handleUpload } from '@/lib/file-uploader';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Globe, MapPin, Zap } from "lucide-react";
+import { AIWriterButton } from "@/components/ai/AIWriterButton";
 
 interface EventsFormProps {
     userId: string
@@ -67,7 +68,7 @@ const EventsForm = ({ userId, type, organizationId, organizationName, eventId, i
             title: initialData.title,
             description: initialData.description,
             location: initialData.location,
-            image: null, // File object, not URL
+            image: null,
             startDateTime: new Date(initialData.startDateTime),
             endDateTime: new Date(initialData.endDateTime),
             categoryId: initialData.categoryId,
@@ -207,21 +208,32 @@ const EventsForm = ({ userId, type, organizationId, organizationName, eventId, i
 
                     {/* Description and Image */}
                     <div className="flex flex-col md:flex-row gap-5">
-                        <FormField
-                            control={form.control}
-                            name="description"
-                            render={({ field }) => (
-                                <FormItem className="w-full">
-                                    <FormControl>
-                                        <Textarea {...field}
-                                            className="textarea rounded-2xl h-52"
-                                            placeholder="Description"
-                                        />
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
+                        <div className="flex flex-col gap-2 w-full">
+                            <FormField
+                                control={form.control}
+                                name="description"
+                                render={({ field }) => (
+                                    <FormItem className="w-full">
+                                        <FormControl>
+                                            <Textarea {...field}
+                                                className="textarea rounded-2xl h-52"
+                                                placeholder="Description"
+                                            />
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            {/* AI Writer — only available when org context is present */}
+                            {organizationId && (
+                                <AIWriterButton
+                                    orgId={organizationId}
+                                    eventId={eventId}
+                                    currentDraft={form.watch("description")}
+                                    onAccept={(generated) => form.setValue("description", generated, { shouldValidate: true })}
+                                />
                             )}
-                        />
+                        </div>
 
                         <FormField
                             control={form.control}

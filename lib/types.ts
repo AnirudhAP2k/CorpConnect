@@ -1,3 +1,5 @@
+import { OrgKybSchema } from "@/lib/validation"
+import { z } from "zod"
 
 // ====== USER PARAMS
 export type CreateUserParams = {
@@ -186,3 +188,21 @@ export interface MeetingRequest {
 }
 
 export type MeetingEmailEvent = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELLED";
+
+export interface OptionsTypes {
+  title: string;
+  id: string;
+  createdAt: Date;
+  updatedAt: Date;
+  label: string;
+}
+
+export type AutomationTriggerType =
+  | "EVENT_REGISTRATION"
+  | "EVENT_CANCELLED"
+  | "FEEDBACK_RECEIVED"
+  | "CONNECTION_ACCEPTED"
+  | "MEETING_SCHEDULED"
+  | "NEW_MEMBER_JOINED";
+
+export type OrgKybValues = z.infer<typeof OrgKybSchema>;

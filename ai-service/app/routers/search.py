@@ -11,6 +11,7 @@ understands intent — e.g. "cloud computing meetup" matches events tagged
 "AWS", "DevOps", "SaaS" even if those words aren't in the query.
 """
 
+import logging
 from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
 
@@ -19,7 +20,9 @@ from app.embeddings import encode
 from app.database import find_similar_events
 from app.config import settings
 from app import cache
+from app.database import get_pool
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -56,8 +59,6 @@ async def semantic_search(
 
     rows = await find_similar_events(vector=query_vector, limit=body.limit)
 
-    # Fetch descriptions for snippet in a second query
-    from app.database import get_pool
     pool = get_pool()
     event_ids = [str(r["id"]) for r in rows]
 
@@ -87,4 +88,6 @@ async def semantic_search(
         count=len(results),
     )
     await cache.set(cache_key, response.model_dump(), ttl=settings.SEARCH_CACHE_TTL)
+
+    logger.info("Semantic search for '%s' -> %d results found (threshold 0.3)", body.query, len(results))
     return response

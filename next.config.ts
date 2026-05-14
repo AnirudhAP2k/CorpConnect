@@ -7,6 +7,9 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  allowedDevOrigins: [
+    "*.ngrok-free.dev",
+  ],
   images: {
     remotePatterns: [
       {

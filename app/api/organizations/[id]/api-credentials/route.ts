@@ -3,6 +3,8 @@ import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { randomBytes } from "crypto";
+import { PLAN_API_LIMITS } from "@/constants";
+import { isUUID } from "@/lib/utils";
 
 /**
  * API Credential management for an organization.
@@ -28,6 +30,11 @@ export const GET = async (
 ) => {
     const { id: orgId } = await params;
     const session = await auth();
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
@@ -54,35 +61,48 @@ export const POST = async (
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    // Generate a secure random key:  evtly_live_<48 hex chars>
     const rawKey = `evtly_live_${randomBytes(24).toString("hex")}`;
-    const prefix = rawKey.slice(0, 18);     // "evtly_live_xxxxxx" (display only)
+    const prefix = rawKey.slice(0, 18);
     const hashed = await bcrypt.hash(rawKey, 12);
+
+    const org = await prisma.organization.findUnique({
+        where: { id: orgId },
+        select: { subscriptionPlan: true },
+    });
+    const tier = (org?.subscriptionPlan ?? "FREE") as "FREE" | "PRO" | "ENTERPRISE";
+    const usageLimit = PLAN_API_LIMITS[tier] ?? PLAN_API_LIMITS.FREE;
 
     const credential = await prisma.apiCredential.upsert({
         where: { organizationId: orgId },
         update: {
             apiKey: hashed,
             apiKeyPrefix: prefix,
-            usageCount: 0,               // reset on regeneration
+            tier,
+            usageLimit,
+            usageCount: 0,
         },
         create: {
             organizationId: orgId,
             apiKey: hashed,
             apiKeyPrefix: prefix,
-            tier: "FREE",
+            tier,
+            usageLimit,
         },
     });
 
-    // Return the full key ONCE — it is NOT stored in plaintext
     return NextResponse.json({
         tenantId: credential.tenantId,
-        apiKey: rawKey,           // ← shown once, then gone
+        apiKey: rawKey,
         apiKeyPrefix: prefix,
         tier: credential.tier,
         usageLimit: credential.usageLimit,
@@ -90,12 +110,16 @@ export const POST = async (
     }, { status: 201 });
 };
 
-// DELETE — revoke the API key
 export const DELETE = async (
     _req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
+
+    if (!isUUID(orgId)) {
+        return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
+    }
+
     const session = await auth();
     if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     if (!(await assertOwner(session.user.id, orgId)))
