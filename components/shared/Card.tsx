@@ -1,3 +1,5 @@
+"use client"
+
 import { EventCard } from '@/domain/events'
 import { formatDateTime } from '@/lib/utils'
 import { useSession } from 'next-auth/react'
