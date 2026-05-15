@@ -75,7 +75,3 @@ export async function updateUserProfileAction(data: { name?: string; image?: str
         return { error: "Failed to update profile. Please try again." };
     }
 }
-
-// ─── Logout ───────────────────────────────────────────────────────────────────
-
-export { logout } from "@/actions/logout.actions";
