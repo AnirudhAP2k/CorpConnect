@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import crypto from "crypto";
+import cryptoJs from "crypto-js";
 import { pool } from "@/db";
 import { roomService } from "@/livekit";
 
@@ -75,7 +75,7 @@ router.post("/", async (req: Request, res: Response) => {
         }
 
         // Generate a unique, deterministic room name for LiveKit
-        const livekitRoom = `event-${eventId}-${crypto.randomBytes(4).toString("hex")}`;
+        const livekitRoom = `event-${eventId}-${cryptoJs.lib.WordArray.random(16).toString(cryptoJs.enc.Hex)}`;
 
         // Create the room on LiveKit Cloud first
         await roomService.createRoom({
