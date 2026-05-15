@@ -62,7 +62,8 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                                 <div className="col-span-4 flex items-center gap-3 min-w-0">
                                     <div className="h-8 w-8 rounded-full bg-primary/10 flex-shrink-0 overflow-hidden">
                                         {user.image ? (
-                                            <Image src={user.image} alt={user.name ?? ""} className="h-full w-full object-cover" />
+                                            <Image src={user.image} alt={user.name ?? ""} className="h-full w-full object-cover" width={50}
+                                                height={50} />
                                         ) : (
                                             <div className="h-full w-full flex items-center justify-center text-xs font-bold text-primary">
                                                 {user.name?.[0]?.toUpperCase() ?? "?"}
