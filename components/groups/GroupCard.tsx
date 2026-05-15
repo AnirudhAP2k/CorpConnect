@@ -18,7 +18,7 @@ export default function GroupCard({ group, joined }: GroupCardProps) {
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center shrink-0">
                                 {group.logo ? (
-                                    <Image src={group.logo} alt={group.name} className="w-full h-full object-cover rounded-md" />
+                                    <Image src={group.logo} alt={group.name} className="w-full h-full object-cover rounded-md" width={50} height={50} />
                                 ) : (
                                     <Building2 className="w-5 h-5 text-primary" />
                                 )}

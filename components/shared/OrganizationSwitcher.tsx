@@ -78,6 +78,8 @@ const OrganizationSwitcher = ({
                                 src={activeOrg.logo}
                                 alt={activeOrg.name}
                                 className="w-5 h-5 rounded object-cover"
+                                width={50}
+                                height={50}
                             />
                         ) : (
                             <Building2 className="w-5 h-5" />

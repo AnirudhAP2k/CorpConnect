@@ -92,7 +92,8 @@ export default async function CompleteVerificationPage({ params }: Props) {
                     <div className="h-5 w-px bg-gray-200" />
                     <div className="flex items-center gap-2">
                         {org.logo
-                            ? <Image src={org.logo} alt={org.name} className="h-7 w-7 rounded-lg object-cover border" />
+                            ? <Image src={org.logo} alt={org.name} className="h-7 w-7 rounded-lg object-cover border" width={50}
+                                height={50} />
                             : <Building2 className="h-6 w-6 text-gray-400" />
                         }
                         <span className="font-semibold text-gray-900">{org.name}</span>

@@ -82,7 +82,8 @@ export default async function AdminVerifyPage({ searchParams }: Props) {
                                 {/* Logo */}
                                 <div className="h-12 w-12 rounded-xl bg-indigo-50 flex items-center justify-center flex-shrink-0 overflow-hidden border border-indigo-100">
                                     {org.logo ? (
-                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" width={50}
+                                            height={50} />
                                     ) : (
                                         <Building2 className="h-6 w-6 text-indigo-400" />
                                     )}

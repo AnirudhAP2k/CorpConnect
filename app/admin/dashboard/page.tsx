@@ -159,7 +159,8 @@ export default async function AdminDashboardPage() {
                             <div key={org.id} className="flex items-center gap-4 py-3">
                                 <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 overflow-hidden">
                                     {org.logo ? (
-                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                        <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" width={50}
+                                            height={50} />
                                     ) : (
                                         <Building2 className="h-4 w-4 text-primary" />
                                     )}

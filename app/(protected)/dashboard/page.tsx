@@ -189,7 +189,8 @@ const DashboardPage = async () => {
                                     <div key={org.id} className="flex items-center gap-3 p-3 rounded-lg border hover:bg-muted/30 transition-colors">
                                         <div className="h-10 w-10 rounded-lg bg-primary/10 flex-shrink-0 overflow-hidden">
                                             {org.logo ? (
-                                                <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                                                <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" width={50}
+                                                    height={50} />
                                             ) : (
                                                 <div className="h-full w-full flex items-center justify-center">
                                                     <Building2 className="h-5 w-5 text-primary" />

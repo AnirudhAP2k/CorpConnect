@@ -129,7 +129,8 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
             <div className="flex items-center gap-4">
                 <div className="h-16 w-16 rounded-2xl bg-indigo-50 border border-indigo-100 flex items-center justify-center overflow-hidden flex-shrink-0">
                     {org.logo
-                        ? <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" />
+                        ? <Image src={org.logo} alt={org.name} className="h-full w-full object-cover" width={50}
+                            height={50} />
                         : <Building2 className="h-8 w-8 text-indigo-400" />}
                 </div>
                 <div>
