@@ -18,8 +18,6 @@ export async function mapTokenToSession(session: Session, token: JWT): Promise<S
         session.user.apiTier = token.apiTier ?? "FREE";
     }
 
-    // Mint a short-lived WS token so the browser can authenticate with ws-service.
-    // Contains only the minimum required fields to reduce exposure.
     if (token.sub && token.activeOrganizationId && process.env.AUTH_SECRET) {
         const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
         session.wsToken = await new SignJWT({

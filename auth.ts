@@ -2,13 +2,14 @@ import NextAuth from "next-auth";
 import { prisma } from "@/lib/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import authConfig from "@/auth.config";
-import { getUserById, getUserTier } from "@/data/user";
+import { getUserById, getUserByEmail, getUserTier } from "@/data/user";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
 import { mapTokenToSession } from "@/auth.session";
 import { generateRefreshToken, revokeToken } from "@/lib/tokens";
 import { storeRefreshToken } from "@/lib/tokens";
 import { cookies } from "next/headers";
 import { JWT_MAX_AGE_SECONDS } from "@/constants";
+import bcrypt from "bcryptjs";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
     adapter: PrismaAdapter(prisma),
@@ -41,7 +42,28 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     },
 
     callbacks: {
-        async signIn({ user, account }) {
+        async signIn({ user, account, credentials }) {
+            // ── Credentials provider: verify password here in Node.js runtime ──
+            if (account?.provider === "credentials" && credentials) {
+                const email = credentials.email as string | undefined;
+                const password = credentials.password as string | undefined;
+
+                if (!email || !password) return false;
+
+                const dbUser = await getUserByEmail(email);
+                if (!dbUser || !dbUser.password) return false;
+
+                const isValid = await bcrypt.compare(password, dbUser.password);
+                if (!isValid) return false;
+
+                // Populate user fields from DB (auth.config.ts returns a stub)
+                user.id = dbUser.id;
+                user.role = dbUser.role;
+                user.isAppAdmin = dbUser.isAppAdmin;
+                user.activeOrganizationId = dbUser.activeOrganizationId;
+                user.hasCompletedOnboarding = dbUser.hasCompletedOnboarding;
+            }
+
             if (account?.provider !== "credentials") return true;
 
             if (!user.id) return false;
