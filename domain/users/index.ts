@@ -19,4 +19,7 @@ export {
 export { getUserById, getUserByEmail, getPublicUserById, getUserWithOrgs, getUserTier } from "./queries";
 
 // Server Actions (authenticated mutations)
-export { setActiveOrganizationAction, updateUserProfileAction, logout } from "./actions";
+export { setActiveOrganizationAction, updateUserProfileAction } from "./actions";
+
+// Logout — canonical location is actions/logout.actions.ts
+export { logout } from "@/actions/logout.actions";
