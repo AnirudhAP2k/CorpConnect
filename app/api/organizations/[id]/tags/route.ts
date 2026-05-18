@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { setOrgTags, getOrgTags } from "@/data/analytics";
+import { getOrgTags } from "@/domain/tags";
+import { setOrgTags } from "@/domain/tags/helpers";
 
 // GET /api/organizations/[id]/tags
 export const GET = async (

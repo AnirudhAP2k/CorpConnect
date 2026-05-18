@@ -2,9 +2,9 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
-import { randomBytes } from "crypto";
 import { PLAN_API_LIMITS } from "@/constants";
 import { isUUID } from "@/lib/utils";
+import cryptoJs from "crypto-js";
 
 /**
  * API Credential management for an organization.
@@ -71,7 +71,7 @@ export const POST = async (
     if (!(await assertOwner(session.user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const rawKey = `evtly_live_${randomBytes(24).toString("hex")}`;
+    const rawKey = `evtly_live_${cryptoJs.lib.WordArray.random(32).toString(cryptoJs.enc.Hex)}`;
     const prefix = rawKey.slice(0, 18);
     const hashed = await bcrypt.hash(rawKey, 12);
 

@@ -9,6 +9,7 @@
     "dev": "tsx watch src/index.ts"
   },
   "dependencies": {
+    "crypto-js": "^4.2.0",
     "dotenv": "^17.4.2",
     "express": "^4.19.2",
     "jose": "^5.9.6",

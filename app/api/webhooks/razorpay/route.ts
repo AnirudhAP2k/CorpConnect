@@ -11,15 +11,13 @@
 
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { createHmac } from "crypto";
 import { PLAN_API_LIMITS } from "@/constants";
+import { hashMessage } from "@/lib/hash";
 
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET ?? "";
 
 function verifySignature(body: string, signature: string): boolean {
-    const expected = createHmac("sha256", RAZORPAY_WEBHOOK_SECRET)
-        .update(body)
-        .digest("hex");
+    const expected = hashMessage(body, RAZORPAY_WEBHOOK_SECRET);
     return expected === signature;
 }
 

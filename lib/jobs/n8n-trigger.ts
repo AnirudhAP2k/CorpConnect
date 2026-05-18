@@ -13,7 +13,7 @@
  */
 
 import { prisma } from "@/lib/db";
-import { createHmac } from "crypto";
+import { hashMessage } from "@/lib/hash";
 import type { N8nJobPayload } from "@/lib/jobs/automation";
 
 const N8N_SHARED_SECRET = process.env.N8N_SHARED_SECRET ?? "";
@@ -23,7 +23,7 @@ const WEBHOOK_TIMEOUT_MS = 10_000; // 10 s
 
 function buildSignature(ruleId: string, trigger: string, orgId: string, timestamp: number): string {
     const message = `${ruleId}:${trigger}:${orgId}:${timestamp}`;
-    return "sha256=" + createHmac("sha256", N8N_SHARED_SECRET).update(message).digest("hex");
+    return "sha256=" + hashMessage(message, N8N_SHARED_SECRET);
 }
 
 // ─── Job handler ──────────────────────────────────────────────────────────────

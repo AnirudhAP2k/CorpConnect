@@ -21,6 +21,7 @@ import OrgAIPanel from "@/components/organizations/OrgAIPanel";
 import { ChatWidget } from "@/components/ai/ChatWidget";
 import { SentimentPanel } from "@/components/feedback/SentimentPanel";
 import { AutomationRulesPanel } from "@/components/automation/AutomationRulesPanel";
+import Image from "next/image";
 
 interface OrgDashboardPageProps {
     params: Promise<{ id: string }>;
@@ -37,6 +38,11 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
     let org;
     try {
         org = await getOrganizationById(orgId);
+
+        if (!org) {
+            throw new Error("Organization not found");
+        }
+
     } catch {
         notFound();
     }
@@ -81,8 +87,8 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                 <section className="bg-white border-b border-gray-200 py-6">
                     <div className="wrapper flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                         <div className="flex items-center gap-4">
-                            {org.logo ? (
-                                <img src={org.logo} alt={org.name} className="h-12 w-12 rounded-xl object-cover border" />
+                            {org?.logo ? (
+                                <Image src={org.logo} alt={org.name} className="h-12 w-12 rounded-xl object-cover border" width={50} height={50} />
                             ) : (
                                 <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center">
                                     <Building2 className="h-6 w-6 text-primary" />
@@ -91,14 +97,14 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                             <div>
                                 <div className="flex items-center gap-2">
                                     <h1 className="text-2xl font-bold">{org.name}</h1>
-                                    {org.isVerified && (
+                                    {org?.isVerified && (
                                         <Badge className="bg-blue-100 text-blue-700 border-0">
                                             ✓ Verified
                                         </Badge>
                                     )}
                                 </div>
                                 <p className="text-muted-foreground text-sm">
-                                    {org.industry.label} · {membership.role}
+                                    {org?.industry.label} · {membership.role}
                                 </p>
                             </div>
                         </div>
@@ -260,7 +266,7 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                                             <div key={a.id} className="flex items-start gap-3">
                                                 <div className="h-8 w-8 rounded-full bg-muted flex-shrink-0 overflow-hidden">
                                                     {a.user.image ? (
-                                                        <img src={a.user.image} alt={a.user.name ?? ""} className="h-full w-full object-cover" />
+                                                        <Image src={a.user.image} alt={a.user.name ?? ""} className="h-full w-full object-cover" width={50} height={50} />
                                                     ) : (
                                                         <div className="h-full w-full flex items-center justify-center text-xs font-bold text-muted-foreground">
                                                             {a.user.name?.[0] ?? "?"}

@@ -1,9 +1,9 @@
 import { getVerificationTokenByEmail } from "@/data/verificationToken";
-import { randomInt, randomUUID } from "crypto"
+import { v4 as randomUUID } from "uuid";
 import { prisma } from "@/lib/db";
 import { getPasswordResetTokenByEmail } from "@/data/password-reset-token";
 import { getTwoFactorTokenbyEmail } from "@/data/two-factor-token";
-import { hashToken } from "@/lib/utils";
+import { hashToken } from "@/lib/hash";
 import { cookies } from "next/headers";
 
 export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
@@ -56,7 +56,7 @@ export const genPasswordResetToken = async (email: string) => {
 };
 
 export const genTwoFactorToken = async (email: string) => {
-    const token = randomInt(100 * 100, 1000 * 1000).toString();
+    const token = randomUUID();
     const expiresAt = new Date(new Date().getTime() + 900 * 1000);
 
     const existingToken = await getTwoFactorTokenbyEmail(email);

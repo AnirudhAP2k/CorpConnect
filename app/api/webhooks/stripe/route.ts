@@ -16,8 +16,8 @@ import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import type { SubscriptionPlan } from "@prisma/client";
 import { PLAN_API_LIMITS } from "@/constants";
-import { randomBytes } from "crypto";
-import bcrypt from "bcryptjs";
+import cryptoJs from "crypto-js";
+import { hashToken } from "@/lib/hash";
 
 export const POST = async (req: NextRequest) => {
     const stripe = getStripe();
@@ -126,9 +126,9 @@ async function handleCheckoutCompleted(session: any) {
                 data: { tier: plan, usageLimit },
             });
         } else {
-            const rawKey = `evtly_live_${randomBytes(24).toString("hex")}`;
+            const rawKey = `evtly_live_${cryptoJs.lib.WordArray.random(32).toString(cryptoJs.enc.Hex)}`;
             const prefix = rawKey.slice(0, 18);
-            const hashed = await bcrypt.hash(rawKey, 12);
+            const hashed = hashToken(rawKey);
 
             await prisma.apiCredential.upsert({
                 where: { organizationId: orgId },

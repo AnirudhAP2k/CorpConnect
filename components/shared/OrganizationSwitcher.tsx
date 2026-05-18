@@ -13,6 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Building2, ChevronDown, Check, Plus } from "lucide-react";
 import axios from "axios";
+import Image from "next/image";
 
 interface Organization {
     id: string;
@@ -73,10 +74,12 @@ const OrganizationSwitcher = ({
                 >
                     <div className="flex items-center gap-2">
                         {activeOrg?.logo ? (
-                            <img
+                            <Image
                                 src={activeOrg.logo}
                                 alt={activeOrg.name}
                                 className="w-5 h-5 rounded object-cover"
+                                width={50}
+                                height={50}
                             />
                         ) : (
                             <Building2 className="w-5 h-5" />
@@ -99,7 +102,7 @@ const OrganizationSwitcher = ({
                     >
                         <div className="flex items-center gap-2 flex-1">
                             {org.logo ? (
-                                <img
+                                <Image
                                     src={org.logo}
                                     alt={org.name}
                                     className="w-6 h-6 rounded object-cover"
