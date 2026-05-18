@@ -42,7 +42,8 @@ function OrgRow({ org, meta, actions }: { org: OrgMini; meta?: React.ReactNode; 
         <div className="flex items-center gap-3 py-3 border-b last:border-0">
             <div className="relative w-10 h-10 flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 border">
                 {org.logo ? (
-                    <Image src={org.logo} alt={org.name} fill className="object-cover" sizes="40px" />
+                    <Image src={org.logo} alt={org.name} fill className="object-cover" sizes="40px" width={50}
+                        height={50} />
                 ) : (
                     <div className="w-full h-full flex items-center justify-center">
                         <Building2 className="w-5 h-5 text-gray-400" />

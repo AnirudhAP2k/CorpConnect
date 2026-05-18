@@ -1,40 +1,15 @@
-"use server";
+/**
+ * User Data Access Layer — BACKWARD-COMPAT BRIDGE
+ *
+ * The canonical implementation now lives in @/domain/users.
+ * This file re-exports from the domain for existing code that imports
+ * from "@/data/user" until those call-sites are migrated.
+ *
+ * DO NOT add new logic here. Migrate callers to "@/domain/users".
+ */
 
-import { prisma } from "@/lib/db";
-import { User } from "next-auth";
+export { getUserById, getUserByEmail } from "@/domain/users";
 
-export const getUserById = async (id: string) => {
-    try {
-        const user = await prisma.user.findUnique({ where: { id } });
-
-        return user;
-    } catch (error) {
-        return null;
-    }
-};
-
-export const getUserByEmail = async (email: string) => {
-    try {
-        const user = await prisma.user.findUnique({ where: { email } });
-
-        return user;
-    } catch (error) {
-        return null;
-    }
-};
-
-export const getUserTierWithActiveOrg = async (user: User) => {
-    try {
-        if (!user.activeOrganizationId) {
-            return "FREE";
-        }
-
-        const apiCred = await prisma.apiCredential.findUnique({
-            where: { organizationId: user.activeOrganizationId }
-        });
-
-        return apiCred?.tier || "FREE";
-    } catch (error) {
-        return "FREE";
-    }
-}
+// getUserTier now takes activeOrganizationId directly (not a User object).
+// Callers should import getUserTier from "@/domain/users" and adapt.
+export { getUserTier } from "@/domain/users";

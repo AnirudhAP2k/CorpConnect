@@ -2,6 +2,7 @@
 
 import axios from "axios";
 import { useEffect, useRef, useCallback } from "react";
+import { v4 as randomUUID } from "uuid";
 
 type Referrer = "search" | "dashboard" | "recommendation" | "direct" | string;
 
@@ -22,7 +23,7 @@ interface UseEventViewOptions {
  * The sessionId is stable for the lifetime of the component.
  */
 export function useEventView({ eventId, referrer = "direct", minSeconds = 3 }: UseEventViewOptions) {
-    const sessionId = useRef<string>(crypto.randomUUID());
+    const sessionId = useRef<string>(randomUUID());
     const startTime = useRef<number>(Date.now());
     const recorded = useRef<boolean>(false);
 

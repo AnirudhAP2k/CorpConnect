@@ -6,7 +6,7 @@
  * Enqueued as ORG_WEBHOOK_DELIVERY job (max 3 retries, handled by job processor).
  */
 
-import { createHmac } from "crypto";
+import { hashMessage } from "@/lib/hash";
 
 const WEBHOOK_TIMEOUT_MS = 10_000;
 
@@ -22,7 +22,7 @@ export interface OrgWebhookPayload {
 }
 
 function buildSignature(body: string, secret: string): string {
-    return "sha256=" + createHmac("sha256", secret).update(body).digest("hex");
+    return "sha256=" + hashMessage(body, secret);
 }
 
 export async function processOrgWebhookDelivery(payload: OrgWebhookPayload): Promise<void> {

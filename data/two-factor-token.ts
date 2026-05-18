@@ -1,29 +1,10 @@
-"use server";
-
-import { prisma } from "@/lib/db";
-
-export const getTwoFactorTokenbyToken = async (token: string) => {
-    try {
-        const twoFactorToken = await prisma.twoFactorToken.findFirst({
-            where: { token },
-        });
-
-        return twoFactorToken;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-};
-
-export const getTwoFactorTokenbyEmail = async (email: string) => {
-    try {
-        const twoFactorToken = await prisma.twoFactorToken.findFirst({
-            where: { email },
-        });
-
-        return twoFactorToken;
-    } catch (error) {
-        console.error(error);
-        return null;
-    }
-};
+/**
+ * Two-Factor Token Data — BACKWARD-COMPAT BRIDGE
+ * Canonical: @/domain/auth
+ *
+ * Note: renamed from getTwoFactorTokenbyEmail → getTwoFactorTokenByEmail (camelCase fix)
+ */
+export {
+    getTwoFactorTokenByEmail as getTwoFactorTokenbyEmail,
+    getTwoFactorTokenByToken as getTwoFactorTokenbyToken,
+} from "@/domain/auth";

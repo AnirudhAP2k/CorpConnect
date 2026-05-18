@@ -2,7 +2,7 @@ import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import crypto from "crypto";
+import cryptoJs from "crypto-js";
 
 // Validation schema for adding member
 const AddMemberSchema = z.object({
@@ -118,7 +118,7 @@ export const POST = async (
         }
 
         // Generate unique token for invite
-        const token = crypto.randomBytes(32).toString("hex");
+        const token = cryptoJs.lib.WordArray.random(32).toString(cryptoJs.enc.Hex);
 
         // Set expiration to 7 days from now
         const expiresAt = new Date();

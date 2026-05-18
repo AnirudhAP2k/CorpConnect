@@ -1,65 +1,31 @@
-import bcryptjs from "bcryptjs";
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import { getUserByEmail } from "@/data/user";
-import { getPasswordResetTokenByToken } from "@/data/password-reset-token";
-import { SetNewPasswordSchema } from "@/lib/validation";
+import { setNewPasswordSchema } from "@/domain/users";
+import { setNewPasswordAction } from "@/domain/auth";
 
 export const POST = async (req: NextRequest) => {
-    if (req.method !== "POST") {
-        return NextResponse.json({ error: "Method not allowed" }, { status: 405 });
-    }
-
-    try { 
-        const token = req.nextUrl.searchParams.get('token');
+    try {
+        const token = req.nextUrl.searchParams.get("token");
+        if (!token) {
+            return NextResponse.json({ error: "Reset token missing." }, { status: 400 });
+        }
 
         const data = await req.json();
+        const parsed = setNewPasswordSchema.safeParse(data);
 
-        const validated = SetNewPasswordSchema.safeParse(data);
-
-        if (!validated.success) {
-            return NextResponse.json({ error: "Invalid Password" }, { status: 400 });
+        if (!parsed.success) {
+            return NextResponse.json({ error: "Invalid password" }, { status: 400 });
         }
 
-        if (!token) {
-            return NextResponse.json({ error: "Token missing!" }, { status: 400 });
+        const result = await setNewPasswordAction(token, parsed.data.password);
+
+        if ("error" in result) {
+            const status = result.error.includes("expired") ? 410 : 400;
+            return NextResponse.json({ error: result.error }, { status });
         }
 
-        const existingToken = await getPasswordResetTokenByToken(token);
-
-        if (!existingToken) {
-            return NextResponse.json({ error: "Token does not exists" }, { status: 400 });
-        }
-
-        const hasExpired = new Date(existingToken.expiresAt) < new Date();
-        
-        if(hasExpired) {
-            return NextResponse.json({ error: "Token has expired!" }, { status: 400 });
-        }
-        
-        const existingUser = await getUserByEmail(existingToken.email);
-
-        if(!existingUser) {
-            return NextResponse.json({ error: "Email does not exists" }, { status: 404 });
-        }
-
-        const { password } = validated.data;
-
-        const salt = await bcryptjs.genSalt();
-        const hashedPassword = await bcryptjs.hash(password, salt);
-
-        await prisma.user.update({
-            where: { id: existingUser.id },
-            data: { password: hashedPassword },
-        });
-
-        await prisma.passwordResetToken.delete({
-            where: { id: existingToken.id },
-        });
-
-        return NextResponse.json({ message: "Password updated successfully" }, { status: 201 });
+        return NextResponse.json({ message: result.message }, { status: 201 });
     } catch (error) {
-        console.error("Error creating user:", error);
-        return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+        console.error("[POST /api/auth/set-password]", error);
+        return NextResponse.json({ error: "Internal server error" }, { status: 500 });
     }
 };
