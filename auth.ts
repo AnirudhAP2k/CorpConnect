@@ -2,7 +2,7 @@ import NextAuth from "next-auth";
 import { prisma } from "@/lib/db";
 import { PrismaAdapter } from "@auth/prisma-adapter";
 import authConfig from "@/auth.config";
-import { getUserById, getUserByEmail, getUserTier } from "@/data/user";
+import { getUserById, getUserByEmail, getUserTier, getUserActiveOrgRole } from "@/data/user";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
 import { mapTokenToSession } from "@/auth.session";
 import { generateRefreshToken, revokeToken } from "@/lib/tokens";
@@ -43,7 +43,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     callbacks: {
         async signIn({ user, account, credentials }) {
-            // ── Credentials provider: verify password here in Node.js runtime ──
             if (account?.provider === "credentials" && credentials) {
                 const email = credentials.email as string | undefined;
                 const password = credentials.password as string | undefined;
@@ -56,12 +55,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 const isValid = await bcrypt.compare(password, dbUser.password);
                 if (!isValid) return false;
 
-                // Populate user fields from DB (auth.config.ts returns a stub)
                 user.id = dbUser.id;
-                user.role = dbUser.role;
                 user.isAppAdmin = dbUser.isAppAdmin;
                 user.activeOrganizationId = dbUser.activeOrganizationId;
                 user.hasCompletedOnboarding = dbUser.hasCompletedOnboarding;
+
+                user.role = await getUserActiveOrgRole(dbUser.id, dbUser.activeOrganizationId);
             }
 
             if (account?.provider !== "credentials") return true;

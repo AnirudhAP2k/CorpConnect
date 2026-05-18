@@ -67,6 +67,7 @@ export default async function ProfilePage() {
       organization: {
         include: { industry: true }
       },
+      organizationMemberships: true,
     },
   });
 
@@ -82,10 +83,16 @@ export default async function ProfilePage() {
   const org = user.organization;
   const orgCount = org ? 1 : 0
 
+  const primaryMembership = user.organizationMemberships.find(
+    (m) => m.organizationId === user.organizationId
+  );
+  const primaryRole = primaryMembership?.role ?? "MEMBER";
+
   const stats = [
     { label: "Organizations", value: orgCount },
-    { label: "Platform Role", value: user.role === "ADMIN" ? "Admin" : "Member" },
-    { label: "Member Since", value: new Date(user.createdAt).getFullYear() },
+    { label: "Platform Role", value: user.isAppAdmin ? "Admin" : "Member" },
+    { label: "Organization Role", value: primaryRole },
+    { label: "Onboarded On", value: new Date(user.createdAt).getFullYear() },
   ];
 
   return (
@@ -214,7 +221,7 @@ export default async function ProfilePage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
                         <h3 className="text-base font-headline font-semibold text-nx-primary">
-                          {user.role?.replace("_", " ") || "Member"}
+                          {primaryRole.replace("_", " ") || "Member"}
                         </h3>
                         <span className="text-[11px] font-label font-medium text-nx-on-surface-variant uppercase tracking-widest shrink-0">
                           {new Date(user.createdAt).getFullYear()} — Present

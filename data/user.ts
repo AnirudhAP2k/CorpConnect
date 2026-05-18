@@ -13,3 +13,5 @@ export { getUserById, getUserByEmail } from "@/domain/users";
 // getUserTier now takes activeOrganizationId directly (not a User object).
 // Callers should import getUserTier from "@/domain/users" and adapt.
 export { getUserTier } from "@/domain/users";
+
+export { getUserActiveOrgRole } from "@/domain/users";

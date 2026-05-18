@@ -40,7 +40,6 @@ export async function createOrganizationAction(formData: FormData) {
     const { logo, industryId, ...rest } = parsed.data;
 
     try {
-        // Verify industry exists
         const industry = await prisma.industry.findUnique({ where: { id: industryId } });
         if (!industry) return { error: "Invalid industry selected." };
 
