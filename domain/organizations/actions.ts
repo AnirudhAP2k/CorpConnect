@@ -77,6 +77,7 @@ export async function createOrganizationAction(formData: FormData) {
         return {
             success: true,
             organizationId: organization.id,
+            organizationName: organization.name,
             kybUrl: `/organizations/${organization.id}/complete-verification`,
         };
     } catch (error) {
