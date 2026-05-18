@@ -94,3 +94,92 @@ For each domain, we follow a 4-step cycle to ensure the system remains functiona
   - [x] `getEventById` wrapped with `unstable_cache(tag: 'events')` — instant edge invalidation via `revalidateTag('events')`
   - [x] `getEvents` wrapped with `unstable_cache(tag: 'events')` — home page and feeds invalidated on create/update/delete
   - [x] All mutation Server Actions already call `revalidateTag('events')` (from Phase 3)
+
+## Phase 6: Groups Domain
+- [ ] **1. Scaffold Domain**
+  - [ ] Create `/domain/groups/types.ts`, `validation.ts`, `queries.ts`, `actions.ts`, `index.ts`
+- [ ] **2. Core Logic**
+  - [ ] Move group creation, update, delete logic
+  - [ ] Move group membership and event mapping logic
+  - [ ] Move group post logic
+- [ ] **3. API Refactor**
+  - [ ] Refactor `/app/api/groups/route.ts`
+  - [ ] Refactor `/app/api/groups/[id]/events/route.ts`
+  - [ ] Refactor `/app/api/groups/[id]/posts/route.ts`
+  - [ ] Refactor `/app/api/groups/[id]/members/route.ts`
+
+## Phase 7: Messaging Domain
+- [ ] **1. Scaffold Domain**
+  - [ ] Create `/domain/messaging/types.ts`, `validation.ts`, `queries.ts`, `actions.ts`, `index.ts`
+- [ ] **2. Core Logic**
+  - [ ] Move logic for creating/updating conversations and messages
+  - [ ] Move logic for tracking unread counts
+- [ ] **3. API Refactor**
+  - [ ] Refactor `/app/api/messaging/conversations/route.ts`
+  - [ ] Refactor `/app/api/messaging/conversations/[id]/messages/route.ts`
+  - [ ] Refactor `/app/api/messaging/unread/route.ts`
+
+## Phase 8: Billing Domain
+- [ ] **1. Scaffold Domain**
+  - [ ] Create `/domain/billing/types.ts`, `validation.ts`, `queries.ts`, `actions.ts`, `index.ts`
+- [ ] **2. Core Logic**
+  - [ ] Move subscription checks, portal generation, and checkout logic
+- [ ] **3. API Refactor**
+  - [ ] Refactor `/app/api/billing/portal/route.ts`
+  - [ ] Refactor `/app/api/billing/status/route.ts`
+  - [ ] Refactor `/app/api/billing/subscribe/route.ts`
+  - [ ] Refactor `/app/api/events/[id]/payment-verify/route.ts`
+  - [ ] Refactor `/app/api/events/[id]/checkout/route.ts`
+
+## Phase 9: Virtual Rooms & Meetings Domain
+- [ ] **1. Scaffold Domain**
+  - [ ] Create `/domain/virtual/types.ts`, `validation.ts`, `queries.ts`, `actions.ts`, `index.ts`
+- [ ] **2. Core Logic**
+  - [ ] Move virtual room creation and token generation logic
+  - [ ] Consolidate meeting requests (accept/decline) logic here or under events
+- [ ] **3. API Refactor**
+  - [ ] Refactor `/app/api/virtual/rooms/route.ts`
+  - [ ] Refactor `/app/api/events/[id]/meeting-requests/route.ts`
+  - [ ] Refactor `/app/api/events/[id]/meeting-requests/[requestId]/route.ts`
+  - [ ] Refactor `/app/api/invitations/[id]/accept/route.ts`
+  - [ ] Refactor `/app/api/invitations/[id]/decline/route.ts`
+
+## Phase 10: Webhooks, Core Actions & Admin Exports
+- [ ] **1. Core Actions & AI Domain**
+  - [ ] Refactor `/actions/notifications.actions.ts` into a Domain Action
+  - [ ] Refactor `/actions/feedback.actions.ts` into a Domain Action
+  - [ ] Refactor `/actions/category.actions.ts` into a Domain Action
+  - [ ] Refactor `/actions/automation.actions.ts` into a Domain Action
+  - [ ] Refactor `/actions/ai.actions.ts` and `/app/api/ai/recommend/route.ts`
+- [ ] **2. Webhooks Refactor** (Thin wrappers around domain services)
+  - [ ] Refactor `/app/api/webhooks/stripe/route.ts`
+  - [ ] Refactor `/app/api/webhooks/razorpay/route.ts`
+  - [ ] Refactor `/app/api/webhooks/org-verification/route.ts`
+  - [ ] Refactor `/app/api/webhooks/n8n-callback/route.ts`
+- [ ] **3. Admin Exports**
+  - [ ] Refactor `/app/api/admin/organizations/[id]/verify/route.ts`
+  - [ ] Refactor `/app/api/admin/export/preferences/route.ts`
+  - [ ] Refactor `/app/api/admin/export/participations/route.ts`
+  - [ ] Refactor `/app/api/admin/export/interactions/route.ts`
+
+## Phase 11: Final UI & Layout Refactoring
+Convert all remaining Pages/Layouts still directly querying `prisma` into proper Server Components querying domain methods:
+- [ ] **Public/Auth**
+  - [ ] `app/invite/[token]/page.tsx`
+- [ ] **Protected Base**
+  - [ ] `app/(protected)/profile/page.tsx`
+  - [ ] `app/(protected)/invitations/page.tsx`
+  - [ ] `app/(protected)/messaging/layout.tsx`
+  - [ ] `app/(protected)/messaging/[conversationId]/page.tsx`
+- [ ] **Events & Virtual**
+  - [ ] `app/(protected)/events/[id]/payment-success/page.tsx`
+  - [ ] `app/(protected)/events/[id]/join/[roomId]/page.tsx`
+  - [ ] Fix missed virtual rooms lookup in `app/(protected)/events/[id]/page.tsx`
+- [ ] **Organizations**
+  - [ ] `app/(protected)/organizations/discover/page.tsx`
+  - [ ] `app/(protected)/organizations/[id]/page.tsx`
+  - [ ] `app/(protected)/organizations/[id]/events/page.tsx`
+  - [ ] `app/(protected)/organizations/[id]/dashboard/page.tsx`
+  - [ ] `app/(protected)/organizations/[id]/complete-verification/page.tsx`
+- [ ] **Admin**
+  - [ ] `app/admin/layout.tsx`
