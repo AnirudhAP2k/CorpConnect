@@ -1,4 +1,4 @@
-import type { User, Organization, OrganizationMember, ApiTier } from "@prisma/client";
+import type { User, Organization, OrganizationMember, ApiTier, OrganizationRole } from "@prisma/client";
 
 // ─── Re-exports ───────────────────────────────────────────────────────────────
 
@@ -19,4 +19,14 @@ export type UserWithOrgs = PublicUser & {
     organizationMemberships: (OrganizationMember & {
         organization: Pick<Organization, "id" | "name" | "logo" | "isVerified">;
     })[];
+};
+
+/**
+ * Type for user with only role information
+ */
+export type UserWithRole = User & {
+    organizationMemberships: {
+        organizationId: string;
+        role: OrganizationRole
+    }[]
 };
