@@ -24,7 +24,6 @@ export async function POST(req: Request) {
 
         const user = await getUserByEmail(email);
 
-        // Standard checks (shared with web auth logic)
         if (!user || !user.email || !user.password) {
             return NextResponse.json({ error: "Invalid credentials" }, { status: 401 });
         }
@@ -60,11 +59,18 @@ export async function POST(req: Request) {
             req.headers.get("x-forwarded-for") || undefined
         );
 
+        // Fetch active organization role
+        let role = null;
+        const activeMembership = user.organizationMemberships.find(
+            (m) => m.organizationId === user.activeOrganizationId
+        );
+        role = activeMembership?.role ?? null;
+
         // Generate Stateless Access Token (JWT)
         const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
         const accessToken = await new SignJWT({
             sub: user.id,
-            role: user.role,
+            role,
             isAppAdmin: user.isAppAdmin,
             hasCompletedOnboarding: user.hasCompletedOnboarding,
             activeOrganizationId: user.activeOrganizationId,
@@ -81,7 +87,7 @@ export async function POST(req: Request) {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role,
+                role,
                 image: user.image
             }
         });
