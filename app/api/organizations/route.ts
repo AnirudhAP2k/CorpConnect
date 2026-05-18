@@ -4,6 +4,7 @@ import { OrganizationSubmitSchema } from "@/lib/validation";
 import { revalidatePath } from "next/cache";
 import { NextRequest, NextResponse } from "next/server";
 import { JobType } from "@prisma/client";
+import { createNotification } from "@/actions/notifications.actions";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -56,6 +57,14 @@ export const POST = async (req: NextRequest) => {
                 payload: { orgId: organization.id, creatorEmail },
             },
         }).catch((err) => console.error("[OrgVerification] Failed to enqueue L1:", err));
+
+        await createNotification({
+            userId: session.user.id,
+            title: "Organization created",
+            description: `Organization ${organization.name} created successfully. Please verify your organization to unlock all features.`,
+            link: `/organizations/${organization.id}/complete-verification`,
+            type: "VERIFICATION",
+        });
 
         return NextResponse.json(
             {
