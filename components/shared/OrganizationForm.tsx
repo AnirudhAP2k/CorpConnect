@@ -31,7 +31,6 @@ import FileUploader from "@/components/shared/FileUploader";
 import { FormErrors } from "@/components/FormErrors";
 import { FormSuccess } from "@/components/FormSuccess";
 import TagArrayInput from "@/components/shared/TagArrayInput";
-import axios from "axios";
 import Dropdown from "@/components/shared/Dropdown";
 
 interface OrganizationFormProps {
@@ -115,20 +114,35 @@ const OrganizationForm = ({
         let response;
 
         if (type === "Create") {
-          response = await axios.post("/api/organizations", apiData);
+          response = await fetch("/api/organizations", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(apiData),
+          });
         } else {
-          response = await axios.put(`/api/organizations/${organizationId}`, apiData);
+          response = await fetch(`/api/organizations/${organizationId}`, {
+            method: "PUT",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(apiData),
+          });
         }
 
-        if (!response.data.success) {
-          throw new Error(response.data.error || "Operation failed");
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Operation failed");
         }
 
-        setSuccess(response.data.message);
+        const responseData = await response.json();
+
+        setSuccess(responseData.message);
 
         setTimeout(() => {
           if (type === "Create") {
-            router.push(response.data.kybUrl);
+            router.push(responseData.kybUrl);
           } else {
             router.push(`/organizations/${organizationId}`);
           }
