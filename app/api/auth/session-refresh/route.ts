@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { rotateRefreshToken, storeRefreshToken } from "@/lib/tokens";
 import { encode } from "next-auth/jwt";
-import { prisma } from "@/lib/db";
+import { getFreshSessionUser } from "@/domain/users";
 import { SESSION_COOKIE_NAME, JWT_MAX_AGE_SECONDS } from "@/constants";
 
 /**
@@ -47,20 +47,13 @@ export async function GET(req: NextRequest) {
 
         await storeRefreshToken(rotated.token);
 
-        const freshUser = await prisma.user.findUnique({
-            where: { id: rotated.user.id },
-            select: {
-                id: true,
-                role: true,
-                isAppAdmin: true,
-                hasCompletedOnboarding: true,
-                activeOrganizationId: true,
-            },
-        });
+        const freshUser = await getFreshSessionUser(rotated.user.id, rotated.user.activeOrganizationId);
 
         if (!freshUser) {
             return NextResponse.redirect(new URL("/login", req.url));
         }
+
+        const role = freshUser.role;
 
         const secret = process.env.AUTH_SECRET!;
         const nowSec = Math.floor(Date.now() / 1000);
@@ -68,7 +61,7 @@ export async function GET(req: NextRequest) {
         const newJwt = await encode({
             token: {
                 sub: freshUser.id,
-                role: freshUser.role,
+                role,
                 isAppAdmin: freshUser.isAppAdmin,
                 hasCompletedOnboarding: freshUser.hasCompletedOnboarding,
                 activeOrganizationId: freshUser.activeOrganizationId,
