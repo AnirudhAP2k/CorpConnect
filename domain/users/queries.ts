@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { ApiTier } from "@prisma/client";
-import type { PublicUser, UserWithOrgs, UserTier } from "./types";
+import type { PublicUser, UserWithOrgs, UserWithRole } from "@/domain/users/types";
 import type { OrganizationRole, User } from "@prisma/client";
 
 // ─── User lookups ─────────────────────────────────────────────────────────────
@@ -17,7 +17,7 @@ export async function getUserById(id: string): Promise<User | null> {
  * Get full user record by email (includes password hash — server-only).
  * Returns null if not found.
  */
-export async function getUserByEmail(email: string): Promise<User & { organizationMemberships: { organizationId: string; role: OrganizationRole }[] } | null> {
+export async function getUserByEmail(email: string): Promise<UserWithRole | null> {
     return prisma.user.findUnique({
         where: { email },
         include: {

@@ -20,6 +20,11 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
@@ -38,13 +43,18 @@ jobs:
       - name: Validate Prisma Schema
         run: pnpm prisma validate
 
+
   build:
     name: Build Verification
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -52,22 +62,22 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: Install Dependencies
-        run: pnpm install
+      - run: pnpm install
+      - run: pnpm prisma generate
+      - run: pnpm run build
 
-      - name: Generate Prisma Client
-        run: pnpm prisma generate
-
-      - name: Build Application
-        run: pnpm run build
 
   test:
     name: Unit Tests
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Set up Node.js
         uses: actions/setup-node@v4
@@ -75,11 +85,6 @@ jobs:
           node-version: '20'
           cache: 'pnpm'
 
-      - name: Install Dependencies
-        run: pnpm install
-
-      - name: Generate Prisma Client
-        run: pnpm prisma generate
-
-      - name: Run Tests
-        run: pnpm test
+      - run: pnpm install
+      - run: pnpm prisma generate
+      - run: pnpm test
