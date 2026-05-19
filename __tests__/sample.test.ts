@@ -2,6 +2,8 @@
  * Sample test to verify Jest configuration
  */
 
+import '@testing-library/jest-dom';
+
 describe('Jest Configuration', () => {
     it('should run tests successfully', () => {
         expect(true).toBe(true)
