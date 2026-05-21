@@ -14,7 +14,7 @@ export default async function RootLayout({
   const isAdmin = session?.user?.isAppAdmin || false;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden">
+    <div className="dashboard-shell">
       <TopHeader />
       <SessionProvider>
         <div className="flex flex-1 overflow-hidden">
