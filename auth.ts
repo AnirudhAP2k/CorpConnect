@@ -86,8 +86,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
             if (trigger === "signIn" && user) {
                 if (!user.id) return token;
 
-                const refreshToken = await generateRefreshToken(user.id);
-                await storeRefreshToken(refreshToken.token);
+                const { token: refreshToken } = await generateRefreshToken(user.id);
+                await storeRefreshToken(refreshToken);
 
                 const apiTier = await getUserTier(user.activeOrganizationId);
 
