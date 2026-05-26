@@ -85,13 +85,13 @@ const OrganizationForm = ({
 
         // Upload logo if new file provided
         if (files.length > 0) {
-          const { imageUrl } = await handleUpload(files);
+          const uploadResult = await handleUpload(files);
 
-          if (!imageUrl) {
+          if (!uploadResult?.imageUrl) {
             throw new Error("Failed to upload logo");
           }
 
-          logoUrl = imageUrl;
+          logoUrl = uploadResult.imageUrl as string;
         }
 
         // Prepare data for API
