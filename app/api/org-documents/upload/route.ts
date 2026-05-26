@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import cloudinary from "@/lib/cloudinary";
+import { uploadToCloudinary } from "@/lib/file-uploader";
+import { orgDocumentUploadSchema } from "@/domain/organizations/validation";
 
 /**
  * POST /api/org-documents/upload
@@ -18,25 +19,6 @@ import cloudinary from "@/lib/cloudinary";
  * Returns { docId, sourceUrl }.
  */
 
-const ALLOWED_MIME = new Set([
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-    "image/webp",
-    "image/gif",
-]);
-
-const KYB_DOC_TYPES = new Set([
-    "INCORPORATION_CERT",
-    "TAX_CERTIFICATE",
-    "ADDRESS_PROOF",
-    "OTHER_KYB",
-    "LEGAL_COMPLIANCE",
-    "COMPANY_DESCRIPTION",
-    "EVENT_DESCRIPTION",
-    "GENERAL",
-]);
-
 export async function POST(req: NextRequest) {
     const session = await auth();
     const userId = session?.user?.id;
@@ -45,24 +27,29 @@ export async function POST(req: NextRequest) {
     try {
         const formData = await req.formData();
         const file = formData.get("file") as File | null;
-        const orgId = formData.get("orgId") as string | null;
-        const docType = formData.get("docType") as string | null;
-        const title = formData.get("title") as string | null;
-        const taxRefNumber = formData.get("taxRefNumber") as string | null;
 
-        // ── Validate ─────────────────────────────────────────────────────────
+        // ── Validate file presence first (File can't go through Zod) ─────────
         if (!file) return NextResponse.json({ error: "No file provided" }, { status: 400 });
-        if (!orgId) return NextResponse.json({ error: "orgId is required" }, { status: 400 });
-        if (!docType || !KYB_DOC_TYPES.has(docType))
-            return NextResponse.json({ error: `Invalid docType: ${docType}` }, { status: 400 });
-        if (!title?.trim())
-            return NextResponse.json({ error: "title is required" }, { status: 400 });
-        if (!ALLOWED_MIME.has(file.type))
-            return NextResponse.json({ error: "Only PDF and image files are allowed" }, { status: 400 });
 
-        const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
+        const MAX_BYTES = parseInt(process.env.FILE_UPLOAD_MAX_BYTES as string) || 10 * 1024 * 1024;
         if (file.size > MAX_BYTES)
-            return NextResponse.json({ error: "File size must be under 10 MB" }, { status: 400 });
+            return NextResponse.json({ error: `File size must be under ${MAX_BYTES / (1024 * 1024)}MB` }, { status: 400 });
+
+        // ── Validate remaining fields via schema ──────────────────────────────
+        const parsed = orgDocumentUploadSchema.safeParse({
+            orgId: formData.get("orgId"),
+            docType: formData.get("docType"),
+            title: formData.get("title"),
+            taxRefNumber: formData.get("taxRefNumber") || undefined,
+            mimeType: file.type,
+        });
+
+        if (!parsed.success) {
+            const message = parsed.error.errors[0]?.message ?? "Invalid request";
+            return NextResponse.json({ error: message }, { status: 400 });
+        }
+
+        const { orgId, docType, title, taxRefNumber } = parsed.data;
 
         // ── Verify org membership ─────────────────────────────────────────────
         const member = await prisma.organizationMember.findFirst({
@@ -73,26 +60,16 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Forbidden — OWNER or ADMIN role required" }, { status: 403 });
         }
 
-        // ── Upload to Cloudinary (raw accepts PDFs & images) ──────────────────
-        const buffer = Buffer.from(await file.arrayBuffer());
-        const uploadResult: any = await new Promise((resolve, reject) => {
-            cloudinary.uploader.upload_stream(
-                {
-                    folder: `org-documents/${orgId}`,
-                    resource_type: "raw",      // allows PDFs and all file types
-                    public_id: `${docType}_${Date.now()}`,
-                    use_filename: false,
-                },
-                (err: any, result: any) => {
-                    if (err) reject(err);
-                    else resolve(result);
-                }
-            ).end(buffer);
+        const uploadResult = await uploadToCloudinary(file, `org-documents/${orgId}`, {
+            publicId: `${docType}_${Date.now()}`,
         });
 
-        const sourceUrl: string = uploadResult.secure_url;
+        if (!uploadResult.url) {
+            return NextResponse.json({ error: "Upload succeeded but no URL was returned" }, { status: 500 });
+        }
 
-        // ── Create OrgDocument row ────────────────────────────────────────────
+        const sourceUrl: string = uploadResult.url;
+
         const doc = await prisma.orgDocument.create({
             data: {
                 organizationId: orgId,

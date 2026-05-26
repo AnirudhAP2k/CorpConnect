@@ -7,7 +7,9 @@ import {
     CheckCircle2, XCircle, Loader2, ExternalLink, Building2,
     Globe, Linkedin, Twitter, MapPin, Briefcase, Hash, BookOpen,
     Calendar, FileText, Receipt, FileCheck, ShieldAlert, Tag,
+    Mail, Bell, AlertTriangle,
 } from "lucide-react";
+import { requestKybDocumentsAction } from "@/actions/admin.actions";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -90,6 +92,17 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
     const [done, setDone] = useState<"approved" | "rejected" | null>(null);
     const [error, setError] = useState("");
 
+    // Communication & Document Requests State
+    const [showRequestDocs, setShowRequestDocs] = useState(false);
+    const [reqMessage, setReqMessage] = useState(
+        `Please upload official KYB documents (such as Certificate of Incorporation, Tax Registration, or Address Proof) so we can complete your organization's legitimacy verification.`
+    );
+    const [sendEmail, setSendEmail] = useState(true);
+    const [sendNotification, setSendNotification] = useState(true);
+    const [reqLoading, setReqLoading] = useState(false);
+    const [reqSuccess, setReqSuccess] = useState("");
+    const [reqError, setReqError] = useState("");
+
     const meta = org.meta;
     const score = meta?.verificationScore ?? null;
 
@@ -106,6 +119,38 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
         } catch (err: any) {
             setError(err?.response?.data?.error || "Something went wrong.");
             setLoading(null);
+        }
+    };
+
+    const handleRequestDocs = async () => {
+        if (!sendEmail && !sendNotification) {
+            setReqError("You must select at least one notification channel (Email or In-App).");
+            return;
+        }
+        setReqLoading(true);
+        setReqSuccess("");
+        setReqError("");
+        try {
+            const res = await requestKybDocumentsAction({
+                orgId: org.id,
+                sendEmail,
+                sendNotification,
+                customMessage: reqMessage,
+            });
+
+            if (res.success) {
+                setReqSuccess("Verification document request sent successfully!");
+                setTimeout(() => {
+                    setShowRequestDocs(false);
+                    setReqSuccess("");
+                }, 2500);
+            } else {
+                setReqError(res.error || "Failed to send request.");
+            }
+        } catch (err: any) {
+            setReqError(err?.message || "An unexpected error occurred.");
+        } finally {
+            setReqLoading(false);
         }
     };
 
@@ -312,6 +357,7 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
 
                 {/* ── Right: action panel ─────────────────────────────────── */}
                 <div className="space-y-4">
+                    {/* Admin Decision Card */}
                     <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4 sticky top-6">
                         <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Admin Decision</p>
                         <p className="text-sm text-gray-500 leading-relaxed">
@@ -359,6 +405,100 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
                         <p className="text-[11px] text-gray-400 text-center leading-relaxed">
                             The organization owner will be notified by email.
                         </p>
+                    </div>
+
+                    {/* Request Documents Card */}
+                    <div className="rounded-2xl border border-gray-100 bg-white p-5 space-y-4">
+                        <div className="flex items-center gap-2">
+                            <FileText className="h-4 w-4 text-indigo-500" />
+                            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Communication</p>
+                        </div>
+                        
+                        {!showRequestDocs ? (
+                            <Button
+                                variant="outline"
+                                className="w-full border-indigo-100 text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 gap-2 text-xs py-2"
+                                onClick={() => setShowRequestDocs(true)}
+                            >
+                                <Mail className="h-3.5 w-3.5" /> Request Official Documents
+                            </Button>
+                        ) : (
+                            <div className="space-y-3 pt-1 border-t border-gray-50">
+                                <p className="text-xs text-gray-500 font-medium">Request KYB Documents from Owner</p>
+                                
+                                <Textarea
+                                    placeholder="Add message details..."
+                                    value={reqMessage}
+                                    onChange={(e) => setReqMessage(e.target.value)}
+                                    className="text-xs h-20 resize-none"
+                                    disabled={reqLoading}
+                                />
+
+                                {/* Checkboxes */}
+                                <div className="space-y-2 py-1 bg-gray-50 p-3 rounded-xl border border-gray-100/50">
+                                    <label className="flex items-center gap-2 text-xs font-medium text-gray-600 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={sendNotification}
+                                            onChange={(e) => setSendNotification(e.target.checked)}
+                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                                            disabled={reqLoading}
+                                        />
+                                        <Bell className="h-3 w-3 text-gray-400" /> Send In-App Notification
+                                    </label>
+                                    <label className="flex items-center gap-2 text-xs font-medium text-gray-600 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={sendEmail}
+                                            onChange={(e) => setSendEmail(e.target.checked)}
+                                            className="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 h-3.5 w-3.5"
+                                            disabled={reqLoading}
+                                        />
+                                        <Mail className="h-3 w-3 text-gray-400" /> Send Email Request
+                                    </label>
+                                </div>
+
+                                {reqError && (
+                                    <p className="text-[11px] text-red-500 bg-red-50 rounded-lg p-2 flex items-center gap-1">
+                                        <AlertTriangle className="h-3 w-3 flex-shrink-0" /> {reqError}
+                                    </p>
+                                )}
+
+                                {reqSuccess && (
+                                    <p className="text-[11px] text-emerald-600 bg-emerald-50 rounded-lg p-2 font-medium">
+                                        ✓ {reqSuccess}
+                                    </p>
+                                )}
+
+                                <div className="flex gap-2">
+                                    <Button
+                                        size="sm"
+                                        className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
+                                        disabled={reqLoading}
+                                        onClick={handleRequestDocs}
+                                    >
+                                        {reqLoading ? (
+                                            <><Loader2 className="h-3 w-3 animate-spin" /> Sending…</>
+                                        ) : (
+                                            "Send Request"
+                                        )}
+                                    </Button>
+                                    <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="text-xs text-gray-500 hover:bg-gray-50"
+                                        disabled={reqLoading}
+                                        onClick={() => {
+                                            setShowRequestDocs(false);
+                                            setReqError("");
+                                            setReqSuccess("");
+                                        }}
+                                    >
+                                        Cancel
+                                    </Button>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

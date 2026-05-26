@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { OrganizationSize, HiringStatus } from "@prisma/client";
+import { ALLOWED_MIME, KYB_DOC_TYPES } from "@/constants";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -80,3 +81,21 @@ export const discoverOrganizationsSchema = z.object({
 });
 
 export type DiscoverOrganizationsInput = z.infer<typeof discoverOrganizationsSchema>;
+
+// ─── Org Document Upload ──────────────────────────────────────────────────────
+export const orgDocumentUploadSchema = z.object({
+    orgId: z.string().min(1, "orgId is required"),
+    docType: z.string().refine(
+        (v) => KYB_DOC_TYPES.has(v),
+        (v) => ({ message: `Invalid docType: "${v}"` })
+    ),
+    title: z.string().trim().min(1, "title is required").max(200, "title must be at most 200 characters"),
+    taxRefNumber: z.string().trim().max(100).optional(),
+    /** MIME type of the uploaded file — validated here so the error message is consistent. */
+    mimeType: z.string().refine(
+        (v) => ALLOWED_MIME.has(v),
+        "Only PDF and image files are allowed (JPEG, PNG, WebP, GIF)"
+    ),
+});
+
+export type OrgDocumentUploadInput = z.infer<typeof orgDocumentUploadSchema>;

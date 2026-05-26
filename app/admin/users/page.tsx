@@ -5,6 +5,7 @@ import { getAdminUsersList } from "@/data/dashboard";
 import { format } from "date-fns";
 import Link from "next/link";
 import Image from "next/image";
+import { AdminSendNotificationButton } from "@/components/admin/AdminSendNotificationButton";
 
 interface AdminUsersPageProps {
     searchParams: Promise<{ search?: string; page?: string }>;
@@ -43,12 +44,13 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
             <Card>
                 <CardContent className="p-0">
                     {/* Table header */}
-                    <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
+                    <div className="grid grid-cols-12 gap-4 px-4 py-2 bg-muted/50 text-xs font-medium text-muted-foreground border-b items-center">
                         <div className="col-span-4">User</div>
                         <div className="col-span-3">Organization</div>
                         <div className="col-span-2">Status</div>
-                        <div className="col-span-2">Role</div>
+                        <div className="col-span-1">Role</div>
                         <div className="col-span-1 text-right">Joined</div>
+                        <div className="col-span-1 text-right pr-2">Action</div>
                     </div>
                     <div className="divide-y divide-muted/50">
                         {users.length === 0 ? (
@@ -98,9 +100,9 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                                     </Badge>
                                 </div>
                                 {/* Role */}
-                                <div className="col-span-2">
+                                <div className="col-span-1">
                                     {user.isAppAdmin ? (
-                                        <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">App Admin</Badge>
+                                        <Badge className="bg-red-100 text-red-700 border-0 text-[10px]">Admin</Badge>
                                     ) : (
                                         <span className="text-xs text-muted-foreground">User</span>
                                     )}
@@ -108,6 +110,10 @@ export default async function AdminUsersPage({ searchParams }: AdminUsersPagePro
                                 {/* Joined */}
                                 <div className="col-span-1 text-right text-xs text-muted-foreground">
                                     {format(new Date(user.createdAt), "MMM d")}
+                                </div>
+                                {/* Action */}
+                                <div className="col-span-1 text-right pr-2">
+                                    <AdminSendNotificationButton userId={user.id} userName={user.name ?? user.email ?? "User"} />
                                 </div>
                             </div>
                         ))}

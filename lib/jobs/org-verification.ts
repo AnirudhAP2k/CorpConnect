@@ -8,6 +8,7 @@
  * Level 2 (KYB Submission): Marks IN_REVIEW and notifies Admins to manual verify.
  */
 
+import { createNotification } from "@/actions/notifications.actions";
 import { GENERIC_EMAIL_PROVIDERS } from "@/constants";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/mailer";
@@ -73,7 +74,7 @@ async function notifyAdmins(orgName: string, orgId: string, reason: string | nul
     try {
         const admins = await prisma.user.findMany({
             where: { isAppAdmin: true },
-            select: { email: true, name: true },
+            select: { id: true, email: true, name: true },
         });
 
         const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? process.env.BASE_URL ?? "";
@@ -108,6 +109,14 @@ async function notifyAdmins(orgName: string, orgId: string, reason: string | nul
                 templateType: "ORG_VERIFICATION_REVIEW",
                 payload: { orgId, orgName },
             });
+
+            await createNotification({
+                type: "VERIFICATION",
+                userId: admin.id,
+                title: "Organization Pending Verification Review",
+                description: `The organization ${orgName} requires manual review before being verified on the platform.`,
+                link: reviewLink,
+            })
         }
     } catch (err) {
         console.error("[OrgVerification] Failed to notify admins:", err);
