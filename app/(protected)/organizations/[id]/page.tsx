@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import MemberCard from "@/components/shared/MemberCard";
 import ConnectButton from "@/components/organizations/ConnectButton";
 import { StartConversationButton } from "@/components/messaging/StartConversationButton";
-import type { Organization } from "@prisma/client";
+import { VerificationReminderBanner } from "@/components/shared/VerificationReminderBanner";
 
 // ISR — org profile is semi-static, revalidate every 60 s
 export const revalidate = 60;
@@ -76,15 +76,13 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
                 orderBy: { startDateTime: "desc" },
                 include: { category: true },
             },
+            meta: true,
             _count: { select: { members: true, events: true } },
         },
     });
 
     if (!organization) notFound();
 
-    // Cast to include Phase 8 fields — Prisma client types are stale until
-    // `prisma generate` runs (blocked while dev server holds the .dll.node lock).
-    // Safe to cast: db push already applied the columns.
     const org = organization as typeof organization & {
         hiringStatus: string;
         services: string[];
@@ -142,6 +140,22 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
 
     return (
         <div className="min-h-screen bg-gray-50">
+            {/* Verification banner — only shown to OWNER/ADMIN when org is not yet verified */}
+            {canEdit && (() => {
+                const verificationStatus = org.meta?.verificationStatus ?? "PENDING";
+                const showBanner = verificationStatus !== "VERIFIED";
+                if (!showBanner) return null;
+                return (
+                    <div className="wrapper pt-4">
+                        <VerificationReminderBanner
+                            orgId={org.id}
+                            orgName={org.name}
+                            status={verificationStatus}
+                        />
+                    </div>
+                );
+            })()}
+
             {/* Hero / header band */}
             <div className="bg-white border-b">
                 <div className="wrapper py-8">
