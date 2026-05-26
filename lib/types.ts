@@ -206,3 +206,11 @@ export type AutomationTriggerType =
   | "NEW_MEMBER_JOINED";
 
 export type OrgKybValues = z.infer<typeof OrgKybSchema>;
+
+export interface UploadResult {
+  success: boolean;
+  url: string | null;
+  imageUrl: string | null;
+  publicId: string | null;
+  message?: string;
+}
