@@ -66,7 +66,6 @@ export async function POST(req: Request) {
         );
         role = activeMembership?.role ?? null;
 
-        // Generate Stateless Access Token (JWT)
         const secret = new TextEncoder().encode(process.env.AUTH_SECRET);
         const accessToken = await new SignJWT({
             sub: user.id,

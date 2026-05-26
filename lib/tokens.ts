@@ -5,12 +5,13 @@ import { getPasswordResetTokenByEmail } from "@/data/password-reset-token";
 import { getTwoFactorTokenbyEmail } from "@/data/two-factor-token";
 import { hashToken } from "@/lib/hash";
 import { cookies } from "next/headers";
+import CryptoJS from "crypto-js";
 
 export const REFRESH_TOKEN_EXPIRY_DAYS = 30;
 export const GRACE_PERIOD_MS = 60 * 1000;
 
 export const genVerificationToken = async (email: string) => {
-    const token = randomUUID();
+    const token = CryptoJS.lib.WordArray.random(6).toString(CryptoJS.enc.Base64);
     const expiresAt = new Date(new Date().getTime() + 3600 * 1000);
 
     const existingToken = await getVerificationTokenByEmail(email);
@@ -33,7 +34,7 @@ export const genVerificationToken = async (email: string) => {
 };
 
 export const genPasswordResetToken = async (email: string) => {
-    const token = randomUUID();
+    const token = CryptoJS.lib.WordArray.random(6).toString(CryptoJS.enc.Base64);
     const expiresAt = new Date(new Date().getTime() + 3600 * 1000);
 
     const existingToken = await getPasswordResetTokenByEmail(email);
@@ -56,7 +57,7 @@ export const genPasswordResetToken = async (email: string) => {
 };
 
 export const genTwoFactorToken = async (email: string) => {
-    const token = randomUUID();
+    const token = CryptoJS.lib.WordArray.random(6).toString(CryptoJS.enc.Base64);
     const expiresAt = new Date(new Date().getTime() + 900 * 1000);
 
     const existingToken = await getTwoFactorTokenbyEmail(email);
@@ -79,12 +80,13 @@ export const genTwoFactorToken = async (email: string) => {
 };
 
 export async function generateRefreshToken(userId: string, userAgent?: string, ip?: string) {
-    const token = hashToken(randomUUID());
+    const rawToken = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Base64);
+    const token = hashToken(rawToken);
 
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
 
-    const refreshToken = await prisma.refreshToken.create({
+    await prisma.refreshToken.create({
         data: {
             token,
             userId,
@@ -94,12 +96,13 @@ export async function generateRefreshToken(userId: string, userAgent?: string, i
         }
     });
 
-    return refreshToken;
+    return { token: rawToken, expiresAt };
 }
 
 export async function rotateRefreshToken(oldToken: string, userAgent?: string, ip?: string) {
+    const hashedOldToken = hashToken(oldToken)
     const existingToken = await prisma.refreshToken.findUnique({
-        where: { token: oldToken }
+        where: { token: hashedOldToken }
     });
 
     if (!existingToken) {
@@ -133,7 +136,8 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
         throw new Error("Refresh token expired");
     }
 
-    const newTokenString = hashToken(randomUUID());
+    const newRawToken = CryptoJS.lib.WordArray.random(32).toString(CryptoJS.enc.Base64);
+    const newTokenString = hashToken(newRawToken);
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + REFRESH_TOKEN_EXPIRY_DAYS);
     const [, newToken] = await prisma.$transaction([
@@ -157,7 +161,7 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
         })
     ]);
 
-    return newToken;
+    return { token: newRawToken, expiresAt, user: newToken.user };
 }
 
 export async function revokeToken(token: string) {
@@ -182,8 +186,8 @@ export const storeRefreshToken = async (token: string) => {
 
     cookieStore.set("refresh_token", token, {
         httpOnly: true,
-        secure: true,
-        sameSite: "strict",
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
         maxAge: 60 * 60 * 24 * REFRESH_TOKEN_EXPIRY_DAYS,
         path: "/",
     });
