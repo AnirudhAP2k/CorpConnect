@@ -142,3 +142,23 @@ export const GENERIC_EMAIL_PROVIDERS = [
     "yopmail.com", "tempmail.com", "10minutemail.com", "guerrillamail.com",
     "mailinator.com", "throwawaymail.com", "getnada.com", "temp-mail.org",
 ];
+
+
+export const ALLOWED_MIME = new Set([
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+    "image/webp",
+    "image/gif",
+]);
+
+export const KYB_DOC_TYPES = new Set([
+    "INCORPORATION_CERT",
+    "TAX_CERTIFICATE",
+    "ADDRESS_PROOF",
+    "OTHER_KYB",
+    "LEGAL_COMPLIANCE",
+    "COMPANY_DESCRIPTION",
+    "EVENT_DESCRIPTION",
+    "GENERAL",
+]);
