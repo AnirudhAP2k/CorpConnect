@@ -1,52 +1,52 @@
-name: Production Deployment
+# name: Production Deployment
 
-on:
-  push:
-    branches:
-      - master
+# on:
+#   push:
+#     branches:
+#       - master
 
-jobs:
-  deploy:
-    name: Build
-    runs-on: ubuntu-latest
+# jobs:
+#   deploy:
+#     name: Build
+#     runs-on: ubuntu-latest
 
-    steps:
-    - name: Checkout Code
-      uses: actions/checkout@v3
+#     steps:
+#     - name: Checkout Code
+#       uses: actions/checkout@v3
 
-    - name: Set up Node.js
-      uses: actions/setup-node@v3
-      with:
-        node-version: '20'
+#     - name: Set up Node.js
+#       uses: actions/setup-node@v3
+#       with:
+#         node-version: '20'
 
-    - name: Deployment on EC2
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_PRIVATE_KEY }}
-        script: |
-          # Navigate to the deployment directory
-          cd ${{ secrets.EC2_DEPLOY_PATH }}
+#     - name: Deployment on EC2
+#       uses: appleboy/ssh-action@master
+#       with:
+#         host: ${{ secrets.EC2_HOST }}
+#         username: ${{ secrets.EC2_USER }}
+#         key: ${{ secrets.EC2_PRIVATE_KEY }}
+#         script: |
+#           # Navigate to the deployment directory
+#           cd ${{ secrets.EC2_DEPLOY_PATH }}
 
-          # Ensure repository is up to date
-          git checkout -f
-          git pull origin master
+#           # Ensure repository is up to date
+#           git checkout -f
+#           git pull origin master
 
-          # Install dependencies
-          npm install --production
+#           # Install dependencies
+#           npm install --production
 
-          # Prisam setup
-          npx prisma generate
+#           # Prisam setup
+#           npx prisma generate
 
-          npx prisma db push
+#           npx prisma db push
 
-          # Build application
-          npm run build
+#           # Build application
+#           npm run build
 
-          # Restart application with PM2
-          export NODE_ENV=production
-          pm2 restart corpconnect || pm2 start npm --name "corpconnect" -- run start
+#           # Restart application with PM2
+#           export NODE_ENV=production
+#           pm2 restart corpconnect || pm2 start npm --name "corpconnect" -- run start
 
-          # Save PM2 process list (optional)
-          pm2 save
+#           # Save PM2 process list (optional)
+#           pm2 save

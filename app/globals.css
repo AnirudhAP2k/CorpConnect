@@ -10,38 +10,46 @@
 @layer base {
   :root {
     /* ── Shadcn / Radix CSS vars (mapped to Nexus Corporate tokens) ── */
-    --background:   251 17% 98%;      /* #fbf9fa surface */
-    --foreground:   220 5%  11%;      /* #1b1c1d on-surface */
+    --background: 251 17% 98%;
+    /* #fbf9fa surface */
+    --foreground: 220 5% 11%;
+    /* #1b1c1d on-surface */
 
-    --card:         0   0%  100%;     /* #ffffff surface-container-lowest */
+    --card: 0 0% 100%;
+    /* #ffffff surface-container-lowest */
     --card-foreground: 220 5% 11%;
 
-    --popover:      0   0%  100%;
+    --popover: 0 0% 100%;
     --popover-foreground: 220 5% 11%;
 
     /* Primary = Deep Navy #041627 */
-    --primary:      210 85% 9%;
-    --primary-foreground: 0 0% 100%; /* #ffffff on-primary */
+    --primary: 210 85% 9%;
+    --primary-foreground: 0 0% 100%;
+    /* #ffffff on-primary */
 
     /* Secondary = Slate Blue #545f72 */
-    --secondary:    220 15% 38%;
+    --secondary: 220 15% 38%;
     --secondary-foreground: 0 0% 100%;
 
     /* Muted = surface-container #efedef */
-    --muted:        300 5%  94%;
-    --muted-foreground: 220 5% 28%; /* #44474c on-surface-variant */
+    --muted: 300 5% 94%;
+    --muted-foreground: 220 5% 28%;
+    /* #44474c on-surface-variant */
 
     /* Accent = Professional Blue #4894e2 */
-    --accent:       210 70% 59%;
+    --accent: 210 70% 59%;
     --accent-foreground: 0 0% 100%;
 
-    --destructive:  0   72% 41%;     /* #ba1a1a */
+    --destructive: 0 72% 41%;
+    /* #ba1a1a */
     --destructive-foreground: 0 0% 100%;
 
     /* Borders use outline-variant #c4c6cd at reduced opacity */
-    --border:       220 9%  80%;
-    --input:        251 17% 98%;     /* surface-container-lowest */
-    --ring:         210 85% 9%;      /* primary */
+    --border: 220 9% 80%;
+    --input: 251 17% 98%;
+    /* surface-container-lowest */
+    --ring: 210 85% 9%;
+    /* primary */
 
     /* 8px base radius (ROUND_EIGHT from Stitch) */
     --radius: 0.5rem;
@@ -49,33 +57,35 @@
 
   .dark {
     /* Dark mode: invert surface hierarchy */
-    --background:   220 8%  11%;     /* near on-surface #1b1c1d */
-    --foreground:   251 17% 98%;
+    --background: 220 8% 11%;
+    /* near on-surface #1b1c1d */
+    --foreground: 251 17% 98%;
 
-    --card:         220 10% 14%;
+    --card: 220 10% 14%;
     --card-foreground: 251 17% 96%;
 
-    --popover:      220 10% 14%;
+    --popover: 220 10% 14%;
     --popover-foreground: 251 17% 96%;
 
-    --primary:      207 67% 87%;     /* primary-fixed-dim #b7c8de */
+    --primary: 207 67% 87%;
+    /* primary-fixed-dim #b7c8de */
     --primary-foreground: 210 85% 9%;
 
-    --secondary:    220 15% 38%;
+    --secondary: 220 15% 38%;
     --secondary-foreground: 251 17% 96%;
 
-    --muted:        220 10% 18%;
+    --muted: 220 10% 18%;
     --muted-foreground: 220 9% 65%;
 
-    --accent:       210 70% 59%;
+    --accent: 210 70% 59%;
     --accent-foreground: 210 85% 9%;
 
-    --destructive:  0   72% 41%;
+    --destructive: 0 72% 41%;
     --destructive-foreground: 0 0% 100%;
 
-    --border:       220 10% 22%;
-    --input:        220 10% 18%;
-    --ring:         207 67% 87%;
+    --border: 220 10% 22%;
+    --input: 220 10% 18%;
+    --ring: 207 67% 87%;
   }
 }
 
@@ -93,6 +103,15 @@ body {
   color: #1b1c1d;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.dashboard-shell {
+  height: 100dvh;
+  /* dynamic viewport height: handles mobile browser chrome */
+  overflow: hidden;
+  /* clip everything outside the shell */
+  display: flex;
+  flex-direction: column;
 }
 
 /* ── Material Symbols support ─────────────────────────────── */

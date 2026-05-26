@@ -38,16 +38,19 @@ export async function GET(req: NextRequest) {
         return NextResponse.redirect(new URL("/login", req.url));
     }
 
+    const forwardedFor = req.headers.get("x-forwarded-for");
+    const ip = forwardedFor?.split(",")[0].trim();
+
     try {
-        const rotated = await rotateRefreshToken(
+        const { token, expiresAt, user } = await rotateRefreshToken(
             refreshToken,
             req.headers.get("user-agent") || undefined,
-            req.headers.get("x-forwarded-for") || undefined,
+            ip,
         );
 
-        await storeRefreshToken(rotated.token);
+        await storeRefreshToken(token);
 
-        const freshUser = await getFreshSessionUser(rotated.user.id, rotated.user.activeOrganizationId);
+        const freshUser = await getFreshSessionUser(user.id, user.activeOrganizationId);
 
         if (!freshUser) {
             return NextResponse.redirect(new URL("/login", req.url));
