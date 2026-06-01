@@ -103,6 +103,8 @@ const OrganizationSwitcher = ({
                         <div className="flex items-center gap-2 flex-1">
                             {org.logo ? (
                                 <Image
+                                    width={50}
+                                    height={50}
                                     src={org.logo}
                                     alt={org.name}
                                     className="w-6 h-6 rounded object-cover"
