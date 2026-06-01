@@ -1,3 +1,41 @@
+# [1.2.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.1.0...v1.2.0) (2026-06-01)
+
+
+### Bug Fixes
+
+* Minoe update to display the warning as a toast message ([81bcb0e](https://github.com/AnirudhAP2k/CorpConnect/commit/81bcb0e4bd09bddb7e3f0543378bab7fb75a86ec))
+* Minor fix in the OrganizationSwitcher component for image element ([98a8daa](https://github.com/AnirudhAP2k/CorpConnect/commit/98a8daa7669d20e386094eff3ce996e0d343bc2a))
+* Removed createNotification as it is a mutation and does not belong in queries.ts ([7ab9c40](https://github.com/AnirudhAP2k/CorpConnect/commit/7ab9c40bc5cd62e13a245a778bfaba8e7e667172))
+* Updated admin server actions to use Notifications domain ([29db54b](https://github.com/AnirudhAP2k/CorpConnect/commit/29db54bd9994c9f5fd0e0e4018704eded4efcbd7))
+* Updated connecton-notification job to use Notifications domain ([0b0662f](https://github.com/AnirudhAP2k/CorpConnect/commit/0b0662f8e3fed7a3324467182730daebc63a544e))
+* Updated createEvent server action to create the Notification for the newly created event ([9d567b6](https://github.com/AnirudhAP2k/CorpConnect/commit/9d567b616b61ba9f3b309c146e640950b3fa1ef0))
+* Updated InAppAdapter to createNotification via prisma ([c999c87](https://github.com/AnirudhAP2k/CorpConnect/commit/c999c874ed97b4932e269566a560a4fd83b884c3))
+* Updated job-processor to process eventReminder and virtualRoomCreated job event via Notifications domain ([309a26a](https://github.com/AnirudhAP2k/CorpConnect/commit/309a26a114365d1ee2393794a1b8998b2c7d860b))
+* Updated meeting-notification job to use Notifications domain ([e3f12d3](https://github.com/AnirudhAP2k/CorpConnect/commit/e3f12d3da3b261dda1b910f67dfc19153549f5e2))
+* Updated NotificationBell component to use notification server action ([31bd4e1](https://github.com/AnirudhAP2k/CorpConnect/commit/31bd4e1788fa233dcc4cd332b9f364d2cc727ee2))
+* Updated NotificationBell component to use Notifications domain ([5a592a4](https://github.com/AnirudhAP2k/CorpConnect/commit/5a592a4b3a59c0c49a2ad73b61e64fc1973880cb))
+* Updated notifications server actions to use Notifications domain ([6768c00](https://github.com/AnirudhAP2k/CorpConnect/commit/6768c00420c782fb6b5a830e133634ede8b22be1))
+* Updated org-verification job to use Notifications domain ([4e9779a](https://github.com/AnirudhAP2k/CorpConnect/commit/4e9779acb3739243605d483762c076d707609e6b))
+* Updated organizations route to use Notifications domain ([8e6577d](https://github.com/AnirudhAP2k/CorpConnect/commit/8e6577d68f1cc40ae1473afad48dadeb4f467f0a))
+* Updated TopHeader component to use Notifications domain ([7041e87](https://github.com/AnirudhAP2k/CorpConnect/commit/7041e87ac55c4af14b50010cacf3ec9866be0a35))
+
+
+### Features
+
+* Added the functionality to create notification for livekit room creation ([e9419f5](https://github.com/AnirudhAP2k/CorpConnect/commit/e9419f542e9af1c2e1a95b10b0647a6cdc499932))
+* Added VIRTUAL_ROOM_OPENED for JobType enum in prisma ([d4043ef](https://github.com/AnirudhAP2k/CorpConnect/commit/d4043ef59769dc24beccced34f9e917d5c62a77e))
+* Developed email.adapter for Notification domain ([c7aa9a0](https://github.com/AnirudhAP2k/CorpConnect/commit/c7aa9a081c2763c2804ff559ca1903db47cd6ed8))
+* Developed event-reminder handler for Notification domain ([afcdab0](https://github.com/AnirudhAP2k/CorpConnect/commit/afcdab06ecce86945e181aaecd09960f2b19eb50))
+* Developed google-chat.adapter for Notification domain ([188acc9](https://github.com/AnirudhAP2k/CorpConnect/commit/188acc940bb020b86cd9fb6d207d5e38890d56f8))
+* Developed in-app.adapter for Notification domain ([941cf8a](https://github.com/AnirudhAP2k/CorpConnect/commit/941cf8ad71755b2613ee3b1e4b69e0118f7d426c))
+* Developed index entry point for Notification domain ([18efe4f](https://github.com/AnirudhAP2k/CorpConnect/commit/18efe4f89269263c1c575fc508fc4949a9359cb7))
+* Developed notification channel registry for Notification domain ([f3b7c10](https://github.com/AnirudhAP2k/CorpConnect/commit/f3b7c1037438c10ef3c8728eadbb2091de173ff2))
+* Developed Notification domain server actions ([929883f](https://github.com/AnirudhAP2k/CorpConnect/commit/929883f9f1f96f22a0362fef4b5bdf7e3bb5e874))
+* Developed queries for Notification domain ([32d519a](https://github.com/AnirudhAP2k/CorpConnect/commit/32d519acbecc673d200d4b36148f1594340990a1))
+* Developed slack.adapter for Notification domain ([53c9979](https://github.com/AnirudhAP2k/CorpConnect/commit/53c997935a4cb2ac06992124a9bdd830ce0ecd66))
+* Developed type defination for Notification domain ([5703fca](https://github.com/AnirudhAP2k/CorpConnect/commit/5703fca47f51b967f394c8b8474a1bfa8bc0cf0b))
+* Developed virtual-roon handler for Notification domain ([1772cbc](https://github.com/AnirudhAP2k/CorpConnect/commit/1772cbc16f26db5932e0c5ecc72f9b8906e1ecad))
+
 # [1.1.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.0.0...v1.1.0) (2026-05-26)
 
 
