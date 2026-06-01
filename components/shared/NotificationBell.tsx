@@ -4,7 +4,7 @@ import { Bell } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { markNotificationAsRead } from "@/domain/notifications";
+import { markNotificationAsRead } from "@/domain/notifications/actions";
 
 export interface ReminderItem {
     id: string;
