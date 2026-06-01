@@ -5,6 +5,7 @@ import { auth, signOut } from '@/auth'
 import { Button } from '../ui/button'
 import OrganizationSwitcher from '@/components/shared/OrganizationSwitcher'
 import { prisma } from '@/lib/db'
+import { getNotificationsByUserId } from '@/domain/notifications'
 import MobileSidebar from '@/components/shared/MobileSidebar'
 import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { logout } from '@/actions/logout.actions'
@@ -74,13 +75,9 @@ const TopHeader = async () => {
             });
         });
 
-        const dbNotifications = await prisma.notification.findMany({
-            where: { userId: session.user.id },
-            orderBy: { createdAt: "desc" },
-            take: 20,
-        });
+        const dbNotifications = await getNotificationsByUserId(session.user.id, 20);
 
-        dbNotifications.forEach((n: any) => {
+        dbNotifications.forEach((n) => {
             reminders.push({
                 id: `db-${n.id}`,
                 type: n.type as any,
