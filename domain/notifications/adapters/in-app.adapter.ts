@@ -5,7 +5,6 @@
  * in the user's in-app notification bell.
  */
 
-import { createNotification } from "../queries";
 import type { NotificationChannel, NotificationRecipient, NotificationPayload, NotificationEvent } from "../types";
 import { prisma } from "@/lib/db";
 
@@ -28,6 +27,14 @@ export class InAppAdapter implements NotificationChannel {
     readonly channelId = "in-app";
 
     async send(recipient: NotificationRecipient, payload: NotificationPayload): Promise<void> {
-        await createNotification(recipient.userId, EVENT_TYPE_MAP[payload.event], payload.title, payload.body, payload.link);
+        await prisma.notification.create({
+            data: {
+                userId: recipient.userId,
+                type: EVENT_TYPE_MAP[payload.event] ?? "SYSTEM",
+                title: payload.title,
+                description: payload.body,
+                link: payload.link ?? null,
+            },
+        });
     }
 }
