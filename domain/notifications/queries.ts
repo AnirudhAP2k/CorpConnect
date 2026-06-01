@@ -7,13 +7,14 @@
 
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { Notification } from "@prisma/client";
+import type { Notification } from "@prisma/client";
 
 // ─── Queries ──────────────────────────────────────────────────────────────────
 
 /**
  * Fetches the latest notifications for the currently authenticated user.
  * Intended for Server Actions / Server Components — reads the session internally.
+ * Do NOT import this from adapters or job handlers.
  */
 export async function getMyNotifications(): Promise<{
     success: boolean;
@@ -54,32 +55,5 @@ export async function getNotificationsByUserId(
         where: { userId },
         orderBy: { createdAt: "desc" },
         take: limit,
-    });
-}
-
-/**
- * Creates a new in-app notification for a user.
- * @param userId - The ID of the user to create the notification for
- * @param eventType - The type of notification to create
- * @param title - The title of the notification
- * @param body - The body of the notification
- * @param link - The link associated with the notification
- * @returns Promise<Notification>
- */
-export async function createNotification(
-    userId: string,
-    eventType: string,
-    title: string,
-    body: string,
-    link?: string
-): Promise<Notification> {
-    return prisma.notification.create({
-        data: {
-            userId: userId,
-            type: eventType,
-            title: title,
-            description: body,
-            link: link ?? null,
-        },
     });
 }
