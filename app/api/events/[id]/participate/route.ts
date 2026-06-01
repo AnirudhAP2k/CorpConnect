@@ -104,7 +104,7 @@ export const POST = async (
                 );
             }
             // Participation already created by checkout — nothing more to do here
-            return NextResponse.json({ message: "Awaiting payment confirmation" }, { status: 200 });
+            return NextResponse.json({ message: "Awaiting payment confirmation", warning: true }, { status: 200 });
         }
 
         // Check if already participating

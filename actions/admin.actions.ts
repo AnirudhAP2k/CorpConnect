@@ -2,7 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
-import { createNotification } from "@/actions/notifications.actions";
+import { createNotification } from "@/domain/notifications";
 import { sendMail } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
 

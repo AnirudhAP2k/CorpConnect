@@ -8,7 +8,7 @@
  * Level 2 (KYB Submission): Marks IN_REVIEW and notifies Admins to manual verify.
  */
 
-import { createNotification } from "@/actions/notifications.actions";
+import { createNotification } from "@/domain/notifications";
 import { GENERIC_EMAIL_PROVIDERS } from "@/constants";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/mailer";

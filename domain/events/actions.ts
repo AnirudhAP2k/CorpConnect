@@ -48,6 +48,19 @@ export async function createEventAction(data: Record<string, unknown>) {
             data: { type: JobType.EMBED_EVENT, payload: { eventId: event.id } },
         }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_EVENT:", err));
 
+        // Schedule 24-hour reminder for all registered participants.
+        // scheduledAt is respected by the CRON — fires exactly when due.
+        const reminderAt = new Date(event.startDateTime.getTime() - 24 * 60 * 60 * 1000);
+        if (reminderAt > new Date()) {
+            prisma.jobQueue.create({
+                data: {
+                    type: JobType.SEND_EVENT_REMINDER,
+                    payload: { eventId: event.id },
+                    scheduledAt: reminderAt,
+                },
+            }).catch((err) => console.error("[Reminder] Failed to enqueue SEND_EVENT_REMINDER:", err));
+        }
+
         revalidateTag("events");
         revalidatePath("/events");
 
@@ -97,6 +110,20 @@ export async function updateEventAction(
         prisma.jobQueue.create({
             data: { type: JobType.EMBED_EVENT, payload: { eventId } },
         }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_EVENT:", err));
+
+        // Re-schedule the 24-hour reminder if startDateTime was changed.
+        if (rest.startDateTime) {
+            const reminderAt = new Date(new Date(rest.startDateTime).getTime() - 24 * 60 * 60 * 1000);
+            if (reminderAt > new Date()) {
+                prisma.jobQueue.create({
+                    data: {
+                        type: JobType.SEND_EVENT_REMINDER,
+                        payload: { eventId },
+                        scheduledAt: reminderAt,
+                    },
+                }).catch((err) => console.error("[Reminder] Failed to re-enqueue SEND_EVENT_REMINDER:", err));
+            }
+        }
 
         revalidateTag("events");
         revalidatePath(`/events/${eventId}`);

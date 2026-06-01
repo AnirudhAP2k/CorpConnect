@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import { sendMeetingRequestEmail } from "@/lib/email-templates/meeting-request";
 import type { MeetingEmailEvent } from "@/lib/types";
-import { createNotification } from "@/actions/notifications.actions";
+import { createNotification } from "@/domain/notifications";
 
 interface MeetingNotificationPayload {
     type: "MEETING_REQUEST" | "MEETING_ACCEPTED" | "MEETING_DECLINED" | "MEETING_CANCELLED";

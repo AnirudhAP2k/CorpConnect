@@ -1,7 +1,7 @@
 import { prisma } from "@/lib/db";
 import type { ConnectionEmailEvent } from "@/lib/email-templates/connection-notification";
 import { sendConnectionNotificationEmail } from "@/lib/email-templates/connection-notification";
-import { createNotification } from "@/actions/notifications.actions";
+import { createNotification } from "@/domain/notifications";
 
 /**
  * Payload shape stored in JobQueue.payload for SEND_NOTIFICATION jobs

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { JobType } from "@prisma/client";
 import { getLvAuthContext, lvFetch } from "@/lib/lv-service";
 
 // ─── GET /api/virtual/rooms?eventId= ──────────────────────────────────────────
@@ -67,5 +68,18 @@ export async function POST(req: Request) {
     });
 
     const data = await lvRes.json();
+
+    if (lvRes.ok && data.room?.id) {
+        prisma.jobQueue.create({
+            data: {
+                type: JobType.VIRTUAL_ROOM_OPENED,
+                payload: {
+                    roomId: data.room.id,
+                    eventId: body.eventId,
+                },
+            },
+        }).catch((err) => console.error("[VirtualRoom] Failed to enqueue VIRTUAL_ROOM_OPENED:", err));
+    }
+
     return NextResponse.json(data, { status: lvRes.status });
 }

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrganizationAction } from "@/domain/organizations";
-import { createNotification } from "@/actions/notifications.actions";
+import { createNotification } from "@/domain/notifications";
 import { auth } from "@/auth";
 
 /**

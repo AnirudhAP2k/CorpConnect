@@ -4,6 +4,7 @@ import { Bell } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { markNotificationAsRead } from "@/domain/notifications/actions";
 
 export interface ReminderItem {
     id: string;
@@ -75,11 +76,9 @@ export function NotificationBell({ reminders: initialReminders }: NotificationBe
                                         href={reminder.link}
                                         onClick={async () => {
                                             setIsOpen(false);
-                                            // Optimistic clear if DB record
                                             if (reminder.id.startsWith("db-")) {
                                                 setReminders(prev => prev.map(r => r.id === reminder.id ? { ...r, read: true } : r));
                                                 try {
-                                                    const { markNotificationAsRead } = await import("@/actions/notifications.actions");
                                                     await markNotificationAsRead(reminder.id.replace("db-", ""));
                                                 } catch (e) { }
                                             }
