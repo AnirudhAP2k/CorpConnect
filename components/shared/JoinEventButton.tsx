@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, UserCheck, LogIn, CreditCard } from "lucide-react";
 import Link from "next/link";
 import { ProviderPicker } from "@/components/billing/ProviderPicker";
+import { toast } from "sonner";
 
 interface JoinEventButtonProps {
     eventId: string;
@@ -71,6 +72,11 @@ export default function JoinEventButton({
             });
 
             const data = await res.json();
+
+            if (data.warning) {
+                toast.warning(data.message)
+                return;
+            }
 
             if (data.needsCheckout) {
                 setShowPicker(true);
