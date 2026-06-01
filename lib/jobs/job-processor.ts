@@ -13,6 +13,10 @@ import type { PaymentReceiptPayload } from "@/lib/jobs/payment-receipt";
 import type { OrgWebhookPayload } from "@/lib/jobs/org-webhook-delivery";
 import { processOrgLevel1, processOrgLevel2 } from "@/lib/jobs/org-verification";
 import type { OrgVerificationPayload } from "@/lib/jobs/org-verification";
+import { processEventReminder } from "@/domain/notifications/handlers/event-reminder";
+import { processVirtualRoomOpened } from "@/domain/notifications/handlers/virtual-room-opened";
+import type { EventReminderPayload } from "@/domain/notifications/types";
+import type { VirtualRoomOpenedPayload } from "@/domain/notifications/types";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -193,8 +197,11 @@ async function processJob(job: any) {
         }
 
         case "SEND_EVENT_REMINDER":
-            // TODO: Implement event reminder
-            console.log("[Job] Sending event reminder:", payload);
+            await processEventReminder(payload as EventReminderPayload);
+            break;
+
+        case "VIRTUAL_ROOM_OPENED":
+            await processVirtualRoomOpened(payload as VirtualRoomOpenedPayload);
             break;
 
         case "GENERATE_REPORT":
