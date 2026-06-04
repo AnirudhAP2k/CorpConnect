@@ -11,6 +11,7 @@ import {
 } from "./validation";
 import { checkOrganizationPermission } from "./queries";
 import type { OrganizationUpdateInput } from "./validation";
+import { createNotification } from "@/actions/notifications.actions";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -69,6 +70,14 @@ export async function createOrganizationAction(formData: FormData) {
                 payload: { orgId: organization.id, creatorEmail: session.user!.email },
             },
         }).catch((err) => console.error("[OrgVerification] Failed to enqueue L1:", err));
+
+        await createNotification({
+            userId: session.user.id,
+            title: "Organization created",
+            description: `Organization ${organization.name} created successfully. Please verify your organization to unlock all features.`,
+            link: `/organizations/${organization.id}/complete-verification`,
+            type: "VERIFICATION",
+        });
 
         revalidateTag("organizations");
         revalidatePath("/dashboard");
