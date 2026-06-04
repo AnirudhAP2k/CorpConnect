@@ -328,4 +328,74 @@ export const aiService = {
             return null;
         }
     },
+
+    // ─── Phase 13: AI Event Brainstorming ─────────────────────────────────────
+
+    /**
+     * Send a message to the Enterprise AI brainstorm assistant.
+     * The assistant maintains stateful multi-turn conversation history.
+     *
+     * @param sessionId - Pass "new" to start a fresh session, or an existing UUID to continue.
+     * @param userId    - UUID of the requesting member.
+     * @param organizationId - UUID of their active organization (used for session scoping).
+     * @param message   - The user's chat message.
+     */
+    async chatBrainstorm(payload: {
+        sessionId: string;
+        userId: string;
+        organizationId: string;
+        message: string;
+    }): Promise<{ sessionId: string; reply: string } | null> {
+        try {
+            const res = await axios.post<{ sessionId: string; reply: string }>(
+                `${AI_SERVICE_URL}/chat/brainstorm/message`,
+                payload,
+                { headers: await authHeaders(), timeout: 30_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
+
+    /**
+     * Extract a structured EventBrief from an existing brainstorm session.
+     * Call this when the member is ready to formalize their idea into a pitch.
+     * The returned brief is used to pre-populate the EventPitch form.
+     */
+    async chatBrainstormBrief(payload: {
+        sessionId: string;
+        userId: string;
+        organizationId: string;
+    }): Promise<AIChatBrainstormBriefResponse | null> {
+        try {
+            const res = await axios.post<AIChatBrainstormBriefResponse>(
+                `${AI_SERVICE_URL}/chat/brainstorm/brief`,
+                payload,
+                { headers: await authHeaders(), timeout: 45_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
 };
+
+// ─── Phase 13: Brainstorm Types ───────────────────────────────────────────────
+
+export interface AIEventBrief {
+    title:           string;
+    description:     string;
+    targetAudience:  string | null;
+    location:        string | null;
+    estimatedBudget: number | null;
+    agenda:          Array<{ time?: string; item: string }>;
+    startDateTime:   string | null;
+    endDateTime:     string | null;
+    aiBrief:         string;
+}
+
+export interface AIChatBrainstormBriefResponse {
+    sessionId: string;
+    brief:     AIEventBrief;
+}
