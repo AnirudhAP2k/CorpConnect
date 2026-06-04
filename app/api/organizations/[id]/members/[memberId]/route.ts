@@ -66,18 +66,35 @@ export const PUT = async (
             );
         }
 
-        // If changing from OWNER, ensure there's at least one other OWNER
+        // Phase 11: Block direct OWNER assignment — must use Transfer Ownership action
+        if (validated.data.role === "OWNER" && memberToUpdate.role !== "OWNER") {
+            return NextResponse.json(
+                { error: "Cannot directly assign OWNER role. Use the Transfer Ownership action instead." },
+                { status: 400 }
+            );
+        }
+
+        // Phase 11: Enforce max 5 ADMINs per organization
+        if (validated.data.role === "ADMIN" && memberToUpdate.role !== "ADMIN") {
+            const adminCount = await prisma.organizationMember.count({
+                where: { organizationId, role: "ADMIN" },
+            });
+            if (adminCount >= 5) {
+                return NextResponse.json(
+                    { error: "Organization can have at most 5 admins." },
+                    { status: 400 }
+                );
+            }
+        }
+
+        // Prevent demoting the last OWNER
         if (memberToUpdate.role === "OWNER" && validated.data.role !== "OWNER") {
             const ownerCount = await prisma.organizationMember.count({
-                where: {
-                    organizationId,
-                    role: "OWNER",
-                },
+                where: { organizationId, role: "OWNER" },
             });
-
             if (ownerCount <= 1) {
                 return NextResponse.json(
-                    { error: "Cannot demote the last owner. Promote another member to owner first." },
+                    { error: "Cannot demote the last owner. Transfer ownership first." },
                     { status: 400 }
                 );
             }
