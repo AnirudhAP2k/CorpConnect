@@ -332,3 +332,158 @@
 - [x] Disconnected banner ("Reconnecting…") when socket drops
 - [ ] Mobile-responsive two-panel layout
 - [ ] Integration test: two org sessions exchange messages in real time
+
+---
+
+## Phase 11: Organization Role Governance 🛡️
+> Enforce exactly 1 Owner and a maximum of 5 Admins per organization.
+> See `docs/enterprise_features_implementation_plan.md` § 4 for full context.
+
+### 11.1 Server Action Constraints (`domain/organizations/actions.ts`)
+- [x] Block direct promotion to `OWNER` if an owner already exists
+- [x] Block `ADMIN` promotion if admin count >= 5
+- [x] Implement `transferOrganizationOwnershipAction` (atomic: demote current owner → ADMIN, promote target → OWNER)
+
+### 11.2 REST API Alignment (`app/api/organizations/[id]/members/[memberId]/route.ts`)
+- [x] Enforce Owner uniqueness and Admin cap (≤5) in PUT handler
+- [x] Prevent direct OWNER assignment via API (must use Transfer Ownership action)
+
+---
+
+## Phase 12: Enterprise Group Messaging 💬
+> WhatsApp-style group chat for Enterprise-subscribed organizations only.
+> Invitation-based membership (no direct adds).
+> See `docs/enterprise_features_implementation_plan.md` for architecture.
+
+### 12.1 Database Schema
+- [x] Add `GroupConversation` model
+- [x] Add `GroupMember` model (with `lastReadMessageId` for unread tracking)
+- [x] Add `GroupInvite` model
+- [x] Add `GroupMessage` model
+- [x] Add `GroupMemberRole` enum (`OWNER`, `ADMIN`, `MEMBER`)
+- [x] Add `GroupInviteStatus` enum (`PENDING`, `ACCEPTED`, `REJECTED`, `EXPIRED`)
+- [x] Run `npx prisma db push` & regenerate Prisma client
+
+### 12.2 WebSocket Service Extension (`ws-service`)
+- [x] Add `group:${groupId}` room structure to `ws-service/src/rooms.ts`
+- [x] Create `ws-service/src/handlers/group-message.ts` — `join_group`, `send_group_message`, `mark_group_read`, `leave_group`, `group_typing`
+- [x] Add Enterprise subscription gate in socket auth middleware
+- [x] Wire group handlers into `ws-service/src/index.ts`
+
+### 12.3 Domain Layer (`domain/messaging/`)
+- [x] Create `domain/messaging/actions.ts` — `createGroupAction`, `inviteToGroupAction`, `acceptGroupInviteAction`, `rejectGroupInviteAction`, `leaveGroupAction`
+- [x] Create `domain/messaging/queries.ts` — `getGroupsForUser`, `getGroupMessages`, `getPendingGroupInvites`
+- [x] Create `domain/messaging/types.ts`
+- [x] Create `domain/messaging/index.ts` (public API)
+
+### 12.4 REST API Routes
+- [x] `POST /api/messaging/groups` — create a group (ENTERPRISE gate)
+- [x] `GET /api/messaging/groups` — list user's groups
+- [x] `POST /api/messaging/groups/[id]/invitations` — send invite (ENTERPRISE gate on invitee org)
+- [x] `POST /api/messaging/groups/invitations/[inviteId]/accept`
+- [x] `POST /api/messaging/groups/invitations/[inviteId]/reject`
+
+### 12.5 UI Components & Pages
+- [x] Update `app/(protected)/messaging/layout.tsx` — add Group Chat section to sidebar
+- [x] Create `app/(protected)/messaging/groups/[groupId]/page.tsx` — group chat window
+- [x] Create `components/messaging/GroupConversationList.tsx`
+- [x] Create `components/messaging/GroupChatWindow.tsx`
+- [x] Create `components/messaging/GroupMembersPanel.tsx`
+- [x] Create `components/messaging/GroupMessageBubble.tsx`
+- [x] Create `hooks/useGroupConversation.ts` — mirrors `useConversation.ts` for group rooms
+
+---
+
+## Phase 13: AI Event Brainstorming Assistant & Pitching Flow 🤖
+> Enterprise members brainstorm event ideas with an AI bot, then pitch them to their org admin.
+> See `docs/enterprise_features_implementation_plan.md` for full flow diagram.
+
+### 13.1 Database Schema
+- [x] Add `EventPitch` model
+- [x] Add `PitchStatus` enum (`DRAFT`, `PITCHED`, `IN_REVIEW`, `REVISION_REQUESTED`, `APPROVED`, `REJECTED`)
+- [x] Run `npx prisma db push` & regenerate Prisma client
+
+### 13.2 AI Service Extension (`ai-service`)
+- [x] Create `ai-service/app/routers/brainstorm.py` — `POST /chat/brainstorm/message` + `/brief`
+- [x] Design specialized brainstorm system prompt (extracts title, agenda, budget, audience from chat history)
+- [x] Return structured JSON brief + `aiBrief` markdown
+- [x] Register router in `ai-service/main.py`
+
+### 13.3 TypeScript AI Client (`lib/ai-service.ts`)
+- [x] Add `chatBrainstorm(...)` and `chatBrainstormBrief(...)` wrapper methods + `AIEventBrief` / `AIChatBrainstormBriefResponse` types
+
+### 13.4 Domain Layer (`domain/pitches/`)
+- [x] Create `domain/pitches/actions.ts` — `createPitchAction`, `submitPitchAction`, `updatePitchAction`, `reviewPitchAction`
+- [x] Create `domain/pitches/queries.ts` — `getPitchesByOrg`, `getPitchesByMember`, `getPitchById`, `countPendingPitches`
+- [x] Create `domain/pitches/types.ts`
+- [x] Create `domain/pitches/validation.ts`
+- [x] Create `domain/pitches/index.ts`
+
+### 13.5 UI Components & Pages
+- [x] Create `app/(protected)/organizations/[id]/ai-planner/page.tsx` — brainstorm chat interface (Enterprise gate)
+- [x] Create `components/organizations/BrainstormChat.tsx` — multi-turn chat UI with generate-brief CTA
+- [x] Create `components/organizations/PitchBriefModal.tsx` — editable brief popup before submission
+- [x] Create `components/dashboard/MemberPitchCard.tsx` — pitch status card on member dashboard
+- [x] Create `components/dashboard/AdminPitchReview.tsx` — admin pitch review panel on org dashboard
+- [x] Create `app/api/ai/brainstorm/message/route.ts` + `/brief/route.ts` — server-side proxy routes
+- [ ] Wire pitch status notifications via `domain/notifications`
+
+---
+
+## Phase 14: Post-Event Sentiment & Performance Reports 📊
+> Automated post-event analytics report for Enterprise-subscribed hosting organizations.
+> Sent via email to all Owners + Admins of the hosting org.
+
+### 14.1 Database Schema
+- [x] Add `EventReport` model (registrations, attendance, avg rating, sentiment, themes, AI summary)
+- [x] Run `npx prisma db push` & regenerate Prisma client
+
+### 14.2 AI Service Extension (`ai-service`)
+- [ ] Create `POST /analyse/event-summary` endpoint — synthesizes feedback into executive summary (Strengths / Weaknesses / Recommendations)
+- [ ] Register endpoint in `ai-service/main.py`
+
+### 14.3 TypeScript AI Client (`lib/ai-service.ts`)
+- [ ] Add `generateEventSummary(eventId: string, feedbackTexts: string[])` wrapper method
+
+### 14.4 Report Generation Job (`lib/jobs/report-generator.ts`)
+- [ ] Implement `processEventReport(payload: { eventId: string })`:
+  - [ ] Aggregate `EventParticipation` counts (registrations, attendance rate)
+  - [ ] Aggregate `EventView` count + average `durationSeconds`
+  - [ ] Aggregate `EventFeedback` sentiment scores and rating distribution
+  - [ ] Call AI service for executive summary
+  - [ ] Write `EventReport` record
+  - [ ] Email report to all OWNER + ADMIN members of the hosting org
+- [ ] Wire `GENERATE_REPORT` case in `lib/jobs/job-processor.ts`
+- [ ] Add `GENERATE_REPORT` cron trigger: schedule job at `event.endDateTime + 24h` (in `lib/scheduler/cron-jobs.ts`)
+
+### 14.5 Email Template (`lib/email-templates/event-report.ts`)
+- [ ] Create HTML email template: event title, date, summary metrics, AI executive summary
+
+### 14.6 UI — Reports Page
+- [ ] Create `app/(protected)/events/[id]/report/page.tsx`
+- [ ] Display sentiment donut chart (positive/neutral/negative distribution)
+- [ ] Display attendance rate bar
+- [ ] Display average watch time
+- [ ] Display top themes tags
+- [ ] Display AI executive summary markdown
+- [ ] Enterprise paywall overlay for Free/Pro orgs
+
+---
+
+## Phase 15: Enterprise Vertical Hardening 🔐
+> Cross-cutting concerns for all Enterprise features.
+
+- [ ] Middleware guard: create `lib/guards/requireEnterprise.ts` helper — returns `{ allowed: boolean, orgPlan: SubscriptionPlan }`
+- [ ] Apply guard to all Enterprise API routes (Groups, AI Planner, Reports)
+- [ ] Apply guard to AI service initialization (`/api/ai/brainstorm/brief`)
+- [ ] Add `EnterpriseGate` client component — renders paywall UI for non-Enterprise orgs
+- [ ] Billing page: add Enterprise feature list to plan comparison cards
+
+---
+
+## Phase 16: Antigravity Premium Recommendations (Backlog) 💡
+> Additional high-value Enterprise features proposed for future sprints.
+
+- [ ] **AI Synergy Matchmaker**: In-group "Generate Synergy Matrix" button — cross-org doc embedding analysis
+- [ ] **Automated Event Tasklist**: On pitch approval, LLM generates operational milestone checklist
+- [ ] **White-Labeled Emails**: Enterprise orgs inject custom branding into all outgoing system emails
