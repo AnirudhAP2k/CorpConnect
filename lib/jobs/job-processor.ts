@@ -15,8 +15,10 @@ import { processOrgLevel1, processOrgLevel2 } from "@/lib/jobs/org-verification"
 import type { OrgVerificationPayload } from "@/lib/jobs/org-verification";
 import { processEventReminder } from "@/domain/notifications/handlers/event-reminder";
 import { processVirtualRoomOpened } from "@/domain/notifications/handlers/virtual-room-opened";
+import { processEventReport } from "@/lib/jobs/report-generator";
 import type { EventReminderPayload } from "@/domain/notifications/types";
 import type { VirtualRoomOpenedPayload } from "@/domain/notifications/types";
+import type { GenerateReportPayload } from "@/lib/jobs/report-generator";
 
 export async function processPendingInvites() {
     console.log("[Job Processor] Processing pending invites...");
@@ -205,8 +207,7 @@ async function processJob(job: any) {
             break;
 
         case "GENERATE_REPORT":
-            // TODO: Implement report generation
-            console.log("[Job] Generating report:", payload);
+            await processEventReport(payload as GenerateReportPayload);
             break;
 
         case "CLEANUP_DATA":
