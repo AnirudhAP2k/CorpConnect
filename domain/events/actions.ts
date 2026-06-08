@@ -7,6 +7,7 @@ import { JobType } from "@prisma/client";
 import { eventSubmitSchema, eventUpdateSchema } from "./validation";
 import { getEventWithMemberCheck } from "./queries";
 import { setEventTags } from "@/domain/tags/helpers";
+import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -59,6 +60,12 @@ export async function createEventAction(data: Record<string, unknown>) {
                     scheduledAt: reminderAt,
                 },
             }).catch((err) => console.error("[Reminder] Failed to enqueue SEND_EVENT_REMINDER:", err));
+        }
+
+        // Schedule post-event analytics report 24h after event ends (Enterprise orgs only — guarded inside the job)
+        if (event.endDateTime && event.endDateTime > new Date()) {
+            scheduleEventReport(event.id, event.endDateTime)
+                .catch((err) => console.error("[Report] Failed to schedule GENERATE_REPORT:", err));
         }
 
         revalidateTag("events");
@@ -122,6 +129,15 @@ export async function updateEventAction(
                         scheduledAt: reminderAt,
                     },
                 }).catch((err) => console.error("[Reminder] Failed to re-enqueue SEND_EVENT_REMINDER:", err));
+            }
+        }
+
+        // Re-schedule the post-event report if endDateTime was changed.
+        if (rest.endDateTime) {
+            const newEndDateTime = new Date(rest.endDateTime);
+            if (newEndDateTime > new Date()) {
+                scheduleEventReport(eventId, newEndDateTime)
+                    .catch((err) => console.error("[Report] Failed to re-schedule GENERATE_REPORT:", err));
             }
         }
 
