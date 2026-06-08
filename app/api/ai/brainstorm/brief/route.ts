@@ -8,7 +8,7 @@
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { aiService } from "@/lib/ai-service";
-import { prisma } from "@/lib/db";
+import { checkEnterprise } from "@/lib/enterprise";
 
 export async function POST(req: Request) {
     const session = await auth();
@@ -27,11 +27,8 @@ export async function POST(req: Request) {
     }
 
     // Enterprise gate
-    const org = await prisma.organization.findUnique({
-        where: { id: organizationId },
-        select: { subscriptionPlan: true },
-    });
-    if (org?.subscriptionPlan !== "ENTERPRISE") {
+    const gate = await checkEnterprise(organizationId);
+    if (!gate.ok) {
         return NextResponse.json({ error: "Enterprise subscription required" }, { status: 403 });
     }
 
