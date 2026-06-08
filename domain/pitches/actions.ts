@@ -15,6 +15,7 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { OrganizationRole } from "@prisma/client";
+import { isEnterpriseOrg } from "@/lib/enterprise";
 import { createNotification } from "@/domain/notifications";
 import {
     createPitchSchema,
@@ -44,13 +45,9 @@ function serialize(pitch: Awaited<ReturnType<typeof prisma.eventPitch.findUnique
     };
 }
 
-/** Verify the org has an ENTERPRISE subscription. */
+/** Verify the org has an ENTERPRISE subscription — delegates to lib/enterprise. */
 async function assertEnterprise(orgId: string): Promise<boolean> {
-    const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { subscriptionPlan: true },
-    });
-    return org?.subscriptionPlan === "ENTERPRISE";
+    return isEnterpriseOrg(orgId);
 }
 
 /** Verify the user is a member of the org with the given role(s). */
