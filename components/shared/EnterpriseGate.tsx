@@ -46,7 +46,8 @@ interface EnterpriseGateProps {
     blur?: boolean;
     /** Additional className for the root wrapper */
     className?: string;
-    children: React.ReactNode;
+    /** The enterprise-only content to protect. Optional when used as standalone paywall. */
+    children?: React.ReactNode;
     /** Optional upgrade URL override (default: "/pricing") */
     upgradeHref?: string;
 }
@@ -158,7 +159,7 @@ export function EnterpriseGate({
 }: EnterpriseGateProps) {
     // Pass-through when org has Enterprise plan
     if (isEnterprise) {
-        return <>{children}</>;
+        return <>{children ?? null}</>;
     }
 
     // Blur variant — shows content teaser underneath
