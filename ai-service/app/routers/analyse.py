@@ -210,3 +210,153 @@ async def analyse_sentiment(body: SentimentRequest):
     except Exception as exc:
         logger.error("📊 Sentiment: LLM call failed (%s) — using fallback.", exc)
         return fallback
+
+
+# ─── Event Summary Endpoint ───────────────────────────────────────────────────
+
+_SUMMARY_SYSTEM_PROMPT = """\
+You are a professional post-event analytics consultant for CorpConnect, a B2B networking platform.
+Given aggregated event feedback and performance metrics, write a concise executive summary report.
+
+Return ONLY a valid JSON object — no markdown fences, no extra text:
+
+{
+  "overallScore": <float 0.0–10.0, 1 decimal place>,
+  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
+  "weaknesses": ["<weakness 1>", "<weakness 2>"],
+  "recommendations": ["<recommendation 1>", "<recommendation 2>", "<recommendation 3>"],
+  "executiveSummary": "<2-3 paragraph professional summary suitable for a business report, using the provided metrics and feedback excerpts>"
+}
+
+Guidelines:
+- Base strengths on positive patterns from the feedback
+- Base weaknesses on negative or recurring complaints
+- Recommendations must be actionable and specific
+- The executiveSummary must reference concrete numbers (attendance rate, avg rating, etc.)
+- Keep each array item concise (under 100 chars)
+- If very few feedback items are provided (<3), note the limited sample size in executiveSummary
+"""
+
+
+class EventSummaryRequest(BaseModel):
+    eventId:          str
+    eventTitle:       str
+    totalAttendees:   int
+    attendanceRate:   float = Field(..., ge=0.0, le=1.0)
+    avgRating:        float | None = Field(None, ge=1.0, le=5.0)
+    sentimentScore:   float | None = Field(None, ge=-1.0, le=1.0)
+    feedbackSamples:  list[str] = Field(default_factory=list, max_length=30)
+    topThemes:        list[str] = Field(default_factory=list)
+
+
+class EventSummaryResponse(BaseModel):
+    eventId:           str
+    overallScore:      float
+    strengths:         list[str]
+    weaknesses:        list[str]
+    recommendations:   list[str]
+    executiveSummary:  str
+
+
+def _heuristic_summary(req: EventSummaryRequest) -> EventSummaryResponse:
+    """Rule-based fallback when LLM is unavailable."""
+    rate_pct = round(req.attendanceRate * 100)
+    rating_str = f"{req.avgRating:.1f}/5.0" if req.avgRating else "not collected"
+    score = round((req.attendanceRate * 5) + ((req.avgRating or 3.0) - 1), 1)
+    score = max(0.0, min(10.0, score))
+
+    return EventSummaryResponse(
+        eventId=req.eventId,
+        overallScore=score,
+        strengths=[
+            f"Attendance rate of {rate_pct}% recorded",
+            f"Average rating: {rating_str}",
+        ],
+        weaknesses=["Insufficient feedback data for detailed analysis"],
+        recommendations=[
+            "Encourage more attendees to submit post-event feedback",
+            "Consider follow-up surveys within 48 hours of the event",
+        ],
+        executiveSummary=(
+            f"{req.eventTitle} recorded an attendance rate of {rate_pct}% "
+            f"with an average rating of {rating_str}. "
+            "A full AI-powered analysis requires more feedback submissions."
+        ),
+    )
+
+
+@router.post(
+    "/event-summary",
+    response_model=EventSummaryResponse,
+    summary="Generate AI executive summary for a completed event",
+)
+async def generate_event_summary(body: EventSummaryRequest):
+    """
+    Synthesises aggregated event feedback and metrics into a structured
+    executive summary report with Strengths, Weaknesses, Recommendations,
+    and an overall quality score.
+
+    Falls back to a heuristic summary if the LLM is not configured or
+    if JSON parsing fails — the endpoint always returns a usable result.
+    """
+    fallback = _heuristic_summary(body)
+
+    if not is_llm_configured():
+        logger.warning("📋 EventSummary: LLM not configured, using heuristic fallback.")
+        return fallback
+
+    # Build the user message from available data
+    rate_pct     = round(body.attendanceRate * 100)
+    rating_str   = f"{body.avgRating:.1f}/5.0" if body.avgRating else "not available"
+    sent_str     = f"{body.sentimentScore:+.2f}" if body.sentimentScore is not None else "not available"
+    themes_str   = ", ".join(body.topThemes) if body.topThemes else "none detected"
+    samples_text = "\n".join(f"- {s[:250]}" for s in body.feedbackSamples[:15]) or "No feedback text collected."
+
+    user_message = f"""\
+Event: {body.eventTitle}
+Total Attendees: {body.totalAttendees}
+Attendance Rate: {rate_pct}%
+Average Rating: {rating_str}
+Overall Sentiment Score: {sent_str}
+Top Feedback Themes: {themes_str}
+
+Feedback Samples ({len(body.feedbackSamples)} total):
+{samples_text}
+"""
+
+    try:
+        client = get_llm_client()
+        completion = await client.chat.completions.create(
+            model=settings.LLM_MODEL_NAME,
+            messages=[
+                {"role": "system", "content": _SUMMARY_SYSTEM_PROMPT},
+                {"role": "user",   "content": user_message},
+            ],
+            max_tokens=1000,
+            temperature=0.3,
+        )
+        raw = completion.choices[0].message.content or ""
+        clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.DOTALL)
+        parsed = _parse_llm_json(clean)
+
+        if not parsed:
+            logger.warning("📋 EventSummary: JSON parse failed — using fallback. Raw: %s", raw[:300])
+            return fallback
+
+        result = EventSummaryResponse(
+            eventId=body.eventId,
+            overallScore=round(float(parsed.get("overallScore", fallback.overallScore)), 1),
+            strengths=[str(s) for s in parsed.get("strengths", [])[:5]],
+            weaknesses=[str(w) for w in parsed.get("weaknesses", [])[:5]],
+            recommendations=[str(r) for r in parsed.get("recommendations", [])[:5]],
+            executiveSummary=str(parsed.get("executiveSummary", fallback.executiveSummary))[:3000],
+        )
+        logger.info(
+            "📋 EventSummary generated: eventId=%s score=%.1f strengths=%d weaknesses=%d",
+            body.eventId[:8], result.overallScore, len(result.strengths), len(result.weaknesses),
+        )
+        return result
+
+    except Exception as exc:
+        logger.error("📋 EventSummary: LLM call failed (%s) — using fallback.", exc)
+        return fallback
