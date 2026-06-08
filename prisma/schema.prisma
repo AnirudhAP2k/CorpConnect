@@ -165,8 +165,8 @@ model Events {
   embedding           Unsupported("vector(1536)")?
   virtualRooms        VirtualRoom[]
   feedbacks           EventFeedback[]
-  pitchedAs           EventPitch?          @relation("PitchToEvent")
-  report              EventReport?         @relation("EventToReport")
+  pitchedAs           EventPitch?                  @relation("PitchToEvent")
+  report              EventReport?                 @relation("EventToReport")
 
   @@index([organizationId])
   @@index([categoryId])
@@ -739,15 +739,15 @@ model DirectMessage {
 }
 
 model VirtualRoom {
-  id              String           @id @default(uuid()) @db.Uuid
-  eventId         String           @db.Uuid
+  id              String   @id @default(uuid()) @db.Uuid
+  eventId         String   @db.Uuid
   name            String
-  livekitRoom     String           @unique
-  isActive        Boolean          @default(true)
+  livekitRoom     String   @unique
+  isActive        Boolean  @default(true)
   maxParticipants Int?
-  createdByUserId String           @db.Uuid
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
+  createdByUserId String   @db.Uuid
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   event     Events           @relation(fields: [eventId], references: [id], onDelete: Cascade)
   createdBy User             @relation(fields: [createdByUserId], references: [id])
@@ -758,11 +758,11 @@ model VirtualRoom {
 }
 
 model VirtualSession {
-  id             String        @id @default(uuid()) @db.Uuid
-  roomId         String        @db.Uuid
-  userId         String        @db.Uuid
-  organizationId String?       @db.Uuid
-  joinedAt       DateTime      @default(now())
+  id             String    @id @default(uuid()) @db.Uuid
+  roomId         String    @db.Uuid
+  userId         String    @db.Uuid
+  organizationId String?   @db.Uuid
+  joinedAt       DateTime  @default(now())
   leftAt         DateTime?
   durationSecs   Int?
 
@@ -776,35 +776,35 @@ model VirtualSession {
 }
 
 model GroupConversation {
-  id           String        @id @default(uuid()) @db.Uuid
+  id           String   @id @default(uuid()) @db.Uuid
   name         String
   description  String?
-  creatorOrgId String        @db.Uuid
-  createdById  String        @db.Uuid
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  creatorOrgId String   @db.Uuid
+  createdById  String   @db.Uuid
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
-  creatorOrg   Organization  @relation("GroupCreatorOrg", fields: [creatorOrgId], references: [id], onDelete: Cascade)
-  creatorUser  User          @relation("GroupCreatorUser", fields: [createdById], references: [id], onDelete: Cascade)
-  members      GroupMember[]
-  messages     GroupMessage[]
-  invites      GroupInvite[]
+  creatorOrg  Organization   @relation("GroupCreatorOrg", fields: [creatorOrgId], references: [id], onDelete: Cascade)
+  creatorUser User           @relation("GroupCreatorUser", fields: [createdById], references: [id], onDelete: Cascade)
+  members     GroupMember[]
+  messages    GroupMessage[]
+  invites     GroupInvite[]
 
   @@index([creatorOrgId])
 }
 
 model GroupMember {
-  id                String            @id @default(uuid()) @db.Uuid
-  groupId           String            @db.Uuid
-  orgId             String            @db.Uuid
-  userId            String            @db.Uuid
-  role              GroupMemberRole   @default(MEMBER)
-  joinedAt          DateTime          @default(now())
-  lastReadMessageId String?           @db.Uuid
+  id                String          @id @default(uuid()) @db.Uuid
+  groupId           String          @db.Uuid
+  orgId             String          @db.Uuid
+  userId            String          @db.Uuid
+  role              GroupMemberRole @default(MEMBER)
+  joinedAt          DateTime        @default(now())
+  lastReadMessageId String?         @db.Uuid
 
-  group             GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  organization      Organization      @relation("GroupMemberOrg", fields: [orgId], references: [id], onDelete: Cascade)
-  user              User              @relation("GroupMemberUser", fields: [userId], references: [id], onDelete: Cascade)
+  group        GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  organization Organization      @relation("GroupMemberOrg", fields: [orgId], references: [id], onDelete: Cascade)
+  user         User              @relation("GroupMemberUser", fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, userId])
   @@index([userId])
@@ -822,54 +822,54 @@ model GroupInvite {
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
 
-  group         GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  inviterOrg    Organization      @relation("GroupInviterOrg", fields: [inviterOrgId], references: [id], onDelete: Cascade)
-  inviterUser   User              @relation("GroupInviterUser", fields: [inviterUserId], references: [id])
-  inviteeOrg    Organization      @relation("GroupInviteeOrg", fields: [inviteeOrgId], references: [id], onDelete: Cascade)
-  inviteeUser   User              @relation("GroupInviteeUser", fields: [inviteeUserId], references: [id], onDelete: Cascade)
+  group       GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  inviterOrg  Organization      @relation("GroupInviterOrg", fields: [inviterOrgId], references: [id], onDelete: Cascade)
+  inviterUser User              @relation("GroupInviterUser", fields: [inviterUserId], references: [id])
+  inviteeOrg  Organization      @relation("GroupInviteeOrg", fields: [inviteeOrgId], references: [id], onDelete: Cascade)
+  inviteeUser User              @relation("GroupInviteeUser", fields: [inviteeUserId], references: [id], onDelete: Cascade)
 
   @@unique([groupId, inviteeUserId])
   @@index([inviteeUserId, status])
 }
 
 model GroupMessage {
-  id           String            @id @default(uuid()) @db.Uuid
-  groupId      String            @db.Uuid
-  senderOrgId  String            @db.Uuid
-  senderUserId String            @db.Uuid
-  content      String            @db.Text
-  createdAt    DateTime          @default(now())
+  id           String   @id @default(uuid()) @db.Uuid
+  groupId      String   @db.Uuid
+  senderOrgId  String   @db.Uuid
+  senderUserId String   @db.Uuid
+  content      String   @db.Text
+  createdAt    DateTime @default(now())
 
-  group        GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
-  senderOrg    Organization      @relation("GroupMessageOrg", fields: [senderOrgId], references: [id], onDelete: Cascade)
-  senderUser   User              @relation("GroupMessageUser", fields: [senderUserId], references: [id])
+  group      GroupConversation @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  senderOrg  Organization      @relation("GroupMessageOrg", fields: [senderOrgId], references: [id], onDelete: Cascade)
+  senderUser User              @relation("GroupMessageUser", fields: [senderUserId], references: [id])
 
   @@index([groupId, createdAt])
   @@index([senderOrgId])
 }
 
 model EventPitch {
-  id              String       @id @default(uuid()) @db.Uuid
-  organizationId  String       @db.Uuid
-  proposedById    String       @db.Uuid
+  id              String      @id @default(uuid()) @db.Uuid
+  organizationId  String      @db.Uuid
+  proposedById    String      @db.Uuid
   title           String
-  description     String       @db.Text
+  description     String      @db.Text
   location        String?
   startDateTime   DateTime?
   endDateTime     DateTime?
   estimatedBudget Float?
   targetAudience  String?
   agenda          Json?
-  aiBrief         String       @db.Text
-  status          PitchStatus  @default(DRAFT)
-  adminNotes      String?      @db.Text
-  eventId         String?      @unique @db.Uuid
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  aiBrief         String      @db.Text
+  status          PitchStatus @default(DRAFT)
+  adminNotes      String?     @db.Text
+  eventId         String?     @unique @db.Uuid
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
 
-  organization    Organization @relation("OrgEventPitches", fields: [organizationId], references: [id], onDelete: Cascade)
-  proposedBy      User         @relation("UserEventPitches", fields: [proposedById], references: [id], onDelete: Cascade)
-  event           Events?      @relation("PitchToEvent", fields: [eventId], references: [id], onDelete: SetNull)
+  organization Organization @relation("OrgEventPitches", fields: [organizationId], references: [id], onDelete: Cascade)
+  proposedBy   User         @relation("UserEventPitches", fields: [proposedById], references: [id], onDelete: Cascade)
+  event        Events?      @relation("PitchToEvent", fields: [eventId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, status])
   @@index([proposedById])
@@ -890,7 +890,7 @@ model EventReport {
   aiExecutiveSummary    String   @db.Text
   generatedAt           DateTime @default(now())
 
-  event                 Events   @relation("EventToReport", fields: [eventId], references: [id], onDelete: Cascade)
+  event Events @relation("EventToReport", fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
 }
