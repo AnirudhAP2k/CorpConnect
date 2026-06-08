@@ -379,6 +379,28 @@ export const aiService = {
             return null;
         }
     },
+
+    // ─── Phase 14: Post-Event Analytics ───────────────────────────────────────
+
+    /**
+     * Generate an AI executive summary for a completed event.
+     * Synthesises aggregated feedback texts and performance metrics into
+     * Strengths / Weaknesses / Recommendations + an overall score.
+     *
+     * Returns null on network/service failure — caller should use a fallback.
+     */
+    async generateEventSummary(req: AIEventSummaryRequest): Promise<AIEventSummaryResult | null> {
+        try {
+            const res = await axios.post<AIEventSummaryResult>(
+                `${AI_SERVICE_URL}/analyse/event-summary`,
+                req,
+                { headers: await authHeaders(), timeout: 45_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
 };
 
 // ─── Phase 13: Brainstorm Types ───────────────────────────────────────────────
@@ -398,4 +420,26 @@ export interface AIEventBrief {
 export interface AIChatBrainstormBriefResponse {
     sessionId: string;
     brief:     AIEventBrief;
+}
+
+// ─── Phase 14: Event Summary Types ───────────────────────────────────────────
+
+export interface AIEventSummaryRequest {
+    eventId:         string;
+    eventTitle:      string;
+    totalAttendees:  number;
+    attendanceRate:  number;         // 0–1
+    avgRating:       number | null;  // 1–5
+    sentimentScore:  number | null;  // -1 to +1
+    feedbackSamples: string[];
+    topThemes:       string[];
+}
+
+export interface AIEventSummaryResult {
+    eventId:          string;
+    overallScore:     number;        // 0–10
+    strengths:        string[];
+    weaknesses:       string[];
+    recommendations:  string[];
+    executiveSummary: string;
 }
