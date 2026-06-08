@@ -1,8 +1,10 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/db";
+import { isEnterpriseOrg } from "@/lib/enterprise";
+import { EnterpriseGate } from "@/components/shared/EnterpriseGate";
 import { format } from "date-fns";
-import { BarChart3, Users, Clock, Eye, Sparkles, TrendingUp, TrendingDown, Lightbulb, Star, Lock } from "lucide-react";
+import { BarChart3, Users, Clock, Eye, Sparkles, TrendingUp, TrendingDown, Lightbulb, Star } from "lucide-react";
 import type { Metadata } from "next";
 
 // ─── Metadata ─────────────────────────────────────────────────────────────────
@@ -65,7 +67,7 @@ export default async function EventReportPage({
         where: { id: eventId },
         include: {
             organization: {
-                select: { id: true, name: true, subscriptionPlan: true },
+                select: { id: true, name: true },
             },
             report: true,
         },
@@ -82,23 +84,13 @@ export default async function EventReportPage({
     if (!membership) redirect(`/events/${eventId}`);
 
     const isAdmin = ["OWNER", "ADMIN"].includes(membership.role);
-    const isEnterprise = event.organization.subscriptionPlan === "ENTERPRISE";
+    const org = event.organization!;
+    const isEnterprise = await isEnterpriseOrg(org.id);
 
-    // Non-enterprise orgs see a paywall
+    // Non-enterprise orgs see the EnterpriseGate paywall
     if (!isEnterprise) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-[60vh] p-10 text-center">
-                <div className="w-20 h-20 rounded-3xl bg-amber-50 border-2 border-amber-200 flex items-center justify-center mb-6">
-                    <Lock className="w-10 h-10 text-amber-500" />
-                </div>
-                <h1 className="text-2xl font-headline font-bold text-nx-on-surface mb-3">
-                    Enterprise Feature
-                </h1>
-                <p className="text-sm text-nx-on-surface-variant max-w-md">
-                    Post-event analytics reports are available exclusively to Enterprise-tier organizations.
-                    Upgrade to unlock detailed performance insights and AI executive summaries.
-                </p>
-            </div>
+            <EnterpriseGate isEnterprise={false} feature="Post-Event Analytics" />
         );
     }
 
