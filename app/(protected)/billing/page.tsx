@@ -29,10 +29,30 @@ const STATUS_COLORS: Record<SubscriptionStatus, string> = {
     TRIALING: "#8b5cf6",
 };
 
-const PLAN_FEATURES: Record<SubscriptionPlan, string[]> = {
-    FREE: ["Up to 3 active public events", "Max 50 attendees/event", "Basic org profile"],
-    PRO: ["Unlimited events", "AI matchmaking", "Analytics dashboard", "Payment modes: PLATFORM & EXTERNAL", "2% platform fee"],
-    ENTERPRISE: ["Everything in PRO", "Semantic search", "API access", "Webhooks", "1% platform fee"],
+const PLAN_FEATURES: Record<SubscriptionPlan, { text: string; isNew?: boolean }[]> = {
+    FREE: [
+        { text: "Up to 3 active public events" },
+        { text: "Max 50 attendees per event" },
+        { text: "Basic org profile" },
+        { text: "Org discovery & connection requests" },
+    ],
+    PRO: [
+        { text: "Unlimited events" },
+        { text: "AI matchmaking & semantic search" },
+        { text: "Analytics dashboard" },
+        { text: "Payment modes: PLATFORM & EXTERNAL" },
+        { text: "Business messaging (1-to-1)" },
+        { text: "2% platform fee" },
+    ],
+    ENTERPRISE: [
+        { text: "Everything in PRO" },
+        { text: "Group messaging", isNew: true },
+        { text: "AI Event Brainstorming Assistant", isNew: true },
+        { text: "Pitch-to-admin workflow", isNew: true },
+        { text: "Post-event AI analytics reports", isNew: true },
+        { text: "API access & webhooks" },
+        { text: "1% platform fee" },
+    ],
 };
 
 export default async function BillingPage() {
@@ -145,9 +165,12 @@ export default async function BillingPage() {
 
                     <div className="plan-features-grid">
                         {PLAN_FEATURES[org.subscriptionPlan].map((f) => (
-                            <div key={f} className="plan-feature-item">
+                            <div key={f.text} className="plan-feature-item">
                                 <span className="feature-dot" style={{ background: planColor }} />
-                                {f}
+                                {f.text}
+                                {f.isNew && (
+                                    <span className="feature-new-badge">NEW</span>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -184,11 +207,16 @@ export default async function BillingPage() {
                 </div>
 
                 {/* Upgrade Plans */}
-                {org.subscriptionPlan === "FREE" && (
+                {(org.subscriptionPlan === "FREE" || org.subscriptionPlan === "PRO") && (
                     <div className="upgrade-section">
-                        <h2 className="section-title">Upgrade Your Plan</h2>
+                        <h2 className="section-title">
+                            {org.subscriptionPlan === "FREE" ? "Upgrade Your Plan" : "Upgrade to Enterprise"}
+                        </h2>
                         <p className="section-subtitle">
-                            Unlock AI matchmaking, unlimited events, and paid event collection.
+                            {org.subscriptionPlan === "FREE"
+                                ? "Unlock AI matchmaking, unlimited events, and paid event collection."
+                                : "Unlock Group Messaging, AI Event Brainstorming, post-event analytics reports, and more."
+                            }
                         </p>
                         <PricingPlans currentPlan={org.subscriptionPlan} />
                     </div>
@@ -352,6 +380,19 @@ export default async function BillingPage() {
                 .feature-dot {
                     width: 6px; height: 6px;
                     border-radius: 50%;
+                    flex-shrink: 0;
+                }
+                .feature-new-badge {
+                    display: inline-flex;
+                    align-items: center;
+                    padding: 0.1rem 0.4rem;
+                    border-radius: 9999px;
+                    font-size: 0.6rem;
+                    font-weight: 800;
+                    letter-spacing: 0.5px;
+                    background: linear-gradient(135deg, #f59e0b, #d97706);
+                    color: #fff;
+                    margin-left: 0.25rem;
                     flex-shrink: 0;
                 }
                 .manage-billing-btn {
