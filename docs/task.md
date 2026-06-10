@@ -489,5 +489,12 @@
 > Additional high-value Enterprise features proposed for future sprints.
 
 - [ ] **AI Synergy Matchmaker**: In-group "Generate Synergy Matrix" button — cross-org doc embedding analysis
-- [ ] **Automated Event Tasklist**: On pitch approval, LLM generates operational milestone checklist
+- [x] **Automated Event Tasklist**: On pitch approval, LLM generates operational milestone checklist
+  - [x] `EventTask` model in schema + `GENERATE_TASKLIST` JobType enum
+  - [x] `POST /chat/brainstorm/tasklist` endpoint in AI service (LLM + 15-task deterministic fallback)
+  - [x] `lib/ai-service.ts` — `generateEventTasklist()` method + `AIEventTasklist*` types
+  - [x] `lib/jobs/tasklist-generator.ts` — idempotent job handler
+  - [x] `lib/jobs/job-processor.ts` — `GENERATE_TASKLIST` case wired
+  - [x] `domain/pitches/actions.ts` — enqueue on `APPROVED` with payload-based dedup
+  - [x] `app/.../pitches/[pitchId]/tasks/page.tsx` — phase-grouped checklist UI with progress bar
 - [ ] **White-Labeled Emails**: Enterprise orgs inject custom branding into all outgoing system emails
