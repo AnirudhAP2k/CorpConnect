@@ -1,3 +1,28 @@
+# [1.4.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.3.0...v1.4.0) (2026-06-10)
+
+
+### Bug Fixes
+
+* make children prop optional in EnterpriseGate for standalone paywall usage ([42244dd](https://github.com/AnirudhAP2k/CorpConnect/commit/42244dd1a8133866e2609aa9787412c7a515317d))
+* mark Phase 13 notifications and all Phase 14 deliverables as complete in task tracker ([8369ded](https://github.com/AnirudhAP2k/CorpConnect/commit/8369ded2130eaba56757f0c36f9ee6cbf539a8a2))
+* minor whitespace fixes in schema.prisma ([4636aae](https://github.com/AnirudhAP2k/CorpConnect/commit/4636aaee0f0602cc3b58ff302557aee1fcbf9be7))
+
+
+### Features
+
+* add EnterpriseGate client component with full paywall and blur overlay variants ([b55264d](https://github.com/AnirudhAP2k/CorpConnect/commit/b55264d94762d344b51417caa767b6a92f75f36a))
+* add generateEventSummary method and AI event summary types to AI service client ([c6e03ec](https://github.com/AnirudhAP2k/CorpConnect/commit/c6e03ec3d3ea264c7be06962eb85f75f1c6de0f5))
+* add HTML email template for post-event analytics report ([8e17866](https://github.com/AnirudhAP2k/CorpConnect/commit/8e178662eb85296dc79b887173a80a20f8c9c325))
+* add idempotent scheduleEventReport job enqueuer for post-event report ([380f2c4](https://github.com/AnirudhAP2k/CorpConnect/commit/380f2c4e5a9597c6543e6c509f24bf5dcdc1be7b))
+* add POST /analyse/event-summary endpoint for AI executive report generation ([4ffd41f](https://github.com/AnirudhAP2k/CorpConnect/commit/4ffd41ff22d20e709b216d894a0f1ee5f3972ba4))
+* add post-event analytics report page with enterprise gate and AI summary ([90f85fb](https://github.com/AnirudhAP2k/CorpConnect/commit/90f85fbcda2d2d937e5e54450b0ff1ad5768b142))
+* add requireEnterprise server-side utility with isEnterpriseOrg and checkEnterprise helpers ([6217b9c](https://github.com/AnirudhAP2k/CorpConnect/commit/6217b9c768b9f46da837871ccd8a594a19b72c98))
+* add triggerScheduleEventReport manual trigger to cron-jobs ([d666903](https://github.com/AnirudhAP2k/CorpConnect/commit/d6669035ae387f3a82b99925e0edaee6a328f49e))
+* implement processEventReport job handler with metrics aggregation and email delivery ([0300d89](https://github.com/AnirudhAP2k/CorpConnect/commit/0300d89ef8ebc810adc458e152ee2382b347cbbf))
+* schedule post-event report job from createEventAction and updateEventAction ([c7f9c12](https://github.com/AnirudhAP2k/CorpConnect/commit/c7f9c124317307883d5112133cd2ca59380eb168))
+* wire GENERATE_REPORT case in job processor to call processEventReport ([cc2f7d7](https://github.com/AnirudhAP2k/CorpConnect/commit/cc2f7d728fc253c037474f3b36c27524f94c776c))
+* wire pitch lifecycle notifications into submit and review actions ([c930d68](https://github.com/AnirudhAP2k/CorpConnect/commit/c930d68e00737fbcef722b54bad6beb2df080117))
+
 # [1.3.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.2.0...v1.3.0) (2026-06-10)
 
 
