@@ -5,6 +5,7 @@ import { createAdapter } from "@socket.io/redis-adapter";
 import { createClient } from "redis";
 import { verifySocketAuth } from "@/auth";
 import { registerMessageHandlers } from "@/handlers/message";
+import { registerGroupMessageHandlers } from "@/handlers/group-message";
 import { registerVirtualEventHandlers } from "@/handlers/virtual-event";
 import { orgNotificationRoom } from "@/rooms";
 
@@ -83,6 +84,7 @@ async function main(): Promise<void> {
         socket.join(orgNotificationRoom(orgId));
 
         registerMessageHandlers(io, socket);
+        registerGroupMessageHandlers(io, socket);
         registerVirtualEventHandlers(io, socket, socket.data["userId"], orgId);
 
         socket.on("disconnect", (reason) => {

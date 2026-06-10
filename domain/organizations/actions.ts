@@ -12,6 +12,10 @@ import {
 import { checkOrganizationPermission } from "./queries";
 import type { OrganizationUpdateInput } from "./validation";
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const MAX_ADMINS = 5;
+
 // ─── Create ───────────────────────────────────────────────────────────────────
 
 export async function createOrganizationAction(formData: FormData) {
@@ -159,7 +163,7 @@ export async function deleteOrganizationAction(organizationId: string) {
     }
 }
 
-// ─── Members ─────────────────────────────────────────────────────────────────
+// ─── Members ──────────────────────────────────────────────────────────────────
 
 export async function addOrganizationMemberAction(
     organizationId: string,
@@ -183,10 +187,29 @@ export async function addOrganizationMemberAction(
 
     const { email, role: newRole } = parsed.data;
 
-    // Only OWNER can grant ADMIN or OWNER
-    if ((newRole === "ADMIN" || newRole === "OWNER") && requesterRole !== "OWNER") {
-        return { error: "Only owners can assign admin or owner roles." };
+    // ── Phase 11: Role governance ────────────────────────────────────────────
+
+    // OWNER can never be assigned directly — must use Transfer Ownership action
+    if (newRole === "OWNER") {
+        return { error: "Cannot assign OWNER role directly. Use the Transfer Ownership action instead." };
     }
+
+    // Only OWNER can assign ADMIN
+    if (newRole === "ADMIN" && requesterRole !== "OWNER") {
+        return { error: "Only owners can assign the admin role." };
+    }
+
+    // Enforce max 5 admins per organization
+    if (newRole === "ADMIN") {
+        const adminCount = await prisma.organizationMember.count({
+            where: { organizationId, role: "ADMIN" },
+        });
+        if (adminCount >= MAX_ADMINS) {
+            return { error: `Organization can have at most ${MAX_ADMINS} admins.` };
+        }
+    }
+
+    // ────────────────────────────────────────────────────────────────────────
 
     try {
         const user = await prisma.user.findUnique({ where: { email } });
@@ -243,5 +266,62 @@ export async function removeOrganizationMemberAction(
     } catch (error) {
         console.error("[removeOrganizationMemberAction]", error);
         return { error: "Failed to remove member. Please try again." };
+    }
+}
+
+// ─── Transfer Ownership (Phase 11) ────────────────────────────────────────────
+
+/**
+ * Atomically transfers organization ownership from the current owner to a
+ * target member. The current owner is demoted to ADMIN. The organization
+ * can have only one OWNER at any time.
+ */
+export async function transferOrganizationOwnershipAction(
+    organizationId: string,
+    targetUserId: string
+) {
+    const session = await auth();
+    if (!session?.user?.id) return { error: "Unauthorized. Please sign in." };
+
+    // Only the current OWNER can transfer ownership
+    const { hasPermission } = await checkOrganizationPermission(
+        session.user.id,
+        organizationId,
+        "OWNER"
+    );
+    if (!hasPermission) return { error: "Only the current owner can transfer ownership." };
+
+    // Cannot transfer to self
+    if (session.user.id === targetUserId) {
+        return { error: "You are already the owner of this organization." };
+    }
+
+    // Target must already be a member
+    const targetMember = await prisma.organizationMember.findUnique({
+        where: { userId_organizationId: { userId: targetUserId, organizationId } },
+    });
+    if (!targetMember) {
+        return { error: "The target user is not a member of this organization." };
+    }
+
+    try {
+        await prisma.$transaction([
+            // Demote current owner to ADMIN
+            prisma.organizationMember.update({
+                where: { userId_organizationId: { userId: session.user.id!, organizationId } },
+                data: { role: "ADMIN" },
+            }),
+            // Promote target member to OWNER
+            prisma.organizationMember.update({
+                where: { userId_organizationId: { userId: targetUserId, organizationId } },
+                data: { role: "OWNER" },
+            }),
+        ]);
+
+        revalidatePath(`/organizations/${organizationId}`);
+        return { success: true };
+    } catch (error) {
+        console.error("[transferOrganizationOwnershipAction]", error);
+        return { error: "Failed to transfer ownership. Please try again." };
     }
 }

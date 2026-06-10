@@ -42,4 +42,5 @@ export {
     deleteOrganizationAction,
     addOrganizationMemberAction,
     removeOrganizationMemberAction,
+    transferOrganizationOwnershipAction,
 } from "./actions";
