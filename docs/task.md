@@ -470,13 +470,17 @@
 
 ---
 
-## Phase 15: Enterprise Vertical Hardening 🔐
+## Phase 15: Enterprise Vertical Hardening 🔐 ✅
 > Cross-cutting concerns for all Enterprise features.
 
-- [ ] Middleware guard: create `lib/guards/requireEnterprise.ts` helper — returns `{ allowed: boolean, orgPlan: SubscriptionPlan }`
-- [ ] Apply guard to all Enterprise API routes (Groups, AI Planner, Reports)
-- [ ] Apply guard to AI service initialization (`/api/ai/brainstorm/brief`)
-- [ ] Add `EnterpriseGate` client component — renders paywall UI for non-Enterprise orgs
+- [x] Middleware guard: create `lib/enterprise.ts` — `requireEnterprise`, `checkEnterprise`, `isEnterpriseOrg` helpers (also checks `subscriptionStatus` ACTIVE/TRIALING)
+- [x] Apply guard to all Enterprise API routes (Groups via `assertEnterpriseSubscription`, AI brainstorm message + brief routes via `checkEnterprise`)
+- [x] Apply guard to AI service initialization (`/api/ai/brainstorm/brief` + `/message`)
+- [x] Add `EnterpriseGate` client component (`components/shared/EnterpriseGate.tsx`) — full paywall + blur overlay modes
+- [x] Refactor `domain/pitches/actions.ts` — local `assertEnterprise` now delegates to `isEnterpriseOrg`
+- [x] Refactor `domain/messaging/queries.ts` — local `assertEnterpriseSubscription` now delegates to `checkEnterprise`
+- [x] Refactor `ai-planner/page.tsx` — replaced 18-line custom paywall with `requireEnterprise` redirect
+- [x] Refactor `events/[id]/report/page.tsx` — replaced custom paywall with `<EnterpriseGate>` component
 - [ ] Billing page: add Enterprise feature list to plan comparison cards
 
 ---
