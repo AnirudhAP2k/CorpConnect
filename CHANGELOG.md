@@ -1,3 +1,55 @@
+# [1.3.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.2.0...v1.3.0) (2026-06-10)
+
+
+### Bug Fixes
+
+* update API route to enforce Organization role governance constraints ([d522c27](https://github.com/AnirudhAP2k/CorpConnect/commit/d522c2706ad7ed80753d3e347dd9a82277514883))
+* update task list tracking for Enterprise messaging and AI brainstorming ([a41af25](https://github.com/AnirudhAP2k/CorpConnect/commit/a41af257c4038095f3c002772de320b305e57cb4))
+
+
+### Features
+
+* add Enterprise Group Messaging, EventPitch and EventReport models to schema ([7da423c](https://github.com/AnirudhAP2k/CorpConnect/commit/7da423cf1635cadf1479f2cb79adb631c3aa28b3))
+* add group prefixing helper in ws-service room names ([916b463](https://github.com/AnirudhAP2k/CorpConnect/commit/916b463e75052058193e76806e6e9a956bf69af9))
+* add Zod validation schemas for EventPitch inputs ([59912c8](https://github.com/AnirudhAP2k/CorpConnect/commit/59912c85132df73c9ca9a4078f1428463adb18d8))
+* Added the .env.example for ws-service ([96eead2](https://github.com/AnirudhAP2k/CorpConnect/commit/96eead21cde2e034346bef3ab27c22d61a30bb4f))
+* Added the functionality to create in-app notification for the Organization creation and to do verification ([6f61835](https://github.com/AnirudhAP2k/CorpConnect/commit/6f61835b8edf687a19446d014845150adcfd20a0))
+* build AdminPitchReview component for org admins ([3000baa](https://github.com/AnirudhAP2k/CorpConnect/commit/3000baac14d640f796c279fa1c3a074d5ace5b32))
+* build BrainstormChat component for multi-turn brainstorming ([58895a8](https://github.com/AnirudhAP2k/CorpConnect/commit/58895a8d5a59e603913d2f83f426d5358b5fb5c5))
+* build GroupChatWindow component for multi-participant conversation ([b31b4e9](https://github.com/AnirudhAP2k/CorpConnect/commit/b31b4e9a51802c7035fa31a151d19a3a9c7947ca))
+* build GroupConversationList component for sidebar stacked avatars ([478597e](https://github.com/AnirudhAP2k/CorpConnect/commit/478597eee96ff15ddd9fb5494513ceca741efb06))
+* build GroupMembersPanel component for role governance and member removal ([7546124](https://github.com/AnirudhAP2k/CorpConnect/commit/7546124907a8a3b1b157ae1edd540f96c0103bd8))
+* build GroupMessageBubble component displaying sender name and org affinity ([841ebcd](https://github.com/AnirudhAP2k/CorpConnect/commit/841ebcd9631abe90bc67b16ecdcf1b8e53346fde))
+* build MemberPitchCard component for dashboard visibility ([1a465fe](https://github.com/AnirudhAP2k/CorpConnect/commit/1a465fed592ae14f8e295f3f7a770d7020bc4a56))
+* build PitchBriefModal component for brief editing and submission ([a3864a0](https://github.com/AnirudhAP2k/CorpConnect/commit/a3864a0a43950fc9fad6cc9581f621078c3d7749))
+* define database-driven messaging types in domain layer ([7114523](https://github.com/AnirudhAP2k/CorpConnect/commit/71145239edb4310f1d89933bf449217866ac8f51))
+* define EventPitch types and interfaces in domain layer ([7cf3a0f](https://github.com/AnirudhAP2k/CorpConnect/commit/7cf3a0f886347d712268d1b73db3a0b13e931a25))
+* document architecture and schema flow for Enterprise-tier features ([5860a34](https://github.com/AnirudhAP2k/CorpConnect/commit/5860a346769359d7d679e9fb8fc391a924caab8c))
+* export public API barrel for messaging domain ([a067488](https://github.com/AnirudhAP2k/CorpConnect/commit/a067488524617da5f4c3cdbff97fc4dacdac0e18))
+* export public API barrel for pitches domain ([e2bcf68](https://github.com/AnirudhAP2k/CorpConnect/commit/e2bcf68855c1e01a61f776755059652cf812abe0))
+* export transferOrganizationOwnershipAction from organizations domain ([0308970](https://github.com/AnirudhAP2k/CorpConnect/commit/0308970e4f7fe7669b508413355cbdd62f409d99))
+* extend AI client with brainstorm message and brief extraction handlers ([409da2a](https://github.com/AnirudhAP2k/CorpConnect/commit/409da2a8d33f4f12bf53a96fe90a82633173da4b))
+* implement AI brainstorming and brief extraction endpoint in Python service ([77fe4a7](https://github.com/AnirudhAP2k/CorpConnect/commit/77fe4a7a0e5260d519e0f622334ea30ed298c1f0))
+* implement AI Event Planner server-rendered page ([5c0f0c3](https://github.com/AnirudhAP2k/CorpConnect/commit/5c0f0c3bd72f38da66c577b632c77a6111dbb08e))
+* implement API proxy route for brainstorm briefs ([49b2e0d](https://github.com/AnirudhAP2k/CorpConnect/commit/49b2e0d6b064eeb5ec2acbf5e37128974b3b50ea))
+* implement API proxy route for brainstorm chat messages ([1739aff](https://github.com/AnirudhAP2k/CorpConnect/commit/1739aff73174bc0fd15a6edc6d9636f1a86fb3e7))
+* implement messaging actions in domain layer ([966390d](https://github.com/AnirudhAP2k/CorpConnect/commit/966390d5d90e5082895a21554217a951793b3162))
+* implement messaging queries in domain layer ([65a0f92](https://github.com/AnirudhAP2k/CorpConnect/commit/65a0f929f91ae2cdfa67f0a2b869bb2ada4283e6))
+* implement read queries for EventPitch domain ([13053a0](https://github.com/AnirudhAP2k/CorpConnect/commit/13053a0a7db4d0130d5fe2dd9c04750d38fd3f8c))
+* implement real-time group conversation socket hook ([4eb5d05](https://github.com/AnirudhAP2k/CorpConnect/commit/4eb5d056eb311f7afaf1c3be67536b0bda0dc5c3))
+* implement REST API route for accepting group invitations ([dde84b9](https://github.com/AnirudhAP2k/CorpConnect/commit/dde84b9003d62839444f3917f654d21e68a8748a))
+* implement REST API route for creating group invitations ([0f310d4](https://github.com/AnirudhAP2k/CorpConnect/commit/0f310d4621e8da56d2c4e259bc2ecb6d7a1bfed6))
+* implement REST API route for paginated group messages ([7824fc7](https://github.com/AnirudhAP2k/CorpConnect/commit/7824fc795488c650e6d78b2508b3d2ea54365177))
+* implement REST API route for rejecting group invitations ([554a93d](https://github.com/AnirudhAP2k/CorpConnect/commit/554a93dc5184401caa281f9731c050e0f7598b34))
+* implement REST API route to fetch and create group conversations ([52c796a](https://github.com/AnirudhAP2k/CorpConnect/commit/52c796a31ebe62a347ca691c8480708354af0a35))
+* implement Server Actions for EventPitch lifecycle ([ca84ca7](https://github.com/AnirudhAP2k/CorpConnect/commit/ca84ca711c4f30cd9373180c117304aa56010053))
+* implement server-rendered group chat page ([bc55ca0](https://github.com/AnirudhAP2k/CorpConnect/commit/bc55ca0f3463f9f5255a7f1b541b03d830204145))
+* implement Socket.io event handlers for group messaging ([685f514](https://github.com/AnirudhAP2k/CorpConnect/commit/685f514bf07681465ea2263b3d9dcde371033640))
+* implement Transfer Ownership and limit to 5 admins in Organization role governance ([d2e61ab](https://github.com/AnirudhAP2k/CorpConnect/commit/d2e61ab6591c45e7c12a6d4c64bb58cceed9cb13))
+* integrate Enterprise groups section in messaging layout sidebar ([4f93f3e](https://github.com/AnirudhAP2k/CorpConnect/commit/4f93f3e70456da6fa855dbe654a9e6b960deac27))
+* register brainstorm router in FastAPI entrypoint ([61688cc](https://github.com/AnirudhAP2k/CorpConnect/commit/61688cc29ab31960fd79fa787a6bc35a3188c86b))
+* register group messaging socket event handler ([79c3c79](https://github.com/AnirudhAP2k/CorpConnect/commit/79c3c7909e68ec6ccd8a4abc31aaf3e26b91f386))
+
 # [1.2.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.1.0...v1.2.0) (2026-06-01)
 
 
