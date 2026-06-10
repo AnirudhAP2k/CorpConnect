@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
-import { Sparkles, Zap, Bot } from "lucide-react";
+import { requireEnterprise } from "@/lib/enterprise";
+import { Sparkles, Bot } from "lucide-react";
 import { BrainstormChat } from "@/components/organizations/BrainstormChat";
 import type { Metadata } from "next";
 
@@ -28,31 +29,14 @@ export default async function AIPlannerPage({
     const membership = await prisma.organizationMember.findFirst({
         where: { userId: session.user.id, organizationId },
         include: {
-            organization: {
-                select: { id: true, name: true, subscriptionPlan: true },
-            },
+            organization: { select: { id: true, name: true } },
         },
     });
 
     if (!membership) redirect(`/organizations/${organizationId}`);
 
-    // Enterprise gate — only ENTERPRISE orgs can use the AI planner
-    if (membership.organization.subscriptionPlan !== "ENTERPRISE") {
-        return (
-            <div className="flex-1 flex flex-col items-center justify-center p-8 text-center">
-                <div className="w-20 h-20 rounded-3xl bg-amber-50 border border-amber-200 flex items-center justify-center mb-6">
-                    <Zap className="w-10 h-10 text-amber-500" />
-                </div>
-                <h1 className="text-2xl font-headline font-bold text-nx-on-surface mb-3">
-                    Enterprise Feature
-                </h1>
-                <p className="text-sm text-nx-on-surface-variant max-w-md">
-                    The AI Event Brainstorming Assistant is available exclusively to Enterprise-tier organizations.
-                    Upgrade your plan to unlock AI-powered event planning.
-                </p>
-            </div>
-        );
-    }
+    // Enterprise gate — redirect non-enterprise orgs to pricing
+    await requireEnterprise(organizationId, { redirectTo: `/organizations/${organizationId}` });
 
     return (
         <div className="flex flex-col h-full">

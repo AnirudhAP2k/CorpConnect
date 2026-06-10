@@ -4,6 +4,7 @@ import {
     processJobQueue,
 } from "@/lib/jobs/job-processor";
 import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
+import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
 
 let isInitialized = false;
 
@@ -51,4 +52,12 @@ export async function triggerJobProcessing() {
 export async function triggerCleanup() {
     console.log("[Scheduler] Manual trigger: Cleanup Old Jobs");
     await cleanupOldJobs();
+}
+
+export async function triggerScheduleEventReport(
+    eventId: string,
+    endDateTime: Date,
+) {
+    console.log("[Scheduler] Running: Schedule Event Report");
+    await scheduleEventReport(eventId, endDateTime);
 }

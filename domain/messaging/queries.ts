@@ -1,18 +1,14 @@
 import { prisma } from "@/lib/db";
+import { checkEnterprise } from "@/lib/enterprise";
 import type { GroupConversationListItem } from "./types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /** Asserts that an organization is on the ENTERPRISE plan. Throws if not. */
 export async function assertEnterpriseSubscription(orgId: string): Promise<void> {
-    const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { subscriptionPlan: true, name: true },
-    });
-    if (org?.subscriptionPlan !== "ENTERPRISE") {
-        throw new Error(
-            `Organization "${org?.name ?? orgId}" does not have an Enterprise subscription.`
-        );
+    const result = await checkEnterprise(orgId);
+    if (!result.ok) {
+        throw new Error(result.reason ?? "Enterprise subscription required.");
     }
 }
 

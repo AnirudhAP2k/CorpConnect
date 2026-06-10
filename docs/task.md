@@ -426,7 +426,7 @@
 - [x] Create `components/dashboard/MemberPitchCard.tsx` — pitch status card on member dashboard
 - [x] Create `components/dashboard/AdminPitchReview.tsx` — admin pitch review panel on org dashboard
 - [x] Create `app/api/ai/brainstorm/message/route.ts` + `/brief/route.ts` — server-side proxy routes
-- [ ] Wire pitch status notifications via `domain/notifications`
+- [x] Wire pitch status notifications via `domain/notifications`
 
 ---
 
@@ -439,34 +439,34 @@
 - [x] Run `npx prisma db push` & regenerate Prisma client
 
 ### 14.2 AI Service Extension (`ai-service`)
-- [ ] Create `POST /analyse/event-summary` endpoint — synthesizes feedback into executive summary (Strengths / Weaknesses / Recommendations)
-- [ ] Register endpoint in `ai-service/main.py`
+- [x] Create `POST /analyse/event-summary` endpoint — synthesizes feedback into executive summary (Strengths / Weaknesses / Recommendations)
+- [x] Register endpoint in `ai-service/main.py` (reused existing `analyse` router prefix)
 
 ### 14.3 TypeScript AI Client (`lib/ai-service.ts`)
-- [ ] Add `generateEventSummary(eventId: string, feedbackTexts: string[])` wrapper method
+- [x] Add `generateEventSummary(...)` wrapper method + `AIEventSummaryRequest` / `AIEventSummaryResult` types
 
 ### 14.4 Report Generation Job (`lib/jobs/report-generator.ts`)
-- [ ] Implement `processEventReport(payload: { eventId: string })`:
-  - [ ] Aggregate `EventParticipation` counts (registrations, attendance rate)
-  - [ ] Aggregate `EventView` count + average `durationSeconds`
-  - [ ] Aggregate `EventFeedback` sentiment scores and rating distribution
-  - [ ] Call AI service for executive summary
-  - [ ] Write `EventReport` record
-  - [ ] Email report to all OWNER + ADMIN members of the hosting org
-- [ ] Wire `GENERATE_REPORT` case in `lib/jobs/job-processor.ts`
-- [ ] Add `GENERATE_REPORT` cron trigger: schedule job at `event.endDateTime + 24h` (in `lib/scheduler/cron-jobs.ts`)
+- [x] Implement `processEventReport(payload: { eventId: string })`:
+  - [x] Aggregate `EventParticipation` counts (registrations, attendance rate)
+  - [x] Aggregate `EventView` count + average `durationSeconds`
+  - [x] Aggregate `EventFeedback` sentiment scores and rating distribution
+  - [x] Call AI service for executive summary
+  - [x] Write `EventReport` record
+  - [x] Email report to all OWNER + ADMIN members of the hosting org
+- [x] Wire `GENERATE_REPORT` case in `lib/jobs/job-processor.ts`
+- [x] Add `scheduleEventReport()` helper in `lib/scheduler/cron-jobs.ts` (enqueues job at `event.endDateTime + 24h`)
 
 ### 14.5 Email Template (`lib/email-templates/event-report.ts`)
-- [ ] Create HTML email template: event title, date, summary metrics, AI executive summary
+- [x] Create HTML email template: event title, date, summary metrics, AI executive summary
 
 ### 14.6 UI — Reports Page
-- [ ] Create `app/(protected)/events/[id]/report/page.tsx`
-- [ ] Display sentiment donut chart (positive/neutral/negative distribution)
-- [ ] Display attendance rate bar
-- [ ] Display average watch time
-- [ ] Display top themes tags
-- [ ] Display AI executive summary markdown
-- [ ] Enterprise paywall overlay for Free/Pro orgs
+- [x] Create `app/(protected)/events/[id]/report/page.tsx`
+- [x] Display sentiment donut/bar chart (positive/neutral/negative distribution)
+- [x] Display attendance rate
+- [x] Display average watch time
+- [x] Display top themes tags
+- [x] Display AI executive summary
+- [x] Enterprise paywall overlay for Free/Pro orgs
 
 ---
 

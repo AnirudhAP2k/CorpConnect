@@ -15,6 +15,8 @@
 import { prisma } from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { OrganizationRole } from "@prisma/client";
+import { isEnterpriseOrg } from "@/lib/enterprise";
+import { createNotification } from "@/domain/notifications";
 import {
     createPitchSchema,
     updatePitchSchema,
@@ -43,13 +45,9 @@ function serialize(pitch: Awaited<ReturnType<typeof prisma.eventPitch.findUnique
     };
 }
 
-/** Verify the org has an ENTERPRISE subscription. */
+/** Verify the org has an ENTERPRISE subscription — delegates to lib/enterprise. */
 async function assertEnterprise(orgId: string): Promise<boolean> {
-    const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { subscriptionPlan: true },
-    });
-    return org?.subscriptionPlan === "ENTERPRISE";
+    return isEnterpriseOrg(orgId);
 }
 
 /** Verify the user is a member of the org with the given role(s). */
@@ -145,6 +143,27 @@ export async function submitPitchAction(
             where: { id: pitchId },
             data: { status: "PITCHED" },
         });
+
+        // ── Notify all org Admins/Owners of the new pitch ────────────────────
+        const adminMembers = await prisma.organizationMember.findMany({
+            where: {
+                organizationId: pitch.organizationId,
+                role: { in: [OrganizationRole.OWNER, OrganizationRole.ADMIN] },
+            },
+            select: { userId: true },
+        });
+        await Promise.allSettled(
+            adminMembers.map((m) =>
+                createNotification({
+                    userId:      m.userId,
+                    type:        "SYSTEM",
+                    title:       "New Event Pitch Submitted",
+                    description: `A member has submitted a new event pitch: "${pitch.title}". Review it in your organization dashboard.`,
+                    link:        `/organizations/${pitch.organizationId}/pitches/${pitchId}`,
+                }),
+            ),
+        );
+
         revalidatePath(`/organizations/${pitch.organizationId}/pitches`);
         return { success: true, data: serialize(updated) };
     } catch (err) {
@@ -238,6 +257,25 @@ export async function reviewPitchAction(
                 eventId:    data.status === "APPROVED" ? (data.eventId ?? null) : undefined,
             },
         });
+
+        // ── Notify the pitch author of the review outcome ────────────────────
+        const notifMap: Record<string, { title: string; description: string }> = {
+            APPROVED:           { title: "Your Pitch Was Approved! 🎉",        description: `Great news! Your event pitch "${pitch.title}" has been approved by your organization admin.` },
+            REJECTED:           { title: "Pitch Decision Received",             description: `Your event pitch "${pitch.title}" was not approved at this time. Check admin notes for details.` },
+            REVISION_REQUESTED: { title: "Revision Requested on Your Pitch",   description: `Your admin has requested revisions on "${pitch.title}". Please update and resubmit.` },
+            IN_REVIEW:          { title: "Your Pitch Is Under Review",          description: `An admin has started reviewing your event pitch "${pitch.title}".` },
+        };
+        const notif = notifMap[data.status];
+        if (notif) {
+            await createNotification({
+                userId:      pitch.proposedById,
+                type:        "SYSTEM",
+                title:       notif.title,
+                description: notif.description,
+                link:        `/organizations/${pitch.organizationId}/pitches/${pitchId}`,
+            });
+        }
+
         revalidatePath(`/organizations/${pitch.organizationId}/pitches`);
         return { success: true, data: serialize(updated) };
     } catch (err) {
