@@ -334,3 +334,149 @@ async def brainstorm_brief(
 
     logger.info("[brainstorm/brief] session=%s user=%s title=%s", req.sessionId, req.userId, brief.title)
     return BriefResponse(sessionId=req.sessionId, brief=brief)
+
+
+# ─── Tasklist Generation ──────────────────────────────────────────────────────
+
+_TASKLIST_SYSTEM_PROMPT = """\
+You are an expert enterprise event operations manager for CorpConnect, a B2B networking platform.
+Your task is to generate a concrete, actionable operational milestone checklist for an upcoming event.
+
+Guidelines:
+- Generate between 10 and 18 tasks covering the full event lifecycle
+- Organize tasks chronologically (pre-event preparation → event day → post-event)
+- Use dueDayOffset (integer): negative = days BEFORE event start, 0 = event day, positive = days AFTER
+- Priority: 1 = High (must-do, blocks other tasks), 2 = Medium, 3 = Low (nice-to-have)
+- assignedRole: a short role label like "Admin", "Marketing", "Venue Team", "Tech Team", "Speakers Liaison", "Finance"
+- Keep each task title short (max 80 chars), description practical and specific (1-2 sentences)
+- Return ONLY a valid JSON array — no markdown fences, no extra text.
+
+Required JSON format:
+[
+  {
+    "title": "<task title>",
+    "description": "<practical description>",
+    "dueDayOffset": <integer>,
+    "priority": <1, 2, or 3>,
+    "assignedRole": "<role>"
+  }
+]"""
+
+
+class TasklistRequest(BaseModel):
+    pitchId:        str = Field(..., description="UUID of the approved EventPitch")
+    title:          str = Field(..., description="Event title")
+    description:    str = Field(..., description="Event description")
+    targetAudience: str | None = None
+    location:       str | None = None
+    estimatedBudget: float | None = None
+    startDateTime:  str | None = None
+    endDateTime:    str | None = None
+    aiBrief:        str = Field(..., description="Full AI brief markdown")
+
+
+class TasklistTask(BaseModel):
+    title:          str
+    description:    str | None = None
+    dueDayOffset:   int = 0
+    priority:       int = 2  # 1=High, 2=Medium, 3=Low
+    assignedRole:   str | None = None
+
+
+class TasklistResponse(BaseModel):
+    pitchId: str
+    tasks:   list[TasklistTask]
+
+
+# Deterministic fallback for when LLM is unavailable
+def _fallback_tasklist(pitch_id: str) -> TasklistResponse:
+    return TasklistResponse(
+        pitchId=pitch_id,
+        tasks=[
+            TasklistTask(title="Confirm event venue and date", dueDayOffset=-45, priority=1, assignedRole="Admin", description="Book and confirm the physical or virtual event space."),
+            TasklistTask(title="Define event goals and KPIs", dueDayOffset=-42, priority=1, assignedRole="Admin", description="Agree on measurable outcomes: attendance, leads, partnerships."),
+            TasklistTask(title="Create event landing page", dueDayOffset=-35, priority=1, assignedRole="Marketing", description="Design and publish the public registration page on CorpConnect."),
+            TasklistTask(title="Launch email campaign to target audience", dueDayOffset=-30, priority=1, assignedRole="Marketing", description="Send initial invitation emails to curated prospect list."),
+            TasklistTask(title="Confirm speakers / panelists", dueDayOffset=-28, priority=1, assignedRole="Speakers Liaison", description="Lock in all confirmed speakers and share agenda with them."),
+            TasklistTask(title="Finalize catering / AV setup", dueDayOffset=-21, priority=2, assignedRole="Venue Team", description="Confirm catering orders and audiovisual equipment requirements."),
+            TasklistTask(title="Send reminder to registered attendees", dueDayOffset=-7, priority=2, assignedRole="Marketing", description="Automated reminder email with logistics details and agenda."),
+            TasklistTask(title="Conduct rehearsal / tech check", dueDayOffset=-1, priority=1, assignedRole="Tech Team", description="Full dry run of presentation tech, video conferencing, and slides."),
+            TasklistTask(title="On-site registration and welcome", dueDayOffset=0, priority=1, assignedRole="Admin", description="Staff check-in desk and welcome attendees as they arrive."),
+            TasklistTask(title="Facilitate networking sessions", dueDayOffset=0, priority=2, assignedRole="Admin", description="Run structured networking breaks and intro sessions."),
+            TasklistTask(title="Collect attendee feedback", dueDayOffset=0, priority=1, assignedRole="Admin", description="Distribute post-event feedback forms via CorpConnect."),
+            TasklistTask(title="Send thank-you emails to attendees", dueDayOffset=1, priority=2, assignedRole="Marketing", description="Personalized follow-up with recordings/resources where applicable."),
+            TasklistTask(title="Compile leads and connection data", dueDayOffset=2, priority=1, assignedRole="Admin", description="Export meeting requests and new org connections from CorpConnect dashboard."),
+            TasklistTask(title="Review post-event analytics report", dueDayOffset=3, priority=1, assignedRole="Admin", description="Analyze the AI-generated post-event analytics report when available."),
+            TasklistTask(title="Debrief with team and document lessons learned", dueDayOffset=5, priority=2, assignedRole="Admin", description="Internal retrospective meeting — document what worked and what to improve."),
+        ],
+    )
+
+
+@router.post("/tasklist", response_model=TasklistResponse)
+async def brainstorm_tasklist(
+    req: TasklistRequest,
+    pool=Depends(get_pool),
+):
+    """
+    Generate an operational milestone tasklist for an approved event pitch.
+    Called automatically by the Next.js job processor on pitch approval.
+    """
+    if not is_llm_configured():
+        logger.warning("[brainstorm/tasklist] LLM not configured — using fallback tasklist")
+        return _fallback_tasklist(req.pitchId)
+
+    # Build a rich context prompt from the pitch details
+    context_parts = [f"Event Title: {req.title}", f"Description: {req.description}"]
+    if req.targetAudience:
+        context_parts.append(f"Target Audience: {req.targetAudience}")
+    if req.location:
+        context_parts.append(f"Location: {req.location}")
+    if req.estimatedBudget:
+        context_parts.append(f"Estimated Budget: ${req.estimatedBudget:,.0f} USD")
+    if req.startDateTime:
+        context_parts.append(f"Event Start Date: {req.startDateTime}")
+    if req.endDateTime:
+        context_parts.append(f"Event End Date: {req.endDateTime}")
+    if req.aiBrief:
+        context_parts.append(f"\nFull Event Brief:\n{req.aiBrief}")
+
+    user_prompt = "\n".join(context_parts) + "\n\nGenerate the operational milestone checklist for this event."
+
+    try:
+        client = get_llm_client()
+        response = await client.chat.completions.create(
+            model=settings.LLM_MODEL_NAME,
+            messages=[
+                {"role": "system", "content": _TASKLIST_SYSTEM_PROMPT},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0.3,
+            max_tokens=2000,
+        )
+        raw = response.choices[0].message.content or ""
+    except Exception as e:
+        logger.exception("LLM call failed in brainstorm/tasklist: %s", e)
+        return _fallback_tasklist(req.pitchId)
+
+    # Strip markdown fences if present
+    clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.DOTALL)
+    try:
+        items = json.loads(clean)
+        if not isinstance(items, list):
+            raise ValueError("Expected JSON array")
+        tasks = [
+            TasklistTask(
+                title=item.get("title", "Task"),
+                description=item.get("description"),
+                dueDayOffset=int(item.get("dueDayOffset", 0)),
+                priority=int(item.get("priority", 2)),
+                assignedRole=item.get("assignedRole"),
+            )
+            for item in items
+        ]
+    except Exception as e:
+        logger.error("Tasklist JSON parse failed: %s\nRaw:\n%s", e, raw)
+        return _fallback_tasklist(req.pitchId)
+
+    logger.info("[brainstorm/tasklist] pitchId=%s tasks=%d", req.pitchId, len(tasks))
+    return TasklistResponse(pitchId=req.pitchId, tasks=tasks)

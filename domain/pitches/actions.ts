@@ -276,6 +276,27 @@ export async function reviewPitchAction(
             });
         }
 
+        // ── On approval: enqueue tasklist generation job ─────────────────────
+        if (data.status === "APPROVED") {
+            const existingJob = await prisma.jobQueue.findFirst({
+                where: {
+                    type: "GENERATE_TASKLIST",
+                    payload: { path: ["pitchId"], equals: pitchId },
+                    status: { in: ["PENDING", "PROCESSING", "COMPLETED"] },
+                },
+            });
+            if (!existingJob) {
+                await prisma.jobQueue.create({
+                    data: {
+                        type:        "GENERATE_TASKLIST",
+                        payload:     { pitchId },
+                        scheduledAt: new Date(),
+                        status:      "PENDING",
+                    },
+                });
+            }
+        }
+
         revalidatePath(`/organizations/${pitch.organizationId}/pitches`);
         return { success: true, data: serialize(updated) };
     } catch (err) {

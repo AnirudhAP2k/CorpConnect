@@ -321,6 +321,25 @@ export const aiService = {
             return null;
         }
     },
+
+    /**
+     * Generate an operational milestone tasklist for an approved event pitch.
+     * Called by the GENERATE_TASKLIST job immediately after pitch approval.
+     *
+     * Returns null on network/service failure — caller will use the deterministic fallback.
+     */
+    async generateEventTasklist(req: AIEventTasklistRequest): Promise<AIEventTasklistResponse | null> {
+        try {
+            const res = await axios.post<AIEventTasklistResponse>(
+                `${AI_SERVICE_URL}/chat/brainstorm/tasklist`,
+                req,
+                { headers: await authHeaders(), timeout: 60_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
 };
 
 // ─── Phase 13: Brainstorm Types ───────────────────────────────────────────────
@@ -452,4 +471,30 @@ export interface AISentimentResult {
     sentimentScore: number;        // -1.0 to +1.0
     themes: string[];
     summary: string;
+}
+export interface AIEventTasklistRequest {
+    pitchId: string;
+    title: string;
+    description: string;
+    targetAudience?: string | null;
+    location?: string | null;
+    estimatedBudget?: number | null;
+    startDateTime?: string | null;
+    endDateTime?: string | null;
+    aiBrief: string;
+}
+
+export interface AIEventTasklistItem {
+    title: string;
+    description: string | null;
+    /** Days relative to event start. Negative = before event, 0 = event day, positive = after */
+    dueDayOffset: number;
+    /** 1 = High, 2 = Medium, 3 = Low */
+    priority: number;
+    assignedRole: string | null;
+}
+
+export interface AIEventTasklistResponse {
+    pitchId: string;
+    tasks: AIEventTasklistItem[];
 }
