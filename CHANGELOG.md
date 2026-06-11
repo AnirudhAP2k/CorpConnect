@@ -1,3 +1,19 @@
+# [1.5.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.4.0...v1.5.0) (2026-06-11)
+
+
+### Features
+
+* add EventTask model and GENERATE_TASKLIST JobType enum for automated pitch tasklist ([56c114e](https://github.com/AnirudhAP2k/CorpConnect/commit/56c114e6723dcd206cc3a9901a9339c86f3afde8))
+* add generateEventTasklist method and AIEventTasklist types to aiService client ([51b50a7](https://github.com/AnirudhAP2k/CorpConnect/commit/51b50a75049e8c9ad86eefdca1b1889bedd31cc8))
+* add pitch tasks page with AI-generated milestone checklist UI grouped by lifecycle phase ([768c053](https://github.com/AnirudhAP2k/CorpConnect/commit/768c053a3dd0104574a21d9739403732cc9a1e2f))
+* add POST /chat/brainstorm/tasklist endpoint with LLM + deterministic fallback ([0d8b864](https://github.com/AnirudhAP2k/CorpConnect/commit/0d8b864e6d44a136e00c8c72ab2e2e9f67e59427))
+* add tasklist-generator job handler with idempotency and AI service integration ([a4d909f](https://github.com/AnirudhAP2k/CorpConnect/commit/a4d909f6657905584bd34d5d75c9ede18c7f9237))
+* enqueue GENERATE_TASKLIST job on pitch approval in reviewPitchAction ([a74d6e0](https://github.com/AnirudhAP2k/CorpConnect/commit/a74d6e0d48bf291de0e76cc9a4f71bee0eddb041))
+* mark Phase 15 complete in task tracker ([9be2de2](https://github.com/AnirudhAP2k/CorpConnect/commit/9be2de2f6649f00527e07dc182eaf2a9b70909be))
+* mark Phase 16 Automated Event Tasklist complete in task tracker ([31e175b](https://github.com/AnirudhAP2k/CorpConnect/commit/31e175b834b840ad745d59bdbc46313c17b94a0d))
+* update billing plan features with enterprise capabilities and NEW badges ([eece862](https://github.com/AnirudhAP2k/CorpConnect/commit/eece862f45fa5809087b2fa636cba3077f554054))
+* wire GENERATE_TASKLIST job type into processJob switch in job-processor ([508d8c4](https://github.com/AnirudhAP2k/CorpConnect/commit/508d8c4a9c6bd7053b5ad9c62289820dac0490aa))
+
 # [1.4.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.3.0...v1.4.0) (2026-06-10)
 
 
