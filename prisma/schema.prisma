@@ -870,6 +870,7 @@ model EventPitch {
   organization Organization @relation("OrgEventPitches", fields: [organizationId], references: [id], onDelete: Cascade)
   proposedBy   User         @relation("UserEventPitches", fields: [proposedById], references: [id], onDelete: Cascade)
   event        Events?      @relation("PitchToEvent", fields: [eventId], references: [id], onDelete: SetNull)
+  tasks        EventTask[]
 
   @@index([organizationId, status])
   @@index([proposedById])
@@ -893,6 +894,25 @@ model EventReport {
   event Events @relation("EventToReport", fields: [eventId], references: [id], onDelete: Cascade)
 
   @@index([eventId])
+}
+
+model EventTask {
+  id              String    @id @default(uuid()) @db.Uuid
+  pitchId         String    @db.Uuid
+  title           String
+  description     String?   @db.Text
+  dueDayOffset    Int       @default(0)
+  assignedRole    String?
+  priority        Int       @default(1)
+  isCompleted     Boolean   @default(false)
+  completedAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  pitch EventPitch @relation(fields: [pitchId], references: [id], onDelete: Cascade)
+
+  @@index([pitchId])
+  @@index([pitchId, isCompleted])
 }
 
 enum OrganizationRole {
@@ -985,6 +1005,7 @@ enum JobType {
   SEND_NOTIFICATION
   SEND_EVENT_REMINDER
   GENERATE_REPORT
+  GENERATE_TASKLIST
   CLEANUP_DATA
   EMBED_EVENT
   EMBED_ORG

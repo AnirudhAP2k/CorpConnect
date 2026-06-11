@@ -470,13 +470,17 @@
 
 ---
 
-## Phase 15: Enterprise Vertical Hardening 🔐
+## Phase 15: Enterprise Vertical Hardening 🔐 ✅
 > Cross-cutting concerns for all Enterprise features.
 
-- [ ] Middleware guard: create `lib/guards/requireEnterprise.ts` helper — returns `{ allowed: boolean, orgPlan: SubscriptionPlan }`
-- [ ] Apply guard to all Enterprise API routes (Groups, AI Planner, Reports)
-- [ ] Apply guard to AI service initialization (`/api/ai/brainstorm/brief`)
-- [ ] Add `EnterpriseGate` client component — renders paywall UI for non-Enterprise orgs
+- [x] Middleware guard: create `lib/enterprise.ts` — `requireEnterprise`, `checkEnterprise`, `isEnterpriseOrg` helpers (also checks `subscriptionStatus` ACTIVE/TRIALING)
+- [x] Apply guard to all Enterprise API routes (Groups via `assertEnterpriseSubscription`, AI brainstorm message + brief routes via `checkEnterprise`)
+- [x] Apply guard to AI service initialization (`/api/ai/brainstorm/brief` + `/message`)
+- [x] Add `EnterpriseGate` client component (`components/shared/EnterpriseGate.tsx`) — full paywall + blur overlay modes
+- [x] Refactor `domain/pitches/actions.ts` — local `assertEnterprise` now delegates to `isEnterpriseOrg`
+- [x] Refactor `domain/messaging/queries.ts` — local `assertEnterpriseSubscription` now delegates to `checkEnterprise`
+- [x] Refactor `ai-planner/page.tsx` — replaced 18-line custom paywall with `requireEnterprise` redirect
+- [x] Refactor `events/[id]/report/page.tsx` — replaced custom paywall with `<EnterpriseGate>` component
 - [ ] Billing page: add Enterprise feature list to plan comparison cards
 
 ---
@@ -485,5 +489,12 @@
 > Additional high-value Enterprise features proposed for future sprints.
 
 - [ ] **AI Synergy Matchmaker**: In-group "Generate Synergy Matrix" button — cross-org doc embedding analysis
-- [ ] **Automated Event Tasklist**: On pitch approval, LLM generates operational milestone checklist
+- [x] **Automated Event Tasklist**: On pitch approval, LLM generates operational milestone checklist
+  - [x] `EventTask` model in schema + `GENERATE_TASKLIST` JobType enum
+  - [x] `POST /chat/brainstorm/tasklist` endpoint in AI service (LLM + 15-task deterministic fallback)
+  - [x] `lib/ai-service.ts` — `generateEventTasklist()` method + `AIEventTasklist*` types
+  - [x] `lib/jobs/tasklist-generator.ts` — idempotent job handler
+  - [x] `lib/jobs/job-processor.ts` — `GENERATE_TASKLIST` case wired
+  - [x] `domain/pitches/actions.ts` — enqueue on `APPROVED` with payload-based dedup
+  - [x] `app/.../pitches/[pitchId]/tasks/page.tsx` — phase-grouped checklist UI with progress bar
 - [ ] **White-Labeled Emails**: Enterprise orgs inject custom branding into all outgoing system emails

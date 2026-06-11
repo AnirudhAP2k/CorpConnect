@@ -401,45 +401,91 @@ export const aiService = {
             return null;
         }
     },
+
+    /**
+     * Generate an operational milestone tasklist for an approved event pitch.
+     * Called by the GENERATE_TASKLIST job immediately after pitch approval.
+     *
+     * Returns null on network/service failure — caller will use the deterministic fallback.
+     */
+    async generateEventTasklist(req: AIEventTasklistRequest): Promise<AIEventTasklistResponse | null> {
+        try {
+            const res = await axios.post<AIEventTasklistResponse>(
+                `${AI_SERVICE_URL}/chat/brainstorm/tasklist`,
+                req,
+                { headers: await authHeaders(), timeout: 60_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
 };
 
 // ─── Phase 13: Brainstorm Types ───────────────────────────────────────────────
 
 export interface AIEventBrief {
-    title:           string;
-    description:     string;
-    targetAudience:  string | null;
-    location:        string | null;
+    title: string;
+    description: string;
+    targetAudience: string | null;
+    location: string | null;
     estimatedBudget: number | null;
-    agenda:          Array<{ time?: string; item: string }>;
-    startDateTime:   string | null;
-    endDateTime:     string | null;
-    aiBrief:         string;
+    agenda: Array<{ time?: string; item: string }>;
+    startDateTime: string | null;
+    endDateTime: string | null;
+    aiBrief: string;
 }
 
 export interface AIChatBrainstormBriefResponse {
     sessionId: string;
-    brief:     AIEventBrief;
+    brief: AIEventBrief;
 }
 
 // ─── Phase 14: Event Summary Types ───────────────────────────────────────────
 
 export interface AIEventSummaryRequest {
-    eventId:         string;
-    eventTitle:      string;
-    totalAttendees:  number;
-    attendanceRate:  number;         // 0–1
-    avgRating:       number | null;  // 1–5
-    sentimentScore:  number | null;  // -1 to +1
+    eventId: string;
+    eventTitle: string;
+    totalAttendees: number;
+    attendanceRate: number;         // 0–1
+    avgRating: number | null;  // 1–5
+    sentimentScore: number | null;  // -1 to +1
     feedbackSamples: string[];
-    topThemes:       string[];
+    topThemes: string[];
 }
 
 export interface AIEventSummaryResult {
-    eventId:          string;
-    overallScore:     number;        // 0–10
-    strengths:        string[];
-    weaknesses:       string[];
-    recommendations:  string[];
+    eventId: string;
+    overallScore: number;        // 0–10
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
     executiveSummary: string;
+}
+
+export interface AIEventTasklistRequest {
+    pitchId: string;
+    title: string;
+    description: string;
+    targetAudience?: string | null;
+    location?: string | null;
+    estimatedBudget?: number | null;
+    startDateTime?: string | null;
+    endDateTime?: string | null;
+    aiBrief: string;
+}
+
+export interface AIEventTasklistItem {
+    title: string;
+    description: string | null;
+    /** Days relative to event start. Negative = before event, 0 = event day, positive = after */
+    dueDayOffset: number;
+    /** 1 = High, 2 = Medium, 3 = Low */
+    priority: number;
+    assignedRole: string | null;
+}
+
+export interface AIEventTasklistResponse {
+    pitchId: string;
+    tasks: AIEventTasklistItem[];
 }
