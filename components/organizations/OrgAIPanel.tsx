@@ -49,7 +49,7 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
             if (apiCall && !apiCall.success) {
                 toast.error(apiCall.error || "Failed to contact AI service.");
             } else if (apiCall && apiCall.data) {
-                setResults(apiCall.data);
+                setResults(apiCall.data as any[]);
                 toast.success("AI request completed. 1 API call deducted.");
             }
         } catch (error: any) {

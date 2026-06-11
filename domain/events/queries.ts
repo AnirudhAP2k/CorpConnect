@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { aiService } from "@/lib/ai-service";
+import { checkAiQuota, deductAiUsage } from "@/domain/ai";
 import { isUUID } from "@/lib/utils";
 import { Prisma } from "@prisma/client";
 import { unstable_cache } from "next/cache";
@@ -242,8 +243,14 @@ async function _getMatchingOrgsAI(
     candidateIds: string[]
 ): Promise<MatchedOrg[]> {
     try {
+        // Quota gate — if the org has no remaining AI credits, fall back to SQL
+        const quota = await checkAiQuota(callerOrgId, "recommendOrgs");
+        if (!quota.allowed) return [];
+
         const aiRecs = await aiService.recommendOrgs(callerOrgId, 20);
         if (!aiRecs.length) return [];
+
+        await deductAiUsage(callerOrgId);
 
         const attendingSet = new Set(candidateIds);
         const filtered = aiRecs.filter((r) => attendingSet.has(r.orgId)).slice(0, 5);

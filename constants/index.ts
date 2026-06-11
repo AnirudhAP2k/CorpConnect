@@ -94,6 +94,38 @@ export const PLAN_API_LIMITS: Record<string, number> = {
     ENTERPRISE: 50_000,
 };
 
+/**
+ * Monthly AI feature usage limits per subscription plan.
+ * These govern tenant-facing AI calls made through the Next.js app
+ * (recommendations, search, chat, content generation, etc.).
+ *
+ * System-internal calls (embedding jobs, sentiment analysis, report generation)
+ * are platform-operated and do NOT count against these limits.
+ */
+export const AI_PLAN_LIMITS: Record<string, number> = {
+    FREE: 0,
+    PRO: 500,
+    ENTERPRISE: 5_000,
+};
+
+/**
+ * Minimum subscription plan required per AI feature.
+ * Used by the quota gate to block features on lower plans.
+ */
+export const AI_FEATURE_MIN_PLAN: Record<string, string> = {
+    recommendEvents: "PRO",
+    recommendOrgs: "PRO",
+    search: "PRO",
+    generateDescription: "PRO",
+    matchmakingReason: "PRO",
+    chat: "PRO",
+    chatHistory: "PRO",
+    chatBrainstorm: "ENTERPRISE",
+    chatBrainstormBrief: "ENTERPRISE",
+    analyseSentiment: "PRO",
+    eventSummary: "ENTERPRISE",
+};
+
 export const TRIGGER_LABELS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "New Event Registration",
     EVENT_CANCELLED: "Event Cancelled",
