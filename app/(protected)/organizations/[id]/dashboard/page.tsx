@@ -16,8 +16,8 @@ import { getHostEvents, getAttendingEvents } from "@/data/events";
 import { getOrgConnections, getOrgDashboardStats, getOrgRecentActivity, getOrgRevenueBreakdown } from "@/data/dashboard";
 import { format } from "date-fns";
 import OrgConnectionsPanel from "@/components/organizations/OrgConnectionsPanel";
-import { prisma } from "@/lib/db";
 import OrgAIPanel from "@/components/organizations/OrgAIPanel";
+import { getAiUsageStats } from "@/domain/ai";
 import { ChatWidget } from "@/components/ai/ChatWidget";
 import { SentimentPanel } from "@/components/feedback/SentimentPanel";
 import { AutomationRulesPanel } from "@/components/automation/AutomationRulesPanel";
@@ -67,10 +67,8 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
     const pendingSent = allConnections.filter((c: any) => c.status === "PENDING" && c.sourceOrgId === orgId);
     const pendingReceived = allConnections.filter((c: any) => c.status === "PENDING" && c.targetOrgId === orgId);
 
-    // Fetch ApiCredentials
-    const apiCredential = await prisma.apiCredential.findUnique({
-        where: { organizationId: orgId },
-    });
+    // Fetch AI usage stats (plan-based limits)
+    const aiUsage = await getAiUsageStats(orgId);
 
     const statusColor: Record<string, string> = {
         REGISTERED: "bg-blue-100 text-blue-700",
@@ -305,10 +303,10 @@ const OrgDashboardPage = async ({ params }: OrgDashboardPageProps) => {
                     {/* AI Active Panel */}
                     <OrgAIPanel
                         orgId={orgId}
-                        hasCredentials={!!apiCredential}
-                        usageCount={apiCredential?.usageCount || 0}
-                        usageLimit={apiCredential?.usageLimit || 100}
-                        tier={apiCredential?.tier || "FREE"}
+                        hasCredentials={aiUsage.plan !== "FREE"}
+                        usageCount={aiUsage.used}
+                        usageLimit={aiUsage.limit}
+                        tier={aiUsage.plan}
                     />
 
                     {/* Sentiment & Feedback Intelligence Panel */}
