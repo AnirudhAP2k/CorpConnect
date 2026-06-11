@@ -2,7 +2,16 @@
  * lib/ai-service.ts
  *
  * Typed HTTP client for the CorpConnect AI microservice.
- * Uses a master JWT for auth — bypasses tenant tier gates.
+ *
+ * Authentication: Uses a master JWT for service-to-service auth.
+ * Quota enforcement: NOT handled here — this is a pure HTTP client.
+ * Tenant-facing calls must go through domain/ai/actions.ts, which
+ * enforces plan checks and usage metering via domain/ai/quota.ts
+ * before invoking these methods.
+ *
+ * System-internal callers (embed jobs, sentiment analysis, report generation)
+ * may call these methods directly — they are platform-operated and
+ * do NOT count against org AI quotas.
  *
  * All methods fail gracefully — if the AI service is unreachable,
  * they return empty arrays / undefined rather than throwing.
@@ -14,96 +23,6 @@ import { SignJWT } from "jose";
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
 const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
-
-// ─── Response types ────────────────────────────────────────────────────────────
-
-export interface AIRecommendedEvent {
-    eventId: string;
-    title: string;
-    score: number;
-    reason: string;
-}
-
-export interface AIRecommendedOrg {
-    orgId: string;
-    name: string;
-    score: number;
-    sharedEvents: number;
-}
-
-export interface AISearchResult {
-    eventId: string;
-    title: string;
-    score: number;
-    snippet: string;
-}
-
-export interface AIRecommendEventsResponse {
-    userId: string;
-    recommendations: AIRecommendedEvent[];
-    source: "ai" | "fallback";
-}
-
-export interface AIRecommendOrgsResponse {
-    orgId: string;
-    recommendations: AIRecommendedOrg[];
-}
-
-export interface AISemanticSearchResponse {
-    query: string;
-    results: AISearchResult[];
-    count: number;
-}
-
-// ─── Phase 2: Content Generation ──────────────────────────────────────────────
-
-export interface AIGeneratedContent {
-    description: string;
-    suggestions: string[];
-    sourceDocs: string[];
-}
-
-export interface AIMatchmakingReason {
-    reason: string;
-    sharedThemes: string[];
-}
-
-// ─── Phase 3: Conversational AI ───────────────────────────────────────────────
-
-export interface AIChatRequest {
-    sessionId: string;           // "new" | existing UUID
-    userId: string;
-    contextId: string;           // eventId or orgId
-    contextType: "EVENT" | "ORGANIZATION";
-    message: string;
-}
-
-export interface AIChatResponse {
-    sessionId: string;
-    reply: string;
-    sourceDocs: string[];        // chunk titles used — for UI transparency badges
-}
-
-export interface AIChatHistoryMessage {
-    id: string;
-    role: "user" | "assistant";
-    content: string;
-    createdAt: string;
-}
-
-export interface AISentimentRequest {
-    feedbackId: string;
-    feedbackText: string | null;
-    rating: number;          // 1–5
-}
-
-export interface AISentimentResult {
-    feedbackId: string;
-    sentiment: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
-    sentimentScore: number;        // -1.0 to +1.0
-    themes: string[];
-    summary: string;
-}
 
 /** Generate a short-lived master JWT for internal service-to-service calls. */
 export async function getMasterJwt(): Promise<string> {
@@ -152,6 +71,7 @@ async function request<T>(
 // ─── Public API ────────────────────────────────────────────────────────────────
 
 export const aiService = {
+
     /** Get AI-ranked event recommendations for a user. Returns empty array if unavailable. */
     async recommendEvents(
         userId: string,
@@ -406,40 +326,130 @@ export const aiService = {
 // ─── Phase 13: Brainstorm Types ───────────────────────────────────────────────
 
 export interface AIEventBrief {
-    title:           string;
-    description:     string;
-    targetAudience:  string | null;
-    location:        string | null;
+    title: string;
+    description: string;
+    targetAudience: string | null;
+    location: string | null;
     estimatedBudget: number | null;
-    agenda:          Array<{ time?: string; item: string }>;
-    startDateTime:   string | null;
-    endDateTime:     string | null;
-    aiBrief:         string;
+    agenda: Array<{ time?: string; item: string }>;
+    startDateTime: string | null;
+    endDateTime: string | null;
+    aiBrief: string;
 }
 
 export interface AIChatBrainstormBriefResponse {
     sessionId: string;
-    brief:     AIEventBrief;
+    brief: AIEventBrief;
 }
 
 // ─── Phase 14: Event Summary Types ───────────────────────────────────────────
 
 export interface AIEventSummaryRequest {
-    eventId:         string;
-    eventTitle:      string;
-    totalAttendees:  number;
-    attendanceRate:  number;         // 0–1
-    avgRating:       number | null;  // 1–5
-    sentimentScore:  number | null;  // -1 to +1
+    eventId: string;
+    eventTitle: string;
+    totalAttendees: number;
+    attendanceRate: number;         // 0–1
+    avgRating: number | null;  // 1–5
+    sentimentScore: number | null;  // -1 to +1
     feedbackSamples: string[];
-    topThemes:       string[];
+    topThemes: string[];
 }
 
 export interface AIEventSummaryResult {
-    eventId:          string;
-    overallScore:     number;        // 0–10
-    strengths:        string[];
-    weaknesses:       string[];
-    recommendations:  string[];
+    eventId: string;
+    overallScore: number;        // 0–10
+    strengths: string[];
+    weaknesses: string[];
+    recommendations: string[];
     executiveSummary: string;
+}
+
+// ─── Response types ────────────────────────────────────────────────────────────
+
+export interface AIRecommendedEvent {
+    eventId: string;
+    title: string;
+    score: number;
+    reason: string;
+}
+
+export interface AIRecommendedOrg {
+    orgId: string;
+    name: string;
+    score: number;
+    sharedEvents: number;
+}
+
+export interface AISearchResult {
+    eventId: string;
+    title: string;
+    score: number;
+    snippet: string;
+}
+
+export interface AIRecommendEventsResponse {
+    userId: string;
+    recommendations: AIRecommendedEvent[];
+    source: "ai" | "fallback";
+}
+
+export interface AIRecommendOrgsResponse {
+    orgId: string;
+    recommendations: AIRecommendedOrg[];
+}
+
+export interface AISemanticSearchResponse {
+    query: string;
+    results: AISearchResult[];
+    count: number;
+}
+
+// ─── Phase 2: Content Generation ──────────────────────────────────────────────
+
+export interface AIGeneratedContent {
+    description: string;
+    suggestions: string[];
+    sourceDocs: string[];
+}
+
+export interface AIMatchmakingReason {
+    reason: string;
+    sharedThemes: string[];
+}
+
+// ─── Phase 3: Conversational AI ───────────────────────────────────────────────
+
+export interface AIChatRequest {
+    sessionId: string;           // "new" | existing UUID
+    userId: string;
+    contextId: string;           // eventId or orgId
+    contextType: "EVENT" | "ORGANIZATION";
+    message: string;
+}
+
+export interface AIChatResponse {
+    sessionId: string;
+    reply: string;
+    sourceDocs: string[];        // chunk titles used — for UI transparency badges
+}
+
+export interface AIChatHistoryMessage {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    createdAt: string;
+}
+
+export interface AISentimentRequest {
+    feedbackId: string;
+    feedbackText: string | null;
+    rating: number;          // 1–5
+}
+
+export interface AISentimentResult {
+    feedbackId: string;
+    sentiment: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+    sentimentScore: number;        // -1.0 to +1.0
+    themes: string[];
+    summary: string;
 }
