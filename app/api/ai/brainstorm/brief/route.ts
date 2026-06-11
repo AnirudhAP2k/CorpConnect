@@ -3,12 +3,14 @@
  *
  * Thin proxy — receives a sessionId, forwards to Python /chat/brainstorm/brief,
  * and returns the structured EventBrief to the client.
+ *
+ * Quota-gated: requires ENTERPRISE plan and deducts usage on success.
  */
 
 import { auth } from "@/auth";
 import { NextResponse } from "next/server";
 import { aiService } from "@/lib/ai-service";
-import { checkEnterprise } from "@/lib/enterprise";
+import { checkAiQuota, deductAiUsage } from "@/domain/ai";
 
 export async function POST(req: Request) {
     const session = await auth();
@@ -26,10 +28,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Enterprise gate
-    const gate = await checkEnterprise(organizationId);
-    if (!gate.ok) {
-        return NextResponse.json({ error: "Enterprise subscription required" }, { status: 403 });
+    // Quota gate — replaces checkEnterprise with plan + usage check
+    const quota = await checkAiQuota(organizationId, "chatBrainstormBrief");
+    if (!quota.allowed) {
+        return NextResponse.json({ error: quota.reason }, { status: 403 });
     }
 
     const result = await aiService.chatBrainstormBrief({
@@ -44,6 +46,9 @@ export async function POST(req: Request) {
             { status: 502 }
         );
     }
+
+    // Deduct after successful AI call
+    await deductAiUsage(organizationId);
 
     return NextResponse.json(result);
 }
