@@ -1,10 +1,11 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { PLAN_API_LIMITS } from "@/constants";
-import { isUUID } from "@/lib/utils";
 import cryptoJs from "crypto-js";
+import { isUUID } from "@/lib/utils";
+import { getApiAuth } from "@/lib/api-auth";
+import { SubscriptionPlan } from "@prisma/client";
 
 /**
  * API Credential management for an organization.
@@ -23,20 +24,33 @@ async function assertOwner(userId: string, orgId: string): Promise<boolean> {
     return member?.role === "OWNER";
 }
 
+async function assertOrg(orgId: string): Promise<boolean> {
+    if (!isUUID(orgId)) {
+        return false;
+    }
+
+    const org = await prisma.organization.count({
+        where: { id: orgId },
+    });
+
+    return org > 0;
+}
+
 // GET — fetch current credential metadata (never the real key)
 export const GET = async (
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
-    const session = await auth();
 
-    if (!isUUID(orgId)) {
+    if (!(await assertOrg(orgId))) {
         return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
     }
 
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!(await assertOwner(session.user.id, orgId)))
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    console.log(user);
+    if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     const credential = await prisma.apiCredential.findUnique({
@@ -52,35 +66,40 @@ export const GET = async (
         },
     });
 
-    return NextResponse.json(credential ?? null);
+    if (!credential) {
+        return NextResponse.json({ error: "No credentials found." }, { status: 404 });
+    }
+
+    return NextResponse.json(credential);
 };
 
 // POST — generate (or regenerate) API key — returns full key ONCE
 export const POST = async (
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
 
-    if (!isUUID(orgId)) {
+    if (!(await assertOrg(orgId))) {
         return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
     }
 
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!(await assertOwner(session.user.id, orgId)))
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const rawKey = `evtly_live_${cryptoJs.lib.WordArray.random(32).toString(cryptoJs.enc.Hex)}`;
-    const prefix = rawKey.slice(0, 18);
+    const rawKey = `corp_connect_${process.env.NODE_ENV}_${cryptoJs.lib.WordArray.random(64).toString(cryptoJs.enc.Hex)}`;
+    const prefix = rawKey.slice(0, 35);
     const hashed = await bcrypt.hash(rawKey, 12);
 
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
         select: { subscriptionPlan: true },
     });
-    const tier = (org?.subscriptionPlan ?? "FREE") as "FREE" | "PRO" | "ENTERPRISE";
-    const usageLimit = PLAN_API_LIMITS[tier] ?? PLAN_API_LIMITS.FREE;
+
+    const tier = (org?.subscriptionPlan ?? "FREE") as SubscriptionPlan;
+    const usageLimit = PLAN_API_LIMITS[tier];
 
     const credential = await prisma.apiCredential.upsert({
         where: { organizationId: orgId },
@@ -111,18 +130,18 @@ export const POST = async (
 };
 
 export const DELETE = async (
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: orgId } = await params;
 
-    if (!isUUID(orgId)) {
+    if (!(await assertOrg(orgId))) {
         return NextResponse.json({ error: "Invalid organization ID" }, { status: 400 });
     }
 
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    if (!(await assertOwner(session.user.id, orgId)))
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
     await prisma.apiCredential.deleteMany({ where: { organizationId: orgId } });
