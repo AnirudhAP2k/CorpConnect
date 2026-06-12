@@ -6,7 +6,7 @@ import { getUserById, getUserByEmail, getUserTier, getUserActiveOrgRole } from "
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
 import { mapTokenToSession } from "@/auth.session";
 import { generateRefreshToken, revokeToken } from "@/lib/tokens";
-import { storeRefreshToken } from "@/lib/tokens";
+import { setRefreshToken } from "@/lib/tokens";
 import { cookies } from "next/headers";
 import { JWT_MAX_AGE_SECONDS } from "@/constants";
 import bcrypt from "bcryptjs";
@@ -28,12 +28,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     events: {
         async signOut(message) {
             let cookieStore = await cookies();
-            let refreshToken = cookieStore.get("refresh_token")?.value || null;
+            let refreshToken = cookieStore.get("refreshToken")?.value || null;
 
             if (refreshToken) {
                 try {
                     await revokeToken(refreshToken);
-                    cookieStore.delete("refresh_token");
+                    cookieStore.delete("refreshToken");
                 } catch (e) {
                     console.error("Refresh token error:", e);
                 }
@@ -87,7 +87,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
                 if (!user.id) return token;
 
                 const { token: refreshToken } = await generateRefreshToken(user.id);
-                await storeRefreshToken(refreshToken);
+                await setRefreshToken(refreshToken);
 
                 const apiTier = await getUserTier(user.activeOrganizationId);
 
