@@ -7,14 +7,14 @@
  * Used by the billing page and feature-gating checks.
  */
 
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 
 export const GET = async (req: NextRequest) => {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const authUser = getApiAuth(req);
+        const userId = authUser?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
