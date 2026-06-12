@@ -1,21 +1,20 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
 
 // GET /api/admin/export/participations — event participation data for AI training
-export const GET = async () => {
-    const session = await auth();
-    if (!session?.user?.id) {
+export const GET = async (req: NextRequest) => {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    // Verify app admin
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+    const adminUser = await prisma.user.findUnique({
+        where: { id: user.id },
         select: { isAppAdmin: true },
     });
 
-    if (!user?.isAppAdmin) {
+    if (!adminUser?.isAppAdmin) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
