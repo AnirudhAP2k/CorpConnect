@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { uploadToCloudinary } from "@/lib/file-uploader";
 import { orgDocumentUploadSchema } from "@/domain/organizations/validation";
@@ -20,8 +20,8 @@ import { orgDocumentUploadSchema } from "@/domain/organizations/validation";
  */
 
 export async function POST(req: NextRequest) {
-    const session = await auth();
-    const userId = session?.user?.id;
+    const user = getApiAuth(req);
+    const userId = user?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     try {
@@ -93,8 +93,8 @@ export async function POST(req: NextRequest) {
  * Returns the list of KYB documents uploaded for an org.
  */
 export async function GET(req: NextRequest) {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const orgId = req.nextUrl.searchParams.get("orgId");
     if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
