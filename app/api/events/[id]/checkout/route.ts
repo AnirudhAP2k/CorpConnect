@@ -14,7 +14,7 @@
  * for PLATFORM events (enforced in participate route).
  */
 
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { getStripe, PLATFORM_FEE_PERCENT } from "@/lib/payment/stripe";
 import { getRazorpay } from "@/lib/payment/razorpay";
@@ -27,8 +27,8 @@ export const POST = async (
     try {
         const { id: eventId } = await params;
 
-        const session = await auth();
-        const userId = session?.user?.id;
+        const authUser = getApiAuth(req);
+        const userId = authUser?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
