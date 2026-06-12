@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createOrganizationAction } from "@/domain/organizations";
 import { createNotification } from "@/domain/notifications";
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 
 /**
  * POST /api/organizations
@@ -12,9 +12,9 @@ import { auth } from "@/auth";
 export const POST = async (req: NextRequest) => {
     try {
         const body = await req.json();
-        const session = await auth();
+        const user = getApiAuth(req);
 
-        if (!session?.user?.id) {
+        if (!user?.id) {
             return NextResponse.json({ success: false, error: "Unauthorized. Please sign in." }, { status: 401 });
         }
 
@@ -34,7 +34,7 @@ export const POST = async (req: NextRequest) => {
         const result = await createOrganizationAction(formData);
 
         await createNotification({
-            userId: session.user.id,
+            userId: user.id,
             title: "Organization created",
             description: `Organization ${result.organizationName} created successfully. Please verify your organization to unlock all features.`,
             link: `/organizations/${result.organizationId}/complete-verification`,
