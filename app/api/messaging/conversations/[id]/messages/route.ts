@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 
 const PAGE_SIZE = 30;
@@ -11,15 +11,15 @@ const PAGE_SIZE = 30;
 //   limit=<n>            — max 50, default 30
 
 export async function GET(
-    req: Request,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    const activeOrgId = session.user.activeOrganizationId;
+    const activeOrgId = user.activeOrganizationId;
     if (!activeOrgId) {
         return NextResponse.json({ error: "NO_ACTIVE_ORG" }, { status: 403 });
     }
