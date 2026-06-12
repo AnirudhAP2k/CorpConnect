@@ -7,14 +7,14 @@
  * Quota-gated: requires ENTERPRISE plan and deducts usage on success.
  */
 
-import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { aiService } from "@/lib/ai-service";
 import { checkAiQuota, deductAiUsage } from "@/domain/ai";
+import { getApiAuth } from "@/lib/api-auth";
 
-export async function POST(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
+export async function POST(req: NextRequest) {
+    const authUser = getApiAuth(req);
+    if (!authUser?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
 
     const result = await aiService.chatBrainstorm({
         sessionId: sessionId || "new",
-        userId: session.user.id,
+        userId: authUser.id,
         organizationId,
         message,
     });
