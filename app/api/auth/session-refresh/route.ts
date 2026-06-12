@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { rotateRefreshToken, storeRefreshToken } from "@/lib/tokens";
+import { rotateRefreshToken, setRefreshToken } from "@/lib/tokens";
 import { encode } from "next-auth/jwt";
 import { getFreshSessionUser } from "@/domain/users";
 import { SESSION_COOKIE_NAME, JWT_MAX_AGE_SECONDS } from "@/constants";
@@ -11,14 +11,14 @@ import { SESSION_COOKIE_NAME, JWT_MAX_AGE_SECONDS } from "@/constants";
  * The single source of truth for session recovery.
  *
  * Called by middleware whenever it detects an expired JWT cookie
- * but the user still has a valid httpOnly refresh_token cookie.
+ * but the user still has a valid httpOnly refreshToken cookie.
  *
  * Both paths converge here:
  *   - Idle user navigates   → middleware redirects here
  *   - Active user (future)  → can also redirect here if update() somehow fails
  *
  * Flow:
- *   1. Read refresh_token from httpOnly cookie
+ *   1. Read refreshToken from httpOnly cookie
  *   2. Rotate it in the DB (revoke old, issue new) — token reuse detection included
  *   3. Fetch fresh user fields (role/org may have changed during idle)
  *   4. Encode a new NextAuth-compatible JWT
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     const returnTo = searchParams.get("returnTo") || "/dashboard";
 
     const cookieStore = await cookies();
-    const refreshToken = cookieStore.get("refresh_token")?.value;
+    const refreshToken = cookieStore.get("refreshToken")?.value;
 
     if (!refreshToken) {
         return NextResponse.redirect(new URL("/login", req.url));
@@ -48,7 +48,7 @@ export async function GET(req: NextRequest) {
             ip,
         );
 
-        await storeRefreshToken(token);
+        await setRefreshToken(token);
 
         const freshUser = await getFreshSessionUser(user.id, user.activeOrganizationId);
 
