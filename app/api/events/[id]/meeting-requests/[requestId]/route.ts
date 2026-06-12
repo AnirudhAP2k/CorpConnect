@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -22,8 +22,8 @@ export const PATCH = async (
     { params }: { params: Promise<{ id: string; requestId: string }> }
 ) => {
     const { requestId } = await params;
-    const session = await auth();
-    const userId = session?.user?.id;
+    const authUser = getApiAuth(req);
+    const userId = authUser?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const body = await req.json();
@@ -116,8 +116,8 @@ export const DELETE = async (
     { params }: { params: Promise<{ id: string; requestId: string }> }
 ) => {
     const { requestId } = await params;
-    const session = await auth();
-    const userId = session?.user?.id;
+    const authUser = getApiAuth(req);
+    const userId = authUser?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const meetingRequest = await prisma.meetingRequest.findUnique({ where: { id: requestId } });
