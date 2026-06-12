@@ -1,14 +1,14 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { rejectGroupInviteAction } from "@/domain/messaging";
 
 /** POST /api/messaging/groups/invitations/[inviteId]/reject */
 export const POST = async (
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ inviteId: string }> }
 ) => {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
