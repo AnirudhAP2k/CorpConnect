@@ -1,22 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getEventById, createEventAction, deleteEventAction, getEventsSchema, getEvents } from "@/domain/events";
 
-// GET /api/events?id=<uuid>  — fetch a single event by query param
+// Get all events with optional filtering and pagination
 export const GET = async (req: NextRequest) => {
     try {
-        const { searchParams } = req.nextUrl;
-        const eventId = searchParams.get("id");
+        const searchParams = req.nextUrl.searchParams;
 
-        if (!eventId) {
-            return NextResponse.json({ error: "Event ID is required" }, { status: 400 });
+        const parsed = getEventsSchema.safeParse({
+            q: searchParams.get("search") || "",
+            visibility: searchParams.get("visibility") || undefined,
+            upcoming: searchParams.get("upcoming") === "true",
+            page: searchParams.get("page") || undefined,
+            limit: searchParams.get("limit") || undefined,
+            categoryId: searchParams.get("category") || undefined,
+            organizationId: searchParams.get("organizationId") || undefined,
+        });
+
+        if (!parsed.success) {
+            return NextResponse.json(
+                { error: "Invalid query parameters", details: parsed.error.flatten().fieldErrors },
+                { status: 400 },
+            );
         }
 
-        const event = await getEventById(eventId);
-        if (!event) {
-            return NextResponse.json({ error: "Event not found" }, { status: 404 });
+        const events = await getEvents(parsed.data);
+
+        if (!events) {
+            return NextResponse.json({ error: "No event found" }, { status: 404 });
         }
 
-        return NextResponse.json(event, { status: 200 });
+        return NextResponse.json(events, { status: 200 });
     } catch (error) {
         console.error("[GET /api/events]", error);
         return NextResponse.json({ error: "Internal server error" }, { status: 500 });
