@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import {
     createGroupAction,
@@ -6,14 +6,14 @@ import {
 } from "@/domain/messaging";
 
 /** GET /api/messaging/groups — list all groups for the calling user */
-export const GET = async (_req: NextRequest) => {
-    const session = await auth();
-    if (!session?.user?.id) {
+export const GET = async (req: NextRequest) => {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     try {
-        const groups = await getGroupsForUser(session.user.id);
+        const groups = await getGroupsForUser(user.id);
         return NextResponse.json(groups, { status: 200 });
     } catch (err) {
         console.error("[GET /api/messaging/groups]", err);
