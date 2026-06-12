@@ -53,8 +53,8 @@ export async function POST(req: Request) {
             expiresAt: rotatedTokenMetadata.expiresAt,
         });
 
-    } catch (error) {
+    } catch (error: any) {
         console.error("Mobile refresh error:", error);
-        return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+        return NextResponse.json({ error: error.message || "Unauthorized" }, { status: 401 });
     }
 }
