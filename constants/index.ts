@@ -80,7 +80,7 @@ export const SESSION_COOKIE_NAME =
         ? "__Secure-authjs.session-token"
         : "authjs.session-token";
 
-export const JWT_MAX_AGE_SECONDS = 15 * 60;
+export const JWT_MAX_AGE_SECONDS = 60;
 
 export const JWT_REFRESH_EARLY_MS = 2 * 60 * 1000;
 
@@ -89,9 +89,9 @@ export const subscriptionPlans = ["PRO", "ENTERPRISE"];
 export const paymentProviders = ["stripe", "razorpay"];
 
 export const PLAN_API_LIMITS: Record<string, number> = {
-    FREE: 100,
-    PRO: 5_000,
-    ENTERPRISE: 50_000,
+    FREE: 10,
+    PRO: 5_00,
+    ENTERPRISE: 1_000,
 };
 
 /**
