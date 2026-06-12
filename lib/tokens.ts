@@ -165,8 +165,10 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
 }
 
 export async function revokeToken(token: string) {
-    return prisma.refreshToken.update({
-        where: { token },
+    const hashedToken = hashToken(token);
+    console.log("Hashed token:", hashedToken);
+    return prisma.refreshToken.updateMany({
+        where: { token: hashedToken },
         data: { revokedAt: new Date() }
     });
 }
@@ -181,10 +183,10 @@ export async function revokeAllUserTokens(userId: string) {
     });
 }
 
-export const storeRefreshToken = async (token: string) => {
+export const setRefreshToken = async (token: string) => {
     let cookieStore = await cookies();
 
-    cookieStore.set("refresh_token", token, {
+    cookieStore.set("refreshToken", token, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
