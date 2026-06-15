@@ -1,4 +1,3 @@
-"use server";
 
 /**
  * actions/ai.actions.ts
