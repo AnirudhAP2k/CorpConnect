@@ -3,22 +3,8 @@ import "server-only";
 import { NextRequest } from "next/server";
 import { OrganizationRole, ApiTier } from "@prisma/client";
 import { ExtendedUser } from "@/next-auth";
-
-export const AUTH_SESSION_HEADER = "x-auth-session";
-
-/**
- * The shape stored in the x-auth-session header and returned by getApiAuth().
- * Mirrors `session.user` from NextAuth.
- */
-export interface ApiAuthUser {
-    id: string;
-    email?: string | null;
-    role?: OrganizationRole | null;
-    isAppAdmin?: boolean;
-    hasCompletedOnboarding?: boolean;
-    activeOrganizationId?: string | null;
-    apiTier?: ApiTier;
-}
+import { AUTH_SESSION_HEADER } from "@/constants";
+import { ApiAuthUser } from "@/lib/types";
 
 /**
  * Accepted input shape for setApiAuth().

@@ -1,148 +1,41 @@
 import { OrgKybSchema } from "@/lib/validation"
+import { ApiTier, OrganizationRole } from "@prisma/client";
 import { z } from "zod"
 
-// ====== USER PARAMS
-export type CreateUserParams = {
-  clerkId: string
-  firstName: string
-  lastName: string
-  username: string
-  email: string
-  photo: string
-}
+// ====== TYPE DEFINATIONS ====
+export type MeetingStatus =
+  | "NONE"
+  | "PENDING_SENT"
+  | "PENDING_RECEIVED"
+  | "ACCEPTED"
+  | "DECLINED"
+  | "CANCELLED";
 
-export type UpdateUserParams = {
-  firstName: string
-  lastName: string
-  username: string
-  photo: string
-}
+export type MeetingEmailEvent = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELLED";
 
-// ====== EVENT PARAMS
-export type CreateEventParams = {
-  userId: string
-  event: {
-    title: string
-    description: string
-    location: string
-    imageUrl: string
-    startDateTime: Date
-    endDateTime: Date
-    categoryId: string
-    price: string
-    isFree: boolean
-    url: string
-  }
-  path: string
-}
+export type AutomationTriggerType =
+  | "EVENT_REGISTRATION"
+  | "EVENT_CANCELLED"
+  | "FEEDBACK_RECEIVED"
+  | "CONNECTION_ACCEPTED"
+  | "MEETING_SCHEDULED"
+  | "NEW_MEMBER_JOINED";
 
-export type UpdateEventParams = {
-  userId: string
-  event: {
-    _id: string
-    title: string
-    imageUrl: string
-    description: string
-    location: string
-    startDateTime: Date
-    endDateTime: Date
-    categoryId: string
-    price: string
-    isFree: boolean
-    url: string
-  }
-  path: string
-}
+export type OrgKybValues = z.infer<typeof OrgKybSchema>;
 
-export type DeleteEventParams = {
-  eventId: string
-  path: string
-}
-
-export type GetAllEventsParams = {
-  query: string
-  category: string
-  limit: number
-  page: number
-}
-
-export type GetEventsByUserParams = {
-  userId: string
-  limit?: number
-  page: number
-}
-
-export type GetRelatedEventsByCategoryParams = {
-  categoryId: string
-  eventId: string
-  limit?: number
-  page: number | string
-}
-
-export type Event = {
-  id: string
-  title: string
-  description: string
-  price: string
-  isFree: boolean
-  image: string
-  location: string
-  startDateTime: Date
-  endDateTime: Date
-  url: string
-  organizer: {
-    id: string
-    name: string
-  }
-  category: {
-    id: string
-    label: string
-  }
-}
-
-// ====== ORDER PARAMS
-export type CheckoutOrderParams = {
-  eventTitle: string
-  eventId: string
-  price: string
-  isFree: boolean
-  buyerId: string
-}
-
-export type CreateOrderParams = {
-  stripeId: string
-  eventId: string
-  buyerId: string
-  totalAmount: string
-  createdAt: Date
-}
-
-export type GetOrdersByEventParams = {
-  eventId: string
-  searchString: string
-}
-
-export type GetOrdersByUserParams = {
-  userId: string | null
-  limit?: number
-  page: string | number | null
-}
-
-// ====== URL QUERY PARAMS
-export type UrlQueryParams = {
+// ====== TYPE DEFINATIONS - END ====
+// ==========================================
+// ==========================================
+// ====== INTERFACE DEFINATIONS - START ====
+export interface UrlQueryParams {
   params: string
   key: string
   value: string | null
 }
 
-export type RemoveUrlQueryParams = {
+export interface RemoveUrlQueryParams {
   params: string
   keysToRemove: string[]
-}
-
-export type SearchParamProps = {
-  params: { id: string }
-  searchParams: { [key: string]: string | string[] | undefined }
 }
 
 export interface MatchedOrg {
@@ -158,16 +51,6 @@ export interface MatchedOrg {
   matchReason: string;
   source: "ai" | "sql";
 }
-
-// ====== MEETING REQUEST TYPES
-
-export type MeetingStatus =
-  | "NONE"
-  | "PENDING_SENT"
-  | "PENDING_RECEIVED"
-  | "ACCEPTED"
-  | "DECLINED"
-  | "CANCELLED";
 
 export interface OrgMini {
   id: string;
@@ -187,8 +70,6 @@ export interface MeetingRequest {
   initiatedBy: { id: string; name: string | null };
 }
 
-export type MeetingEmailEvent = "REQUESTED" | "ACCEPTED" | "DECLINED" | "CANCELLED";
-
 export interface OptionsTypes {
   title: string;
   id: string;
@@ -197,16 +78,6 @@ export interface OptionsTypes {
   label: string;
 }
 
-export type AutomationTriggerType =
-  | "EVENT_REGISTRATION"
-  | "EVENT_CANCELLED"
-  | "FEEDBACK_RECEIVED"
-  | "CONNECTION_ACCEPTED"
-  | "MEETING_SCHEDULED"
-  | "NEW_MEMBER_JOINED";
-
-export type OrgKybValues = z.infer<typeof OrgKybSchema>;
-
 export interface UploadResult {
   success: boolean;
   url: string | null;
@@ -214,3 +85,188 @@ export interface UploadResult {
   publicId: string | null;
   message?: string;
 }
+
+/**
+ * The shape stored in the x-auth-session header and returned by getApiAuth().
+ * Mirrors `session.user` from NextAuth.
+ */
+export interface ApiAuthUser {
+  id: string;
+  email?: string | null;
+  role?: OrganizationRole | null;
+  isAppAdmin?: boolean;
+  hasCompletedOnboarding?: boolean;
+  activeOrganizationId?: string | null;
+  apiTier?: ApiTier;
+}
+
+// ====== AI SERVICE INTERFACES - START ============
+
+export interface AIEventBrief {
+  title: string;
+  description: string;
+  targetAudience: string | null;
+  location: string | null;
+  estimatedBudget: number | null;
+  agenda: Array<{ time?: string; item: string }>;
+  startDateTime: string | null;
+  endDateTime: string | null;
+  aiBrief: string;
+}
+
+export interface AIChatBrainstormBriefResponse {
+  sessionId: string;
+  brief: AIEventBrief;
+}
+
+// ─── Phase 14: Event Summary Types ───────────────────────────────────────────
+
+export interface AIEventSummaryRequest {
+  eventId: string;
+  eventTitle: string;
+  totalAttendees: number;
+  attendanceRate: number;         // 0–1
+  avgRating: number | null;  // 1–5
+  sentimentScore: number | null;  // -1 to +1
+  feedbackSamples: string[];
+  topThemes: string[];
+}
+
+export interface AIEventSummaryResult {
+  eventId: string;
+  overallScore: number;        // 0–10
+  strengths: string[];
+  weaknesses: string[];
+  recommendations: string[];
+  executiveSummary: string;
+}
+
+// ─── Response types ────────────────────────────────────────────────────────────
+
+export interface AIRecommendedEvent {
+  eventId: string;
+  title: string;
+  score: number;
+  reason: string;
+}
+
+export interface AIRecommendedOrg {
+  orgId: string;
+  name: string;
+  score: number;
+  sharedEvents: number;
+}
+
+export interface AISearchResult {
+  eventId: string;
+  title: string;
+  score: number;
+  snippet: string;
+}
+
+export interface AIRecommendEventsResponse {
+  userId: string;
+  recommendations: AIRecommendedEvent[];
+  source: "ai" | "fallback";
+}
+
+export interface AIRecommendOrgsResponse {
+  orgId: string;
+  recommendations: AIRecommendedOrg[];
+}
+
+export interface AISemanticSearchResponse {
+  query: string;
+  results: AISearchResult[];
+  count: number;
+}
+
+// ─── Phase 2: Content Generation ──────────────────────────────────────────────
+
+export interface AIGeneratedContent {
+  description: string;
+  suggestions: string[];
+  sourceDocs: string[];
+}
+
+export interface AIMatchmakingReason {
+  reason: string;
+  sharedThemes: string[];
+}
+
+// ─── Phase 3: Conversational AI ───────────────────────────────────────────────
+
+export interface AIChatRequest {
+  sessionId: string;           // "new" | existing UUID
+  userId: string;
+  contextId: string;           // eventId or orgId
+  contextType: "EVENT" | "ORGANIZATION";
+  message: string;
+}
+
+export interface AIChatResponse {
+  sessionId: string;
+  reply: string;
+  sourceDocs: string[];        // chunk titles used — for UI transparency badges
+}
+
+export interface AIChatHistoryMessage {
+  id: string;
+  role: "user" | "assistant";
+  content: string;
+  createdAt: string;
+}
+
+export interface AISentimentRequest {
+  feedbackId: string;
+  feedbackText: string | null;
+  rating: number;          // 1–5
+}
+
+export interface AISentimentResult {
+  feedbackId: string;
+  sentiment: "POSITIVE" | "NEUTRAL" | "NEGATIVE";
+  sentimentScore: number;        // -1.0 to +1.0
+  themes: string[];
+  summary: string;
+}
+export interface AIEventTasklistRequest {
+  pitchId: string;
+  title: string;
+  description: string;
+  targetAudience?: string | null;
+  location?: string | null;
+  estimatedBudget?: number | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  aiBrief: string;
+}
+
+export interface AIEventTasklistItem {
+  title: string;
+  description: string | null;
+  /** Days relative to event start. Negative = before event, 0 = event day, positive = after */
+  dueDayOffset: number;
+  /** 1 = High, 2 = Medium, 3 = Low */
+  priority: number;
+  assignedRole: string | null;
+}
+
+export interface AIEventTasklistResponse {
+  pitchId: string;
+  tasks: AIEventTasklistItem[];
+}
+
+// ─── Enterprise Interfaces ───────────────────────────────────────────────────────────
+
+export interface EnterpriseCheckResult {
+  ok: boolean;
+  reason?: string;
+}
+
+export interface RequireEnterpriseOptions {
+  redirectTo?: string;
+}
+
+
+// ====== INTERFACE DEFINATIONS - END ====
