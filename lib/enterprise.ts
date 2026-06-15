@@ -29,23 +29,7 @@
 
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
-
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-export interface EnterpriseCheckResult {
-    /** true when the organisation has an active ENTERPRISE subscription */
-    ok: boolean;
-    /** Human-readable reason when ok === false */
-    reason?: string;
-}
-
-export interface RequireEnterpriseOptions {
-    /**
-     * Path to redirect to when the org is not on an Enterprise plan.
-     * Defaults to "/pricing" if not provided.
-     */
-    redirectTo?: string;
-}
+import { EnterpriseCheckResult, RequireEnterpriseOptions } from "@/lib/types";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
