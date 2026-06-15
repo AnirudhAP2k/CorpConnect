@@ -11,7 +11,7 @@ pgvector==0.3.2
 
 # ML / Embeddings
 sentence-transformers==3.0.1
-numpy==1.26.4
+numpy==2.4.6
 
 # Auth
 python-jose[cryptography]==3.3.0
