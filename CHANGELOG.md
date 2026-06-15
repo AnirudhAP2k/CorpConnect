@@ -1,3 +1,10 @@
+## [1.6.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.6.0...v1.6.1) (2026-06-15)
+
+
+### Bug Fixes
+
+* updated numpy version for ai-service ([f02b67d](https://github.com/AnirudhAP2k/CorpConnect/commit/f02b67d5aae8d148120ef43489b852213a2f8dd7))
+
 # [1.6.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.5.0...v1.6.0) (2026-06-15)
 
 
