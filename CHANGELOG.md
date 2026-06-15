@@ -1,3 +1,35 @@
+# [1.6.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.5.0...v1.6.0) (2026-06-15)
+
+
+### Bug Fixes
+
+* **config:** updated JWT_MAX_AGE_SECONDS to 15 min ([9f4a61e](https://github.com/AnirudhAP2k/CorpConnect/commit/9f4a61e57313ac728fe7618b0a55402513cc0835))
+* **events:** check AI quota before fetching recommended orgs ([7b3a9a9](https://github.com/AnirudhAP2k/CorpConnect/commit/7b3a9a9b62fc148f8041608744add54b0a1832bf))
+* exported the types for all ai-service interfaces ([9aab9fd](https://github.com/AnirudhAP2k/CorpConnect/commit/9aab9fda227ece629b282b80a9dcf23072919d3d))
+* fixed the build error ([1d2dec4](https://github.com/AnirudhAP2k/CorpConnect/commit/1d2dec4f26889015371cb673f4d993eeb0859a0d))
+* imported the constants from constants/index.ts ([37b6d28](https://github.com/AnirudhAP2k/CorpConnect/commit/37b6d28a723abc8c4bf315e07372215c1fdaa328))
+* imported the interface and constant from the types.ts utlity and constants/index.ts ([52cafb0](https://github.com/AnirudhAP2k/CorpConnect/commit/52cafb0273c6eabc5499b45f3ecd32e5e4302358))
+* imported the interface from the types.ts utility ([b38a36e](https://github.com/AnirudhAP2k/CorpConnect/commit/b38a36e40525ae4536ebd54f85b5f87332faa25e))
+* imported the interface from the types.ts utlity ([8782eb1](https://github.com/AnirudhAP2k/CorpConnect/commit/8782eb1ff42913145c895c3af08056ec1285f6b6))
+* Pull from master + resolved conflicts ([afebe36](https://github.com/AnirudhAP2k/CorpConnect/commit/afebe361ac36ebd8a6af98bb84a1a477197c421c))
+* Pull from master + resolved conflicts ([1847169](https://github.com/AnirudhAP2k/CorpConnect/commit/184716998a0dd7643616d88a0fbe986525aa89f7))
+* updated CI check for only pull request ([357619e](https://github.com/AnirudhAP2k/CorpConnect/commit/357619e6c9dbd4cc7d705b32452811d59060b32b))
+* **users:** conditionally query organization memberships ([ad40c1c](https://github.com/AnirudhAP2k/CorpConnect/commit/ad40c1c0f079ff58cc159ec4731e958dca24a7cf))
+
+
+### Features
+
+* **ai:** define AI credit limits and feature plan gates ([fcbeeb5](https://github.com/AnirudhAP2k/CorpConnect/commit/fcbeeb5a7582801c9cae008cc3643ec3b66a7fa9))
+* **ai:** implement core quota validation and Server Actions ([1f592f1](https://github.com/AnirudhAP2k/CorpConnect/commit/1f592f14cbb15f3c0b92bdff25086e28d717158f))
+* **api:** gate AI routes with quota check and usage deduction ([27ce75e](https://github.com/AnirudhAP2k/CorpConnect/commit/27ce75e4165c0b9499b373d58bf45c3d8b349d6c))
+* **auth:** add getApiAuth utility for session-agnostic route authentication ([2514f89](https://github.com/AnirudhAP2k/CorpConnect/commit/2514f89e3060884c1b3d513ef550fb847c2b1d4e))
+* **auth:** hash token in revokeToken and update cookie management ([c8d74cc](https://github.com/AnirudhAP2k/CorpConnect/commit/c8d74ccd7d1676d91f47313105eb47f80616e97c))
+* **auth:** inject auth session header and update refresh token cookie key ([69086f6](https://github.com/AnirudhAP2k/CorpConnect/commit/69086f6ed849687f6c7a6920cb236117ba4bd3fd))
+* **auth:** migrate next-auth to setRefreshToken and new cookie key ([db5de7c](https://github.com/AnirudhAP2k/CorpConnect/commit/db5de7ce21c8e23a5dd14e84b422f5e2c8cc0ed6))
+* **billing:** display organization AI credit usage card ([d3cebb8](https://github.com/AnirudhAP2k/CorpConnect/commit/d3cebb82b9c4f19db1bc4ed180f0d38cc5ffffb5))
+* **dashboard:** show AI usage count on dashboard and AI panels ([8369667](https://github.com/AnirudhAP2k/CorpConnect/commit/83696677154c469beee37234f2dc0c8f97c175f5))
+* removed unused types and interfaces + defined the new types and interfaces ([cc484cb](https://github.com/AnirudhAP2k/CorpConnect/commit/cc484cbf8aba7bc2baf5e59e73684dc4016b3c09))
+
 # [1.5.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.4.0...v1.5.0) (2026-06-11)
 
 
