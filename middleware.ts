@@ -14,13 +14,13 @@ import {
 	adminRoutes,
 	organizationRoutes
 } from "@/lib/routes";
-import { setApiAuth } from "./lib/api-auth";
+import { setApiAuth } from "@/lib/api-auth";
+import { AUTH_SESSION_HEADER } from "@/constants";
 
 const { auth } = NextAuth(authConfig);
 
 const SESSION_REFRESH_PATH = "/api/auth/session-refresh";
 
-const AUTH_SESSION_HEADER = "x-auth-session";
 
 export default auth(async (req) => {
 	const { nextUrl } = req;
