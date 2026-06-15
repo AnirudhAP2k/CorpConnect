@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { getGroupById } from "@/data/groups";
 
 export async function GET(
@@ -7,13 +7,13 @@ export async function GET(
     context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orgId = session.user.activeOrganizationId || undefined;
+        const orgId = user.activeOrganizationId || undefined;
 
         const params = await context.params;
         const groupId = params.id;

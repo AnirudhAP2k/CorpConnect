@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { getEventTags } from "@/domain/tags";
@@ -21,8 +21,8 @@ export const PUT = async (
 ) => {
     const { id: eventId } = await params;
 
-    const session = await auth();
-    const userId = session?.user?.id;
+    const user = getApiAuth(req);
+    const userId = user?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Check ownership

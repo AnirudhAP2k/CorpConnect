@@ -13,7 +13,7 @@
  *  - org.subscriptionPlan must currently be FREE (can't double-subscribe)
  */
 
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { getStripe, STRIPE_PRICE_IDS } from "@/lib/payment/stripe";
 import { getRazorpay } from "@/lib/payment/razorpay";
@@ -23,8 +23,8 @@ import { Subscriptions } from "razorpay/dist/types/subscriptions";
 
 export const POST = async (req: NextRequest) => {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const authUser = getApiAuth(req);
+        const userId = authUser?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }

@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { NextRequest, NextResponse } from "next/server";
 import { inviteToGroupAction } from "@/domain/messaging";
 import { z } from "zod";
@@ -12,8 +12,8 @@ export const POST = async (
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 

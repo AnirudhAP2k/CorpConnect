@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 
 export async function POST(
@@ -7,13 +7,13 @@ export async function POST(
     context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orgId = session.user.activeOrganizationId;
+        const orgId = user.activeOrganizationId;
 
         if (!orgId) {
             return NextResponse.json({ error: "No active organization" }, { status: 403 });
@@ -66,13 +66,13 @@ export async function DELETE(
     context: { params: Promise<{ id: string }> }
 ) {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const orgId = session.user.activeOrganizationId;
+        const orgId = user.activeOrganizationId;
 
         if (!orgId) {
             return NextResponse.json({ error: "No active organization" }, { status: 403 });

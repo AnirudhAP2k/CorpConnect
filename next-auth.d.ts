@@ -3,7 +3,7 @@ import { DefaultSession } from "next-auth"
 
 export type ExtendedUser =
     {
-        id: string;
+        id?: string;
     } & DefaultSession["user"] & {
         role?: OrganizationRole | null;
         isAppAdmin?: boolean;

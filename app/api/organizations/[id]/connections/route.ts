@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -23,8 +23,8 @@ export const GET = async (
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: targetOrgId } = await params;
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { searchParams } = req.nextUrl;
     const perspective = searchParams.get("perspective"); // callerOrgId
@@ -61,8 +61,8 @@ export const POST = async (
     { params }: { params: Promise<{ id: string }> }
 ) => {
     const { id: targetOrgId } = await params;
-    const session = await auth();
-    const userId = session?.user?.id;
+    const authUser = getApiAuth(req);
+    const userId = authUser?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     // Validate body

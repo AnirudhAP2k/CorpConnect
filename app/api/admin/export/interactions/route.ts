@@ -1,20 +1,21 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
+import { NextRequest } from "next/server";
 
 // GET /api/admin/export/interactions — org→org interaction graph for AI
-export const GET = async () => {
-    const session = await auth();
-    if (!session?.user?.id) {
+export const GET = async (req: NextRequest) => {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+    const adminUser = await prisma.user.findUnique({
+        where: { id: user.id },
         select: { isAppAdmin: true },
     });
 
-    if (!user?.isAppAdmin) {
+    if (!adminUser?.isAppAdmin) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

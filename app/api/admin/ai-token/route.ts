@@ -1,6 +1,6 @@
-import { auth } from "@/auth";
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { getMasterJwt } from "@/lib/ai-service";
+import { getApiAuth } from "@/lib/api-auth";
 
 /**
  * GET /api/admin/ai-token
@@ -10,14 +10,14 @@ import { getMasterJwt } from "@/lib/ai-service";
  *
  * Only accessible to authenticated users with isAppAdmin === true.
  */
-export const GET = async () => {
-    const session = await auth();
+export const GET = async (req: NextRequest) => {
+    const user = getApiAuth(req);
 
-    if (!session?.user?.id) {
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!session.user.isAppAdmin) {
+    if (!user.isAppAdmin) {
         return NextResponse.json({ error: "Forbidden — app admins only" }, { status: 403 });
     }
 

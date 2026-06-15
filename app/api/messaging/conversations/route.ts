@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { NextRequest, NextResponse } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 
 // ─── GET /api/messaging/conversations ─────────────────────────────────────────
@@ -7,13 +7,14 @@ import { prisma } from "@/lib/db";
 //   - the other org's profile (id, name, logo)
 //   - the last message content + timestamp
 //   - unread count (messages from the other org that are not READ)
-export async function GET() {
-    const session = await auth();
-    if (!session?.user?.id) {
+// export async function GET() {
+export async function GET(req: NextRequest) {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    const activeOrgId = session.user.activeOrganizationId;
+    const activeOrgId = user.activeOrganizationId;
     if (!activeOrgId) {
         return NextResponse.json({ error: "NO_ACTIVE_ORG" }, { status: 403 });
     }
@@ -62,13 +63,13 @@ export async function GET() {
 // ─── POST /api/messaging/conversations ────────────────────────────────────────
 // Creates or retrieves the conversation thread between the active org and a
 // target org. Requires an ACCEPTED connection between the two orgs.
-export async function POST(req: Request) {
-    const session = await auth();
-    if (!session?.user?.id) {
+export async function POST(req: NextRequest) {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
     }
 
-    const activeOrgId = session.user.activeOrganizationId;
+    const activeOrgId = user.activeOrganizationId;
     if (!activeOrgId) {
         return NextResponse.json({ error: "NO_ACTIVE_ORG" }, { status: 403 });
     }
@@ -77,7 +78,7 @@ export async function POST(req: Request) {
     const membership = await prisma.organizationMember.findUnique({
         where: {
             userId_organizationId: {
-                userId: session.user.id,
+                userId: user.id,
                 organizationId: activeOrgId,
             },
         },

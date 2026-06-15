@@ -89,9 +89,9 @@ export const subscriptionPlans = ["PRO", "ENTERPRISE"];
 export const paymentProviders = ["stripe", "razorpay"];
 
 export const PLAN_API_LIMITS: Record<string, number> = {
-    FREE: 100,
-    PRO: 5_000,
-    ENTERPRISE: 50_000,
+    FREE: 10,
+    PRO: 5_00,
+    ENTERPRISE: 1_000,
 };
 
 /**
@@ -194,3 +194,5 @@ export const KYB_DOC_TYPES = new Set([
     "EVENT_DESCRIPTION",
     "GENERAL",
 ]);
+
+export const AUTH_SESSION_HEADER = "x-auth-session";

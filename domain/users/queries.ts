@@ -138,11 +138,13 @@ export async function getFreshSessionUser(
             isAppAdmin: true,
             hasCompletedOnboarding: true,
             activeOrganizationId: true,
-            organizationMemberships: {
-                where: { organizationId: activeOrganizationId ?? "" },
-                select: { role: true },
-                take: 1,
-            },
+            organizationMemberships: activeOrganizationId
+                ? {
+                    where: { organizationId: activeOrganizationId },
+                    select: { role: true },
+                    take: 1,
+                }
+                : { take: 0 },
         },
     });
 

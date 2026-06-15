@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
+import { getApiAuth } from "@/lib/api-auth";
 
 /**
  * PATCH /api/admin/organizations/[id]/verify
@@ -13,12 +13,11 @@ export const PATCH = async (
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) => {
-    const session = await auth();
-    const userId = session?.user?.id;
-    if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const admin = await prisma.user.findUnique({
-        where: { id: userId },
+        where: { id: user.id },
         select: { isAppAdmin: true },
     });
     if (!admin?.isAppAdmin) return NextResponse.json({ error: "Forbidden" }, { status: 403 });

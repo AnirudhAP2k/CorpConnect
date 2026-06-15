@@ -9,21 +9,20 @@
  * Returns: { url: string }
  */
 
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import { NextRequest, NextResponse } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
 
 export const POST = async (req: NextRequest) => {
     try {
-        const session = await auth();
-        const userId = session?.user?.id;
-        if (!userId) {
+        const authUser = getApiAuth(req);
+        if (!authUser?.id) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
         const user = await prisma.user.findUnique({
-            where: { id: userId },
+            where: { id: authUser.id },
             select: { activeOrganizationId: true },
         });
         if (!user?.activeOrganizationId) {
@@ -33,7 +32,7 @@ export const POST = async (req: NextRequest) => {
         const orgId = user.activeOrganizationId;
 
         const membership = await prisma.organizationMember.findUnique({
-            where: { userId_organizationId: { userId, organizationId: orgId } },
+            where: { userId_organizationId: { userId: authUser.id, organizationId: orgId } },
             select: { role: true },
         });
         if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {

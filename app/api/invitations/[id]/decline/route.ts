@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -11,9 +11,9 @@ export const POST = async (
     try {
         const { id: invitationId } = await params;
 
-        const session = await auth();
-        const userId = session?.user?.id;
-        const userEmail = session?.user?.email;
+        const user = getApiAuth(req);
+        const userId = user?.id;
+        const userEmail = user?.email;
 
         if (!userId || !userEmail) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

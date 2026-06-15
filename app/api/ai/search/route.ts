@@ -1,8 +1,8 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { aiService } from "@/lib/ai-service";
 import { checkAiQuota, deductAiUsage } from "@/domain/ai";
+import { getApiAuth } from "@/lib/api-auth";
 
 /**
  * POST /api/ai/search
@@ -13,14 +13,14 @@ import { checkAiQuota, deductAiUsage } from "@/domain/ai";
  * Falls back to empty results if AI service unavailable.
  */
 export const POST = async (req: NextRequest) => {
-    const session = await auth();
-    if (!session?.user?.id) {
+    const authUser = getApiAuth(req);
+    if (!authUser?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
     // Resolve the user's active org for quota gating
     const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+        where: { id: authUser.id },
         select: { activeOrganizationId: true },
     });
     if (!user?.activeOrganizationId) {

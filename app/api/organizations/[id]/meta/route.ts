@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { OrgKybSchema } from "@/lib/validation";
 
@@ -15,8 +15,8 @@ export async function PATCH(
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await auth();
-    const userId = session?.user?.id;
+    const user = getApiAuth(req);
+    const userId = user?.id;
     if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id: orgId } = await params;
@@ -63,7 +63,7 @@ export async function PATCH(
     await prisma.jobQueue.create({
         data: {
             type: "VERIFY_ORG_LEVEL_2",
-            payload: { orgId, creatorEmail: session?.user?.email ?? "unknown" },
+            payload: { orgId, creatorEmail: user?.email ?? "unknown" },
         },
     });
 
@@ -75,11 +75,11 @@ export async function PATCH(
  * Returns current OrganizationMeta fields (for pre-filling the form).
  */
 export async function GET(
-    _req: NextRequest,
+    req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
 ) {
-    const session = await auth();
-    if (!session?.user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const user = getApiAuth(req);
+    if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
     const { id: orgId } = await params;
 

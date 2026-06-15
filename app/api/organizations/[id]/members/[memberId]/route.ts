@@ -1,4 +1,4 @@
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
@@ -26,8 +26,8 @@ export const PUT = async (
             );
         }
 
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -149,8 +149,8 @@ export const DELETE = async (
     try {
         const { id: organizationId, memberId } = await params;
 
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
 
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

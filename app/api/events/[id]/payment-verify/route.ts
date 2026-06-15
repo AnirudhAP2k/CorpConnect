@@ -9,7 +9,7 @@
  * The webhook is authoritative; this is a fallback for redirect-based confirmation.
  */
 
-import { auth } from "@/auth";
+import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import { getRazorpay } from "@/lib/payment/razorpay";
@@ -22,8 +22,8 @@ export const POST = async (
     try {
         const { id: eventId } = await params;
 
-        const session = await auth();
-        const userId = session?.user?.id;
+        const user = getApiAuth(req);
+        const userId = user?.id;
         if (!userId) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }

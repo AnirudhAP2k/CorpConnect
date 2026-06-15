@@ -1,24 +1,24 @@
-import { auth } from "@/auth";
 import { prisma } from "@/lib/db";
 import { NextResponse } from "next/server";
+import { NextRequest } from "next/server";
+import { getApiAuth } from "@/lib/api-auth";
 
 // GET /api/admin/export/preferences — per-user preference signals for AI
-export const GET = async () => {
-    const session = await auth();
-    if (!session?.user?.id) {
+export const GET = async (req: NextRequest) => {
+    const user = getApiAuth(req);
+    if (!user?.id) {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
+    const adminUser = await prisma.user.findUnique({
+        where: { id: user.id },
         select: { isAppAdmin: true },
     });
 
-    if (!user?.isAppAdmin) {
+    if (!adminUser?.isAppAdmin) {
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // Participation-based signals (strong: actually attended)
     const participations = await prisma.eventParticipation.findMany({
         select: {
             userId: true,
