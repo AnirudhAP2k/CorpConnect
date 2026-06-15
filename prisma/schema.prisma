@@ -897,17 +897,17 @@ model EventReport {
 }
 
 model EventTask {
-  id              String    @id @default(uuid()) @db.Uuid
-  pitchId         String    @db.Uuid
-  title           String
-  description     String?   @db.Text
-  dueDayOffset    Int       @default(0)
-  assignedRole    String?
-  priority        Int       @default(1)
-  isCompleted     Boolean   @default(false)
-  completedAt     DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String    @id @default(uuid()) @db.Uuid
+  pitchId      String    @db.Uuid
+  title        String
+  description  String?   @db.Text
+  dueDayOffset Int       @default(0)
+  assignedRole String?
+  priority     Int       @default(1)
+  isCompleted  Boolean   @default(false)
+  completedAt  DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
 
   pitch EventPitch @relation(fields: [pitchId], references: [id], onDelete: Cascade)
 
