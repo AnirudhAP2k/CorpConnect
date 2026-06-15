@@ -38,8 +38,31 @@ import {
     AISearchResult,
     AISemanticSearchResponse,
     AISentimentRequest,
-    AISentimentResult
+    AISentimentResult,
+    AIEventBrief
 } from "@/lib/types";
+
+export type {
+    AIChatBrainstormBriefResponse,
+    AIChatHistoryMessage,
+    AIChatRequest,
+    AIChatResponse,
+    AIEventSummaryRequest,
+    AIEventSummaryResult,
+    AIEventTasklistRequest,
+    AIEventTasklistResponse,
+    AIGeneratedContent,
+    AIMatchmakingReason,
+    AIRecommendedEvent,
+    AIRecommendedOrg,
+    AIRecommendEventsResponse,
+    AIRecommendOrgsResponse,
+    AISearchResult,
+    AISemanticSearchResponse,
+    AISentimentRequest,
+    AISentimentResult,
+    AIEventBrief
+};
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
 const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
