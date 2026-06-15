@@ -80,7 +80,7 @@ export const SESSION_COOKIE_NAME =
         ? "__Secure-authjs.session-token"
         : "authjs.session-token";
 
-export const JWT_MAX_AGE_SECONDS = 60;
+export const JWT_MAX_AGE_SECONDS = 15 * 60;
 
 export const JWT_REFRESH_EARLY_MS = 2 * 60 * 1000;
 
@@ -194,3 +194,5 @@ export const KYB_DOC_TYPES = new Set([
     "EVENT_DESCRIPTION",
     "GENERAL",
 ]);
+
+export const AUTH_SESSION_HEADER = "x-auth-session";
