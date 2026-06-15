@@ -2,7 +2,7 @@
 
 > **AI-Powered B2B Collaboration & Networking Graph Platform**
 >
-> CorpConnect is a next-generation multi-tenant platform designed to help organizations discover, connect, and collaborate through structured relationship graphs, pre-event matchmaking, and real-time interaction systems. 
+> CorpConnect is a next-generation multi-tenant platform designed to help organizations discover, connect, and collaborate through structured relationship graphs, pre-event matchmaking, real-time messaging, and AI-assisted operational workflows.
 
 ---
 
@@ -15,6 +15,7 @@ The platform is architected around an **Organization-First Networking Graph**:
 * **Intelligent Matchmaking**: Vector search similarity analyses identify complementary organizations and propose connections.
 * **Pre-Event Coordination**: Attendees can request private 1-on-1 business meetings prior to events starting.
 * **Interactive Live Collaboration**: Virtual panels feature real-time WebRTC streams with interactive hand-raising queues, chats, and sentiment polling.
+* **B2B Discovery**: A rich organization directory allowing businesses to browse and filter by industry, size, location, and tags.
 
 ---
 
@@ -33,9 +34,9 @@ graph TD
     end
     
     subgraph Microservices ["Microservices Layer"]
-        WSService["ws-service (Node/Socket.io)<br/>[Real-time Chat & In-Event Interactivity]"]
+        WSService["ws-service (Node/Socket.io)<br/>[Real-time Direct & Group Chat]"]
         LVService["lv-service (Node/Express/LiveKit)<br/>[Virtual Rooms management]"]
-        AIService["ai-service (Python/FastAPI)<br/>[Recommendations, Semantic Search, pgvector]"]
+        AIService["ai-service (Python/FastAPI)<br/>[Recommendations, Brainstorming, pgvector]"]
     end
     
     subgraph DataStorage ["Data & Cache Layer"]
@@ -61,7 +62,7 @@ graph TD
     LVService --> DB
     
     WSService <-->|Pub/Sub Adapter| Redis
-    NextServer -->|Embedding Jobs| AIService
+    NextServer -->|Embedding & Brainstorm Jobs| AIService
     NextServer -->|Payment Processing| Stripe
     NextServer -->|Logo Assets| Cloudinary
     LVService -->|Mint Tokens & Admin Rooms| LiveKitCloud
@@ -69,9 +70,9 @@ graph TD
 
 ### Services Breakdown
 1. **Next.js Core Web App**: Main web portal handling server-side rendering (SSR), incremental static regeneration (ISR) for public directories, form validation (Zod), and secure mutations (Server Actions) decoupled into a Domain-Driven `/domain` structure.
-2. **WebSocket Service (`ws-service`)**: A stateful Node.js + Socket.io service handling real-time messaging, typing indicators, read receipts, and in-event interactivity (emojis, raise-hand queues). Scales horizontally using a Redis pub/sub adapter.
+2. **WebSocket Service (`ws-service`)**: A stateful Node.js + Socket.io service handling real-time direct messaging, group chat, typing indicators, read receipts, and in-event interactivity (emojis, raise-hand queues). Scales horizontally using a Redis pub/sub adapter.
 3. **LiveKit Proxy Service (`lv-service`)**: Node.js Express service wrapping the LiveKit Server SDK. Generates JWT video room tokens, enforces event attendance permissions, and tracks active meeting durations.
-4. **AI Microservice (`ai-service`)**: Python/FastAPI service embedding data utilizing `all-MiniLM-L6-v2` and performing vector calculations (`pgvector`) to recommend events, suggest matching partners, search semantically, and perform feedback sentiment analyses.
+4. **AI Microservice (`ai-service`)**: Python/FastAPI service embedding data utilizing `all-MiniLM-L6-v2` and performing vector calculations (`pgvector`) to recommend events, suggest matching partners, search semantically, generate event brainstorming briefs, and perform feedback sentiment analyses.
 
 ---
 
@@ -91,9 +92,9 @@ CorpConnect enforces multi-layered tier gates across database queries, APIs, and
 | **AI Partner & Event Recommendations** | ❌ | ✅ | ✅ |
 | **External API Key Credentials** | ❌ | ✅ | ✅ |
 | **Real-time WebRTC Virtual Rooms** | ❌ | ✅ | ✅ |
-| **WhatsApp-style Group Chats** | ❌ | ❌ | ✅ |
-| **AI Planner & Event Pitching Flow** | ❌ | ❌ | ✅ |
-| **Post-Event Sentiment & Performance Reports**| ❌ | ❌ | ✅ |
+| **WhatsApp-style Group Chats** | ❌ | ❌ | ✅ (Invitation-only) |
+| **AI Brainstorming & Event Pitching** | ❌ | ❌ | ✅ (Chat + Brief Flow) |
+| **Post-Event Sentiment & Reports**| ❌ | ❌ | ✅ (Aggregated & AI Summary) |
 | **Semantic Search (`pgvector`)** | ❌ | ❌ | ✅ |
 | **Organization Webhook Delivery** | ❌ | ❌ | ✅ (With HMAC Signature) |
 
@@ -102,7 +103,8 @@ CorpConnect enforces multi-layered tier gates across database queries, APIs, and
 ## 🔒 Governance & Constraints
 
 To keep organizational workspaces compliant, the platform enforces strict business rules at the domain layer:
-* **Role Governance**: Organizations are restricted to **exactly 1 Owner** and a **maximum of 5 Admins**. Promotions to OWNER must run through the transactional `transferOrganizationOwnershipAction` to demote the current owner and promote the target atomically.
+* **Role Governance**: Organizations are restricted to **exactly 1 Owner** and a **maximum of 5 Admins** to maintain operational security.
+* **Ownership Transfer**: Promotions to OWNER must run through the transactional `transferOrganizationOwnershipAction` to demote the current owner to ADMIN and promote the target atomically.
 * **Abuse Prevention**: Free tier organizations are blocked from publishing paid event checkouts, and a 2% (Pro) or 1% (Enterprise) platform commission fee is applied at payment checkouts.
 
 ---
@@ -112,19 +114,19 @@ To keep organizational workspaces compliant, the platform enforces strict busine
 ```text
 /
 ├── actions/             # Legacy and shared server actions
-├── ai-service/          # Python FastAPI microservice (embeddings, recommendation engine)
+├── ai-service/          # Python FastAPI microservice (embeddings, recommendation engine, chat briefs)
 ├── app/                 # Next.js App Router (pages, middleware, and API routes)
 ├── components/          # React components structured by domain (shared, billing, messaging, virtual)
 ├── constants/           # Platform constants, menu links, metadata
 ├── data/                # Data Access Layer (DAL) - database reads with permission isolation
 ├── docs/                # Feature specs, implementation plans, and architecture walkthroughs
 ├── domain/              # DDD / Vertical Slice Layer (Actions, Queries, Validation, Types)
-│   ├── events/
-│   ├── messaging/
+│   ├── events/          # Event lifecycle queries & actions
+│   ├── messaging/       # Direct & Group messaging operations
 │   ├── notifications/   # Laravel-style notification dispatcher with multi-adapter system
-│   ├── organizations/
+│   ├── organizations/   # Org profile, onboarding, and connection workflows
 │   ├── pitches/         # Event pitching lifecycle schemas & actions
-│   └── tags/
+│   └── tags/            # Unified tag system queries & actions
 ├── hooks/               # Client-side hooks (Socket.io subscriptions, intersection observers)
 ├── lib/                 # Infrastructure clients (Prisma, payment gateways, mailer, job queues)
 ├── lv-service/          # LiveKit WebRTC rooms management gateway microservice
@@ -192,7 +194,7 @@ uvicorn main:app --reload --port 8000
 ## 📧 Notification System
 
 CorpConnect implements a **Factory + Adapter** notification pattern. Job handlers enqueue events (like `SEND_EVENT_REMINDER` or `VIRTUAL_ROOM_OPENED`) which resolve active notification adapters concurrently:
-* **Email Adapter**: Relies on Nodemailer/SMTP and logs results in the `EmailLog` table for auditing.
+* **Email Adapter**: Relies on Nodemailer/SMTP and logs results in the `EmailLog` table for auditing and tracking.
 * **In-App Adapter**: Writes directly to the `Notification` table.
 * **Slack / Google Chat / SMS Adapters**: Hook into outgoing chat webhook formats.
 
@@ -204,10 +206,26 @@ Add channels by creating an adapter under `domain/notifications/adapters/` and l
 
 Copy the `.env.example` templates in the root, `ws-service`, `lv-service`, and `ai-service` folders. Key environment variables include:
 
-* **Next.js**: `DATABASE_URL`, `AUTH_SECRET`, `AI_SERVICE_MASTER_KEY`, `STRIPE_SECRET_KEY`, `RAZORPAY_KEY_SECRET`, `LIVEKIT_API_KEY`, `NEXT_PUBLIC_WS_URL`.
-* **AI Service**: `DATABASE_URL` (uses `asyncpg` scheme: `postgresql+asyncpg://...`), `MASTER_KEY`.
-* **ws-service**: `DATABASE_URL`, `REDIS_URL`, `AUTH_SECRET`.
-* **lv-service**: `DATABASE_URL`, `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`.
+* **Next.js Core**:
+  * `DATABASE_URL`: PostgreSQL connection string.
+  * `AUTH_SECRET`: NextAuth session encryption secret.
+  * `BASE_URL`: Public app URL (e.g. `http://localhost:3000`).
+  * `NEXT_PUBLIC_WS_URL`: WebSocket URL (e.g. `http://localhost:4000`).
+  * `AI_SERVICE_URL` & `AI_SERVICE_MASTER_KEY`: AI service endpoint and authorization token.
+  * `STRIPE_SECRET_KEY` & `STRIPE_PUBLISHABLE_KEY`: Payment integration with Stripe.
+  * `RAZORPAY_KEY_ID` & `RAZORPAY_KEY_SECRET`: Payment integration with Razorpay.
+  * `NEXT_PUBLIC_LIVEKIT_URL`: Real-time video/audio room provider.
+  * `SMTP_SERVER_HOST`, `SMTP_SERVER_USERNAME`, `SMTP_SERVER_PASSWORD`: Outgoing email configuration.
+* **AI Service**:
+  * `DATABASE_URL`: Async-compatible PostgreSQL scheme (e.g. `postgresql+asyncpg://...`).
+  * `MASTER_KEY`: API authentication key.
+* **ws-service**:
+  * `DATABASE_URL`: PostgreSQL connection string.
+  * `REDIS_URL`: Redis backend URL.
+  * `AUTH_SECRET`: SHA token matching the Next.js core session secret.
+* **lv-service**:
+  * `DATABASE_URL`: PostgreSQL connection string.
+  * `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`: LiveKit server authorization.
 
 ---
 
