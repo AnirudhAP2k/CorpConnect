@@ -1,3 +1,15 @@
+# [1.9.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.8.0...v1.9.0) (2026-06-16)
+
+
+### Bug Fixes
+
+* updated the link for Login for Access button in home page ([a99924d](https://github.com/AnirudhAP2k/CorpConnect/commit/a99924d35ca4874fc607e236852eacd3737b9b4a))
+
+
+### Features
+
+* replace AI coming soon placeholder with live features panel ([a92734d](https://github.com/AnirudhAP2k/CorpConnect/commit/a92734d570cc421a272d9145925555afd8ff1331))
+
 # [1.8.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.7.0...v1.8.0) (2026-06-16)
 
 
