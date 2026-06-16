@@ -273,7 +273,7 @@ export default async function Home() {
                                     <Link href="/sign-up">Apply for Access</Link>
                                 </Button>
                                 <Button asChild variant="outline" className="border border-nx-on-primary-container text-white px-12 py-7 rounded-xl font-headline font-bold text-base hover:bg-white/5 transition-all outline-none bg-transparent">
-                                    <Link href="#pricing">View Membership Tiers</Link>
+                                    <Link href="/pricing">View Membership Tiers</Link>
                                 </Button>
                             </div>
                         </div>

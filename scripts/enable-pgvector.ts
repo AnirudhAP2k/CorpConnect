@@ -22,19 +22,29 @@ async function main() {
     await prisma.$executeRawUnsafe(`CREATE EXTENSION IF NOT EXISTS vector;`);
     console.log("  ✅ vector extension enabled");
 
-    // 2. Add embedding columns (idempotent — IF NOT EXISTS)
-    await prisma.$executeRawUnsafe(
-        `ALTER TABLE "Events" ADD COLUMN IF NOT EXISTS embedding vector(384);`
-    );
-    console.log("  ✅ Events.embedding column added");
+    // 2. Drop existing indexes to avoid dependency errors when altering/dropping columns
+    console.log("  ⏳ Dropping old indexes if they exist...");
+    await prisma.$executeRawUnsafe(`DROP INDEX IF EXISTS events_embedding_idx;`);
+    await prisma.$executeRawUnsafe(`DROP INDEX IF EXISTS org_embedding_idx;`);
+    await prisma.$executeRawUnsafe(`DROP INDEX IF EXISTS org_document_embedding_idx;`);
 
-    await prisma.$executeRawUnsafe(
-        `ALTER TABLE "Organization" ADD COLUMN IF NOT EXISTS embedding vector(384);`
-    );
-    console.log("  ✅ Organization.embedding column added");
+    // 3. Drop and recreate embedding columns as vector(384)
+    console.log("  ⏳ Recreating embedding columns as vector(384)...");
+    
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Events" DROP COLUMN IF EXISTS embedding;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Events" ADD COLUMN embedding vector(384);`);
+    console.log("  ✅ Events.embedding column set to vector(384)");
 
-    // 3. IVFFlat indexes (cosine distance — best for normalised embeddings)
-    //    lists = 100 is appropriate for up to ~1M rows; reduce to 10 for small datasets
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Organization" DROP COLUMN IF EXISTS embedding;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "Organization" ADD COLUMN embedding vector(384);`);
+    console.log("  ✅ Organization.embedding column set to vector(384)");
+
+    await prisma.$executeRawUnsafe(`ALTER TABLE "OrgDocument" DROP COLUMN IF EXISTS embedding;`);
+    await prisma.$executeRawUnsafe(`ALTER TABLE "OrgDocument" ADD COLUMN embedding vector(384);`);
+    console.log("  ✅ OrgDocument.embedding column set to vector(384)");
+
+    // 4. IVFFlat indexes (cosine distance — best for normalised embeddings)
+    console.log("  ⏳ Recreating IVFFlat indexes...");
     await prisma.$executeRawUnsafe(`
         CREATE INDEX IF NOT EXISTS events_embedding_idx
         ON "Events"
@@ -50,6 +60,14 @@ async function main() {
         WITH (lists = 100);
     `);
     console.log("  ✅ Organization embedding IVFFlat index created");
+
+    await prisma.$executeRawUnsafe(`
+        CREATE INDEX IF NOT EXISTS org_document_embedding_idx
+        ON "OrgDocument"
+        USING ivfflat (embedding vector_cosine_ops)
+        WITH (lists = 100);
+    `);
+    console.log("  ✅ OrgDocument embedding IVFFlat index created");
 
     console.log("\n🎉 pgvector setup complete!");
     console.log("   Next step: start the AI service to generate embeddings.");

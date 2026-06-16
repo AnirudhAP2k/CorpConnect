@@ -48,8 +48,8 @@ const EventBaseSchema = z.object({
     }),
     description: z.string().min(5, {
         message: "Description should be at least 5 characters"
-    }).max(1000, {
-        message: "Description should be at most 1000 characters"
+    }).max(10000, {
+        message: "Description should be at most 10000 characters"
     }),
     location: z.string().min(3, {
         message: "Location should be at least 3 characters"

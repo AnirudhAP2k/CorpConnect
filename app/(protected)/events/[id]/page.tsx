@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign, Video } from "lucide-react";
 import { format } from "date-fns";
 import Link from "next/link";
-import { getEventById, getMeetingRequestsForEvent, getMatchingOrgsForEvent, getEvents } from "@/domain/events";
+import { getEventById, getMeetingRequestsForEvent, getMatchingOrgsForEvent } from "@/domain/events";
 import { getPublicUserById } from "@/domain/users";
 import { prisma } from "@/lib/db";
 import JoinEventButton from "@/components/shared/JoinEventButton";
@@ -21,26 +21,6 @@ import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { getUserFeedback } from "@/actions/feedback.actions";
 import { VirtualRoomList } from "@/components/virtual/VirtualRoomList";
 import { JoinVirtualButton } from "@/components/virtual/JoinVirtualButton";
-
-// ─── SSG: pre-render the first page of upcoming public events at build time ──
-export async function generateStaticParams() {
-    try {
-        const { events } = await getEvents({
-            q: "",
-            visibility: "PUBLIC",
-            upcoming: true,
-            page: 1,
-            limit: 30,
-        });
-        return events.map((e) => ({ id: e.id }));
-    } catch {
-        return [];
-    }
-}
-
-// ─── ISR: revalidate on-demand via revalidateTag('events') from Server Actions
-// dynamicParams = true (Next.js default) ensures new events are generated on first visit
-export const revalidate = 300; // fallback time-based revalidation every 5 minutes
 
 interface EventDetailPageProps {
     params: Promise<{
