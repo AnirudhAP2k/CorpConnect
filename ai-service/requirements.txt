@@ -10,7 +10,9 @@ asyncpg==0.29.0
 pgvector==0.3.2
 
 # ML / Embeddings
-sentence-transformers==3.0.1
+# sentence-transformers==3.0.1
+
+# Numpy
 numpy==2.4.6
 
 # Auth
@@ -30,7 +32,7 @@ httpx==0.27.0
 openai==1.35.0
 
 # RAG pipeline utilities
-langchain-core==0.2.0
+# langchain-core==0.2.0
 
 # Token counting for safe prompt construction
 tiktoken==0.7.0
