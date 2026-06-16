@@ -270,7 +270,7 @@ export default async function Home() {
                             <p className="text-nx-on-primary-container text-lg mb-12">CorpConnect is more than a platform; it&apos;s a competitive advantage. Apply for membership today to begin your integration.</p>
                             <div className="flex flex-col sm:flex-row justify-center gap-6">
                                 <Button asChild className="bg-white text-nx-primary px-12 py-7 rounded-xl font-headline font-bold text-base shadow-xl hover:scale-[1.02] transition-transform duration-200">
-                                    <Link href="/sign-up">Apply for Access</Link>
+                                    <Link href="/api/auth/login">Login for Access</Link>
                                 </Button>
                                 <Button asChild variant="outline" className="border border-nx-on-primary-container text-white px-12 py-7 rounded-xl font-headline font-bold text-base hover:bg-white/5 transition-all outline-none bg-transparent">
                                     <Link href="/pricing">View Membership Tiers</Link>
