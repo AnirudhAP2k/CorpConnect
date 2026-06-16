@@ -1,3 +1,10 @@
+# [1.7.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.6.1...v1.7.0) (2026-06-16)
+
+
+### Features
+
+* **ai-service:** integrate HuggingFace Serverless Inference API for embeddings ([e8f006a](https://github.com/AnirudhAP2k/CorpConnect/commit/e8f006ac18bca205d919a66ce8f25ed39dccdb8e))
+
 ## [1.6.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.6.0...v1.6.1) (2026-06-15)
 
 
