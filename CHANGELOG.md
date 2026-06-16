@@ -1,3 +1,17 @@
+# [1.8.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.7.0...v1.8.0) (2026-06-16)
+
+
+### Bug Fixes
+
+* remove generateStaticParams to fix dynamic server usage ([7eda8f4](https://github.com/AnirudhAP2k/CorpConnect/commit/7eda8f42dc176ccbb3aa713483938e8b21b1db7c))
+* update home page pricing link to /pricing ([9c49937](https://github.com/AnirudhAP2k/CorpConnect/commit/9c499376fea5bcf66ed628b66100e7bef61bdbee))
+
+
+### Features
+
+* change embedding dimensions to 384 and update pgvector setup ([b4219b8](https://github.com/AnirudhAP2k/CorpConnect/commit/b4219b880f7f348ce6cc69054a37317aa23ec041))
+* increase event description maximum limit to 10000 ([2f591ec](https://github.com/AnirudhAP2k/CorpConnect/commit/2f591ec1c2ebfe3794697f3ac70bc86e63c34d99))
+
 # [1.7.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.6.1...v1.7.0) (2026-06-16)
 
 
