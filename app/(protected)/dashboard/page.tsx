@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Building2, Calendar, TrendingUp, Zap, Star, ArrowRight } from "lucide-react";
+import { Building2, Calendar, TrendingUp, Zap, Star, ArrowRight, Sparkles, MessageCircle, PenTool, Bot } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import EventRow from "@/components/dashboard/EventRow";
 import { getUserDashboardStats, getRecommendedEvents } from "@/data/dashboard";
@@ -239,21 +239,97 @@ const DashboardPage = async () => {
                     </Card>
                 )}
 
-                {/* AI Panel */}
-                <Card className="border-dashed border-2 border-primary/30 bg-primary/5">
-                    <CardContent className="flex flex-col sm:flex-row items-center gap-4 py-6">
-                        <div className="h-12 w-12 rounded-xl bg-primary/20 flex items-center justify-center flex-shrink-0">
-                            <Zap className="h-6 w-6 text-primary" />
+                {/* AI Features Panel */}
+                <Card className="border border-primary/20 bg-gradient-to-br from-primary/5 via-white to-violet-50/30">
+                    <CardHeader className="pb-3">
+                        <div className="flex items-center justify-between">
+                            <CardTitle className="flex items-center gap-2">
+                                <div className="h-8 w-8 rounded-lg bg-primary/15 flex items-center justify-center">
+                                    <Sparkles className="h-4 w-4 text-primary" />
+                                </div>
+                                AI-Powered Features
+                            </CardTitle>
+                            <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                                Live
+                            </Badge>
                         </div>
-                        <div className="flex-1 text-center sm:text-left">
-                            <h3 className="font-semibold text-base">AI Recommendations Coming Soon</h3>
-                            <p className="text-sm text-muted-foreground mt-1">
-                                Personalized event suggestions and smart organization matching — powered by our Python/FastAPI AI microservice planned for Phase 7.
-                            </p>
+                        <CardDescription>
+                            Intelligent tools to enhance your event management and networking
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            {/* RAG Chat */}
+                            <div className="flex items-start gap-3 p-3 rounded-lg border border-transparent hover:border-primary/15 hover:bg-primary/[0.03] transition-colors">
+                                <div className="h-9 w-9 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                                    <MessageCircle className="h-4 w-4 text-violet-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-medium text-sm">AI Chat Assistant</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Ask questions about any event or organization — answers grounded in real documents via RAG.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* AI Writer */}
+                            <div className="flex items-start gap-3 p-3 rounded-lg border border-transparent hover:border-primary/15 hover:bg-primary/[0.03] transition-colors">
+                                <div className="h-9 w-9 rounded-lg bg-blue-100 flex items-center justify-center flex-shrink-0">
+                                    <PenTool className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-medium text-sm">AI Writer</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Generate polished event descriptions from rough drafts, using your org&apos;s brand context.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Smart Recommendations */}
+                            <div className="flex items-start gap-3 p-3 rounded-lg border border-transparent hover:border-primary/15 hover:bg-primary/[0.03] transition-colors">
+                                <div className="h-9 w-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                                    <Zap className="h-4 w-4 text-amber-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-medium text-sm">Smart Recommendations</p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Personalized event and organization suggestions powered by vector embeddings.
+                                    </p>
+                                </div>
+                            </div>
+
+                            {/* Enterprise Brainstorming */}
+                            <div className="flex items-start gap-3 p-3 rounded-lg border border-transparent hover:border-primary/15 hover:bg-primary/[0.03] transition-colors">
+                                <div className="h-9 w-9 rounded-lg bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                                    <Bot className="h-4 w-4 text-emerald-600" />
+                                </div>
+                                <div className="min-w-0">
+                                    <p className="font-medium text-sm flex items-center gap-1.5">
+                                        AI Event Brainstorming
+                                        <Badge variant="outline" className="text-[10px] h-4 px-1.5 text-primary border-primary/30">Enterprise</Badge>
+                                    </p>
+                                    <p className="text-xs text-muted-foreground mt-0.5">
+                                        Brainstorm event ideas with AI, generate briefs, and pitch them to your org admin.
+                                    </p>
+                                </div>
+                            </div>
                         </div>
-                        <Badge variant="outline" className="flex-shrink-0 text-primary border-primary/40">
-                            Phase 7
-                        </Badge>
+
+                        {/* Quick action links */}
+                        <div className="flex flex-wrap items-center gap-2 mt-4 pt-3 border-t border-primary/10">
+                            <Link href="/events">
+                                <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 text-primary hover:text-primary hover:bg-primary/10">
+                                    Browse Events <ArrowRight className="h-3 w-3" />
+                                </Button>
+                            </Link>
+                            {userWithOrg?.organization && (
+                                <Link href={`/organizations/${userWithOrg.activeOrganizationId}/ai-planner`}>
+                                    <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 text-primary hover:text-primary hover:bg-primary/10">
+                                        <Sparkles className="h-3 w-3" /> AI Brainstorming
+                                    </Button>
+                                </Link>
+                            )}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
