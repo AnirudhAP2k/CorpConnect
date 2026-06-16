@@ -12,7 +12,14 @@ class Settings(BaseSettings):
     MASTER_KEY: str                    # Shared secret for master JWT
 
     # Embedding model (all-MiniLM-L6-v2 — stays unchanged)
-    MODEL_NAME: str = "all-MiniLM-L6-v2"
+    # MODEL_NAME: str = "all-MiniLM-L6-v2"
+
+    # ─── HuggingFace Serverless Inference API (Embeddings) ────────────────────
+    # Free API for sentence-transformers/all-MiniLM-L6-v2 (384 dims, no local model)
+    HUGGINGFACE_API_KEY: str = ""
+
+    # Shown in /health endpoint
+    MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2 (HF API)"
 
     # Redis (optional — cache is disabled if REDIS_URL is not set)
     REDIS_URL: str = ""
