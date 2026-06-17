@@ -16,8 +16,7 @@ import { prisma } from "@/lib/db";
 import { getStripe } from "@/lib/payment/stripe";
 import type { SubscriptionPlan } from "@prisma/client";
 import { PLAN_API_LIMITS } from "@/constants";
-import cryptoJs from "crypto-js";
-import { hashToken } from "@/lib/hash";
+import { syncCredentialTier, ensureCredential } from "@/domain/api-credentials";
 
 export const POST = async (req: NextRequest) => {
     const stripe = getStripe();
@@ -118,36 +117,9 @@ async function handleCheckoutCompleted(session: any) {
                 currentPeriodEnd: periodEnd,
             },
         });
-        // Sync ApiCredential tier + limits
-        const existing = await tx.apiCredential.findUnique({ where: { organizationId: orgId } });
-        if (existing) {
-            await tx.apiCredential.update({
-                where: { organizationId: orgId },
-                data: { tier: plan, usageLimit },
-            });
-        } else {
-            const rawKey = `evtly_live_${cryptoJs.lib.WordArray.random(32).toString(cryptoJs.enc.Hex)}`;
-            const prefix = rawKey.slice(0, 18);
-            const hashed = hashToken(rawKey);
 
-            await prisma.apiCredential.upsert({
-                where: { organizationId: orgId },
-                update: {
-                    apiKey: hashed,
-                    apiKeyPrefix: prefix,
-                    tier: plan,
-                    usageLimit,
-                    usageCount: 0,
-                },
-                create: {
-                    organizationId: orgId,
-                    apiKey: hashed,
-                    apiKeyPrefix: prefix,
-                    tier: plan,
-                    usageLimit,
-                },
-            });
-        }
+        // Sync ApiCredential tier + limits via domain layer
+        await ensureCredential(orgId, plan, usageLimit, tx);
     });
 
     console.log(`[stripe-webhook] ✓ Activated ${plan} for org ${orgId} (API limit → ${usageLimit})`);
@@ -228,16 +200,13 @@ async function handleSubscriptionDeleted(subscription: any) {
                 subscriptionExpiresAt: null,
             },
         });
-        // Downgrade ApiCredential back to FREE limits
-        const existing = await tx.apiCredential.findUnique({
-            where: { organizationId: orgSub.organizationId },
-        });
-        if (existing) {
-            await tx.apiCredential.update({
-                where: { organizationId: orgSub.organizationId },
-                data: { tier: "FREE", usageLimit: PLAN_API_LIMITS.FREE },
-            });
-        }
+
+        // Downgrade ApiCredential back to FREE limits via domain layer
+        await syncCredentialTier({
+            organizationId: orgSub.organizationId,
+            tier: "FREE",
+            usageLimit: PLAN_API_LIMITS.FREE,
+        }, tx);
     });
 
     console.log(`[stripe-webhook] ✓ Downgraded org ${orgSub.organizationId} to FREE`);
@@ -255,7 +224,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
                     event: {
                         include: {
                             organization: {
-                                include: { apiCredential: true },
+                                include: { apiCredentials: { where: { status: "ACTIVE" }, take: 1 } },
                             },
                         },
                     },
@@ -306,6 +275,12 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
     ];
 
     if (orgId && participation.event.organization?.paymentWebhookUrl) {
+
+        const org = await prisma.organization.findUnique({
+            where: { id: orgId },
+            select: { paymentWebhookUrl: true, apiCredentials: { where: { status: "ACTIVE" }, take: 1 } },
+        });
+
         jobs.push({
             type: "ORG_WEBHOOK_DELIVERY",
             payload: {
@@ -315,8 +290,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: any) {
                 currency: eventPayment.currency,
                 payerUserId: participation.userId,
                 payerOrgId: participation.organizationId ?? null,
-                webhookUrl: participation.event.organization.paymentWebhookUrl,
-                orgApiKey: participation.event.organization?.apiCredential?.apiKey ?? null,
+                webhookUrl: org?.paymentWebhookUrl ?? null,
+                orgApiKey: org?.apiCredentials?.[0]?.apiKey ?? null,
             },
         });
     }
