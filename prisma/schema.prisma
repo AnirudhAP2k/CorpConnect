@@ -209,7 +209,7 @@ model Organization {
   subscriptionExpiresAt   DateTime?
   paymentWebhookUrl       String?
   preferredCurrency       String                       @default("INR")
-  apiCredential           ApiCredential?
+  apiCredentials          ApiCredential[]
   participations          EventParticipation[]
   events                  Events[]
   sentConnections         OrgConnection[]              @relation("SentConnections")
@@ -439,19 +439,21 @@ model OrgTag {
 }
 
 model ApiCredential {
-  id             String       @id @default(uuid()) @db.Uuid
-  organizationId String       @unique @db.Uuid
-  tenantId       String       @unique @default(uuid()) @db.Uuid
-  apiKey         String       @unique
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  tenantId       String           @unique @default(uuid()) @db.Uuid
+  apiKey         String           @unique
   apiKeyPrefix   String
-  tier           ApiTier      @default(FREE)
-  usageCount     Int          @default(0)
-  usageLimit     Int          @default(100)
+  status         CredentialStatus @default(ACTIVE)
+  tier           ApiTier          @default(FREE)
+  usageCount     Int              @default(0)
+  usageLimit     Int              @default(100)
   lastUsedAt     DateTime?
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
-  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  organization   Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
+  @@index([organizationId, status])
   @@index([tenantId])
   @@index([apiKeyPrefix])
 }
@@ -1122,4 +1124,10 @@ enum PitchStatus {
   REVISION_REQUESTED
   APPROVED
   REJECTED
+}
+
+enum CredentialStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
 }
