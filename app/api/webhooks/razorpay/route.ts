@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { PLAN_API_LIMITS } from "@/constants";
 import { hashMessage } from "@/lib/hash";
+import { syncCredentialTier, ensureCredential } from "@/domain/api-credentials";
 
 const RAZORPAY_WEBHOOK_SECRET = process.env.RAZORPAY_WEBHOOK_SECRET ?? "";
 
@@ -103,16 +104,8 @@ async function handleSubscriptionActivated(payload: any) {
             update: { plan, status: "ACTIVE", currentPeriodStart, currentPeriodEnd },
         });
 
-        // 3. Sync ApiCredential tier + usageLimit (if credential exists)
-        const existing = await tx.apiCredential.findUnique({
-            where: { organizationId: orgId },
-        });
-        if (existing) {
-            await tx.apiCredential.update({
-                where: { organizationId: orgId },
-                data: { tier: plan, usageLimit },
-            });
-        }
+        // 3. Sync ApiCredential tier + usageLimit via domain layer
+        await ensureCredential(orgId, plan, usageLimit, tx);
     });
 
     console.log(`[rzp-webhook] ✓ Activated ${plan} for org ${orgId} (API limit → ${usageLimit})`);
@@ -140,16 +133,13 @@ async function handleSubscriptionCancelled(payload: any) {
                 subscriptionExpiresAt: null,
             },
         });
-        // Downgrade ApiCredential back to FREE limits
-        const existing = await tx.apiCredential.findUnique({
-            where: { organizationId: orgSub.organizationId },
-        });
-        if (existing) {
-            await tx.apiCredential.update({
-                where: { organizationId: orgSub.organizationId },
-                data: { tier: "FREE", usageLimit: PLAN_API_LIMITS.FREE },
-            });
-        }
+
+        // Downgrade ApiCredential back to FREE limits via domain layer
+        await syncCredentialTier({
+            organizationId: orgSub.organizationId,
+            tier: "FREE",
+            usageLimit: PLAN_API_LIMITS.FREE,
+        }, tx);
     });
 
     console.log(`[rzp-webhook] ✓ Downgraded org ${orgSub.organizationId} to FREE`);
