@@ -1,11 +1,12 @@
-import { prisma } from "@/lib/db";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import { PLAN_API_LIMITS } from "@/constants";
-import cryptoJs from "crypto-js";
 import { isUUID } from "@/lib/utils";
 import { getApiAuth } from "@/lib/api-auth";
-import { SubscriptionPlan } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import {
+    getCredentialByOrgId,
+    generateCredential,
+    revokeCredential,
+} from "@/domain/api-credentials";
 
 /**
  * API Credential management for an organization.
@@ -16,6 +17,8 @@ import { SubscriptionPlan } from "@prisma/client";
  * DELETE /api/organizations/[id]/api-credentials  → revoke key
  */
 
+// ─── Auth helpers ─────────────────────────────────────────────────────────────
+
 async function assertOwner(userId: string, orgId: string): Promise<boolean> {
     const member = await prisma.organizationMember.findUnique({
         where: { userId_organizationId: { userId, organizationId: orgId } },
@@ -25,16 +28,12 @@ async function assertOwner(userId: string, orgId: string): Promise<boolean> {
 }
 
 async function assertOrg(orgId: string): Promise<boolean> {
-    if (!isUUID(orgId)) {
-        return false;
-    }
-
-    const org = await prisma.organization.count({
-        where: { id: orgId },
-    });
-
-    return org > 0;
+    if (!isUUID(orgId)) return false;
+    const count = await prisma.organization.count({ where: { id: orgId } });
+    return count > 0;
 }
+
+// ─── Route handlers ───────────────────────────────────────────────────────────
 
 // GET — fetch current credential metadata (never the real key)
 export const GET = async (
@@ -49,22 +48,10 @@ export const GET = async (
 
     const user = getApiAuth(req);
     if (!user?.id) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    console.log(user);
     if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const credential = await prisma.apiCredential.findUnique({
-        where: { organizationId: orgId },
-        select: {
-            tenantId: true,
-            apiKeyPrefix: true,
-            tier: true,
-            usageCount: true,
-            usageLimit: true,
-            lastUsedAt: true,
-            createdAt: true,
-        },
-    });
+    const credential = await getCredentialByOrgId(orgId);
 
     if (!credential) {
         return NextResponse.json({ error: "No credentials found." }, { status: 404 });
@@ -89,46 +76,19 @@ export const POST = async (
     if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    const rawKey = `corp_connect_${process.env.NODE_ENV}_${cryptoJs.lib.WordArray.random(64).toString(cryptoJs.enc.Hex)}`;
-    const prefix = rawKey.slice(0, 35);
-    const hashed = await bcrypt.hash(rawKey, 12);
-
-    const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: { subscriptionPlan: true },
-    });
-
-    const tier = (org?.subscriptionPlan ?? "FREE") as SubscriptionPlan;
-    const usageLimit = PLAN_API_LIMITS[tier];
-
-    const credential = await prisma.apiCredential.upsert({
-        where: { organizationId: orgId },
-        update: {
-            apiKey: hashed,
-            apiKeyPrefix: prefix,
-            tier,
-            usageLimit,
-            usageCount: 0,
-        },
-        create: {
-            organizationId: orgId,
-            apiKey: hashed,
-            apiKeyPrefix: prefix,
-            tier,
-            usageLimit,
-        },
-    });
+    const result = await generateCredential(orgId);
 
     return NextResponse.json({
-        tenantId: credential.tenantId,
-        apiKey: rawKey,
-        apiKeyPrefix: prefix,
-        tier: credential.tier,
-        usageLimit: credential.usageLimit,
+        tenantId: result.tenantId,
+        apiKey: result.apiKey,
+        apiKeyPrefix: result.apiKeyPrefix,
+        tier: result.tier,
+        usageLimit: result.usageLimit,
         warning: "Save this key — it will not be shown again.",
     }, { status: 201 });
 };
 
+// DELETE — revoke API key
 export const DELETE = async (
     req: NextRequest,
     { params }: { params: Promise<{ id: string }> }
@@ -144,6 +104,6 @@ export const DELETE = async (
     if (!(await assertOwner(user.id, orgId)))
         return NextResponse.json({ error: "Forbidden" }, { status: 403 });
 
-    await prisma.apiCredential.deleteMany({ where: { organizationId: orgId } });
+    await revokeCredential(orgId);
     return NextResponse.json({ ok: true });
 };
