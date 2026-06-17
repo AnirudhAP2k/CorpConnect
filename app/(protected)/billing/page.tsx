@@ -12,6 +12,7 @@ import { PricingPlans } from "@/components/billing/PricingPlans";
 import { getAiUsageStats } from "@/domain/ai";
 import { PLAN_COLORS, STATUS_COLORS, PLAN_FEATURES } from "@/constants";
 import "./billing.css";
+import { toast } from "sonner";
 
 export const metadata = {
     title: "Billing — CorpConnect",
@@ -27,16 +28,18 @@ export default async function BillingPage() {
         select: { activeOrganizationId: true },
     });
 
-    const orgId = user?.activeOrganizationId;
-    if (!orgId) redirect("/onboarding");
+    if (!user?.activeOrganizationId) redirect("/onboarding");
 
-    // Authorization check: only Owner or Admin can access billing settings
+    const orgId = user.activeOrganizationId;
+
+    // Verify OWNER/ADMIN
     const membership = await prisma.organizationMember.findUnique({
         where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
         select: { role: true },
     });
 
     if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
+        toast.warning("You are not authorized to access this page.");
         redirect("/dashboard");
     }
 
