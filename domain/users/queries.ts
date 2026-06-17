@@ -90,8 +90,8 @@ export async function getUserTier(
 ): Promise<ApiTier> {
     if (!activeOrganizationId) return ApiTier.FREE;
 
-    const cred = await prisma.apiCredential.findUnique({
-        where: { organizationId: activeOrganizationId },
+    const cred = await prisma.apiCredential.findFirst({
+        where: { organizationId: activeOrganizationId, status: "ACTIVE" },
         select: { tier: true },
     });
 
