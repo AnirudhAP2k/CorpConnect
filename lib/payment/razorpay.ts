@@ -18,3 +18,15 @@ export function getRazorpay(): Razorpay {
     }
     return _razorpay;
 }
+
+/** Subscription plan → Razorpay Price ID mapping */
+export const RAZORPAY_PRICE_IDS: Record<"PRO" | "ENTERPRISE", string> = {
+    PRO: process.env.RAZORPAY_PRO_PLAN_ID ?? "",
+    ENTERPRISE: process.env.RAZORPAY_ENTERPRISE_PLAN_ID ?? "",
+};
+
+/** Platform fee percentage by plan (bps format for Razorpay application_fee_amount calculation) */
+export const PLATFORM_FEE_PERCENT: Record<"PRO" | "ENTERPRISE", number> = {
+    PRO: 0.02,        // 2%
+    ENTERPRISE: 0.01, // 1%
+};
