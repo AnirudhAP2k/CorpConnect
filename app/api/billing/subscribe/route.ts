@@ -16,7 +16,7 @@
 import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { getStripe, STRIPE_PRICE_IDS } from "@/lib/payment/stripe";
-import { getRazorpay } from "@/lib/payment/razorpay";
+import { getRazorpay, RAZORPAY_PRICE_IDS } from "@/lib/payment/razorpay";
 import { NextRequest, NextResponse } from "next/server";
 import { paymentProviders, subscriptionPlans } from "@/constants";
 import { Subscriptions } from "razorpay/dist/types/subscriptions";
@@ -135,10 +135,7 @@ export const POST = async (req: NextRequest) => {
             });
         }
 
-        const rzpPlanId =
-            plan === "PRO"
-                ? process.env.RAZORPAY_PRO_PLAN_ID
-                : process.env.RAZORPAY_ENTERPRISE_PLAN_ID;
+        const rzpPlanId = RAZORPAY_PRICE_IDS[plan];
 
         if (!rzpPlanId) {
             return NextResponse.json(

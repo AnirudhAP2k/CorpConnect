@@ -92,8 +92,8 @@ export async function checkAiQuota(
  * Uses Prisma's atomic `increment` to avoid race conditions.
  */
 export async function deductAiUsage(orgId: string): Promise<void> {
-    await prisma.apiCredential.update({
-        where: { organizationId: orgId },
+    await prisma.apiCredential.updateMany({
+        where: { organizationId: orgId, status: "ACTIVE" },
         data: {
             usageCount: { increment: 1 },
             lastUsedAt: new Date(),
@@ -111,8 +111,8 @@ export async function deductAiUsage(orgId: string): Promise<void> {
  * but allows the Next.js app to track AI usage against the same table.
  */
 async function getOrCreateCredential(orgId: string, plan: SubscriptionPlan) {
-    const existing = await prisma.apiCredential.findUnique({
-        where: { organizationId: orgId },
+    const existing = await prisma.apiCredential.findFirst({
+        where: { organizationId: orgId, status: "ACTIVE" },
         select: { usageCount: true, usageLimit: true, tier: true },
     });
 
@@ -151,8 +151,8 @@ export async function getAiUsageStats(orgId: string): Promise<{
 
     if (!org) return { used: 0, limit: 0, plan: "FREE" as SubscriptionPlan };
 
-    const credential = await prisma.apiCredential.findUnique({
-        where: { organizationId: orgId },
+    const credential = await prisma.apiCredential.findFirst({
+        where: { organizationId: orgId, status: "ACTIVE" },
         select: { usageCount: true },
     });
 

@@ -10,51 +10,13 @@ import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { PricingPlans } from "@/components/billing/PricingPlans";
 import { getAiUsageStats } from "@/domain/ai";
-import type { SubscriptionPlan, SubscriptionStatus, PaymentProvider } from "@prisma/client";
+import { PLAN_COLORS, STATUS_COLORS, PLAN_FEATURES } from "@/constants";
 import "./billing.css";
+import { toast } from "sonner";
 
 export const metadata = {
     title: "Billing — CorpConnect",
     description: "Manage your organization's subscription plan and payments.",
-};
-
-const PLAN_COLORS: Record<SubscriptionPlan, string> = {
-    FREE: "#64748b",
-    PRO: "#6366f1",
-    ENTERPRISE: "#f59e0b",
-};
-
-const STATUS_COLORS: Record<SubscriptionStatus, string> = {
-    ACTIVE: "#22c55e",
-    PAST_DUE: "#f97316",
-    CANCELLED: "#ef4444",
-    TRIALING: "#8b5cf6",
-};
-
-const PLAN_FEATURES: Record<SubscriptionPlan, { text: string; isNew?: boolean }[]> = {
-    FREE: [
-        { text: "Up to 3 active public events" },
-        { text: "Max 50 attendees per event" },
-        { text: "Basic org profile" },
-        { text: "Org discovery & connection requests" },
-    ],
-    PRO: [
-        { text: "Unlimited events" },
-        { text: "AI matchmaking & semantic search" },
-        { text: "Analytics dashboard" },
-        { text: "Payment modes: PLATFORM & EXTERNAL" },
-        { text: "Business messaging (1-to-1)" },
-        { text: "2% platform fee" },
-    ],
-    ENTERPRISE: [
-        { text: "Everything in PRO" },
-        { text: "Group messaging", isNew: true },
-        { text: "AI Event Brainstorming Assistant", isNew: true },
-        { text: "Pitch-to-admin workflow", isNew: true },
-        { text: "Post-event AI analytics reports", isNew: true },
-        { text: "API access & webhooks" },
-        { text: "1% platform fee" },
-    ],
 };
 
 export default async function BillingPage() {
@@ -75,7 +37,9 @@ export default async function BillingPage() {
         where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
         select: { role: true },
     });
+
     if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
+        toast.warning("You are not authorized to access this page.");
         redirect("/dashboard");
     }
 
