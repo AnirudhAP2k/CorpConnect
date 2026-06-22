@@ -1,3 +1,29 @@
+# [1.10.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.9.0...v1.10.0) (2026-06-22)
+
+
+### Bug Fixes
+
+* **billing:** minor updated in the billing page ([4981fe6](https://github.com/AnirudhAP2k/CorpConnect/commit/4981fe6668f2cce9a3d5f3962a47bb8e1d88e9df))
+* **billing:** resolve server-side crash on billing page authorization check ([bd9c81d](https://github.com/AnirudhAP2k/CorpConnect/commit/bd9c81dbd1cf50d845654fd8de1987717437686d))
+
+
+### Features
+
+* **ai:** update quota management to fetch ACTIVE api credentials ([bb26974](https://github.com/AnirudhAP2k/CorpConnect/commit/bb2697449d4c19d0c140f6334647b80ef4f59709))
+* **api:** refactor organization api-credentials route to use domain module ([9bad339](https://github.com/AnirudhAP2k/CorpConnect/commit/9bad339ddc7063b716b1c1e11bb70ed485cc737c))
+* **billing:** update subscribe route to use consolidated Razorpay Price IDs ([d8e68ef](https://github.com/AnirudhAP2k/CorpConnect/commit/d8e68ef1f1808556dcab24650a29c73d30992492))
+* **constants:** centralize subscription plans, colors and features ([2cfde3b](https://github.com/AnirudhAP2k/CorpConnect/commit/2cfde3bab530de88541239ae7b647801aa3e3836))
+* **db:** consolidate and squash database migrations to init baseline ([ba7485d](https://github.com/AnirudhAP2k/CorpConnect/commit/ba7485d77fafda97a929eaacb64730dd481dbbe1))
+* **db:** update ApiCredential model for soft-delete support ([39c422a](https://github.com/AnirudhAP2k/CorpConnect/commit/39c422a32b5bf5dc2368783f04d92bcc76b9d182))
+* **domain:** add api-credentials domain module ([1f60b28](https://github.com/AnirudhAP2k/CorpConnect/commit/1f60b2833033bcd41a1cb35277822623788509b0))
+* **domain:** add api-credentials types defination interface ([4034bec](https://github.com/AnirudhAP2k/CorpConnect/commit/4034becafe5cdf922d408f97a9ac5a66cff191e1))
+* **domain:** developed api-credentials queries interface ([0d15ee0](https://github.com/AnirudhAP2k/CorpConnect/commit/0d15ee05b281caea2040c88f7a5f00409a94f4c9))
+* **domain:** developed api-credentials server actions ([d146a3e](https://github.com/AnirudhAP2k/CorpConnect/commit/d146a3eb39b7920f805698707653df23bfaef5b0))
+* **payment:** add Razorpay price IDs and platform fee percent mapping ([b4a5936](https://github.com/AnirudhAP2k/CorpConnect/commit/b4a593650285810fd01787381103f4be57ffcaa9))
+* **razorpay:** refactor razorpay webhook to use api-credentials domain ([de812b7](https://github.com/AnirudhAP2k/CorpConnect/commit/de812b72eb87fbf63256ff1c1997397bea172269))
+* **stripe:** refactor stripe webhook to use api-credentials domain ([816e26d](https://github.com/AnirudhAP2k/CorpConnect/commit/816e26d5a34dc87529d27939246f6f14ffe14ae6))
+* **user:** update getUserTier to query ACTIVE api credentials ([3f9b066](https://github.com/AnirudhAP2k/CorpConnect/commit/3f9b066cde8a791172f436bb95507308f699bda4))
+
 # [1.9.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.8.0...v1.9.0) (2026-06-16)
 
 
