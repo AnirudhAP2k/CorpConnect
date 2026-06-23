@@ -43,7 +43,7 @@
     "next": "^15.5.19",
     "next-auth": "5.0.0-beta.31",
     "next-themes": "^0.4.6",
-    "node-cron": "^4.4.1",
+    "node-cron": "^4.5.0",
     "nodemailer": "^6.10.1",
     "query-string": "^9.4.0",
     "razorpay": "^2.9.6",
