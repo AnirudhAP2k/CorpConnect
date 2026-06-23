@@ -1,24 +1,28 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
 import {
   Mail,
-  Globe,
   MapPin,
-  Link2,
   Share2,
   CalendarDays,
   UserPlus,
   MoreHorizontal,
   Briefcase,
-  TrendingUp,
   Building2,
   Star,
+  Calendar,
+  ArrowRight,
+  Users,
+  Handshake,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { getUserProfileData } from "@/domain/users";
+import { format } from "date-fns";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -56,44 +60,73 @@ function ContactRow({ icon, value }: { icon: React.ReactNode; value: string }) {
   );
 }
 
+function EmptyState({ icon: Icon, text, linkText, linkHref }: {
+  icon: React.ComponentType<{ className?: string }>;
+  text: string;
+  linkText?: string;
+  linkHref?: string;
+}) {
+  return (
+    <div className="flex flex-col items-center justify-center py-8 text-center">
+      <Icon className="w-8 h-8 text-nx-outline mb-2" />
+      <p className="text-sm text-nx-on-surface-variant">{text}</p>
+      {linkText && linkHref && (
+        <Link href={linkHref} className="mt-3">
+          <Button size="sm" variant="outline" className="text-xs">{linkText}</Button>
+        </Link>
+      )}
+    </div>
+  );
+}
+
 /* ─── Page ───────────────────────────────────────────────────────── */
 export default async function ProfilePage() {
   const session = await auth();
   if (!session?.user?.id) redirect("/sign-in");
 
-  const user = await prisma.user.findUnique({
-    where: { id: session.user.id },
-    include: {
-      organization: {
-        include: { industry: true }
-      },
-      organizationMemberships: true,
-    },
-  });
+  const profileData = await getUserProfileData(session.user.id);
+  if (!profileData) redirect("/sign-in");
 
-  if (!user) redirect("/sign-in");
+  const {
+    user,
+    eventsAttended,
+    eventsRegistered,
+    upcomingEvents,
+    connectionsCount,
+    recentParticipations,
+    orgMembers,
+  } = profileData;
 
-  const fullName = user.name || `${user.name ?? ""} ${user.name ?? ""}`.trim() || "Anonymous User";
+  const fullName = user.name || "Anonymous User";
   const initials = fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const primaryOrg = user.organization;
   const jobTitle = primaryOrg ? `Member · ${primaryOrg.name}` : "Professional Member";
   const industry = primaryOrg?.industry?.label ?? "Business Professional";
   const location = primaryOrg?.location ?? "Global";
 
-  const org = user.organization;
-  const orgCount = org ? 1 : 0
-
   const primaryMembership = user.organizationMemberships.find(
     (m) => m.organizationId === user.organizationId
   );
   const primaryRole = primaryMembership?.role ?? "MEMBER";
 
+  // Dynamic stats derived from real DB data
   const stats = [
-    { label: "Organizations", value: orgCount },
-    { label: "Platform Role", value: user.isAppAdmin ? "Admin" : "Member" },
-    { label: "Organization Role", value: primaryRole },
-    { label: "Onboarded On", value: new Date(user.createdAt).getFullYear() },
+    { label: "Events Registered", value: eventsRegistered },
+    { label: "Events Attended", value: eventsAttended },
+    { label: "Connections", value: connectionsCount },
+    { label: "Member Since", value: format(new Date(user.createdAt), "MMM yyyy") },
   ];
+
+  // Build dynamic domain tags from org data
+  const domainTags: string[] = [];
+  if (industry && industry !== "Business Professional") domainTags.push(industry);
+  if (primaryOrg?.services) {
+    (primaryOrg as any).services?.slice(0, 3).forEach((s: string) => domainTags.push(s));
+  }
+  if (primaryOrg?.technologies) {
+    (primaryOrg as any).technologies?.slice(0, 2).forEach((t: string) => domainTags.push(t));
+  }
+  if (domainTags.length === 0) domainTags.push("B2B Networking");
 
   return (
     <div className="min-h-screen bg-nx-background">
@@ -131,6 +164,9 @@ export default async function ProfilePage() {
           <div className="lg:col-span-9 lg:pt-6">
             <div className="mb-3">
               <LabelTag>{industry}</LabelTag>
+              {user.isAppAdmin && (
+                <Badge className="ml-2 bg-amber-100 text-amber-700 border-0 text-[10px]">Platform Admin</Badge>
+              )}
             </div>
 
             <h1 className="text-4xl md:text-5xl font-headline font-bold text-nx-primary mb-3 tracking-tight leading-tight">
@@ -183,28 +219,8 @@ export default async function ProfilePage() {
           {/* ── Left: Content column ── */}
           <div className="lg:col-span-8 space-y-8">
 
-            {/* Professional Summary */}
-            <section className="bg-white rounded-3xl p-8 shadow-nx-card">
-              <h2 className="text-xl font-headline font-semibold text-nx-primary mb-5 flex items-center">
-                <SectionAccent />
-                Professional Summary
-              </h2>
-              <div className="space-y-3 text-[0.9375rem] font-body text-nx-on-surface-variant leading-relaxed">
-                <p>
-                  Welcome to my professional profile on CorpConnect. I&apos;m actively building meaningful B2B connections
-                  across the {industry} space, with a focus on strategic partnerships, industry events, and collaborative growth.
-                </p>
-                {primaryOrg && (
-                  <p>
-                    Currently affiliated with <span className="font-semibold text-nx-primary">{primaryOrg.name}</span>.
-                    Open to introductions, co-ventures, and high-value networking opportunities.
-                  </p>
-                )}
-              </div>
-            </section>
-
-            {/* Organizations / Experience */}
-            {user.organization && (
+            {/* Organization Affiliations */}
+            {primaryOrg && (
               <section className="bg-white rounded-3xl p-8 shadow-nx-card">
                 <h2 className="text-xl font-headline font-semibold text-nx-primary mb-7">
                   Organization Affiliations
@@ -212,8 +228,8 @@ export default async function ProfilePage() {
                 <div className="space-y-8">
                   <div className="flex gap-5">
                     <div className="flex-none w-12 h-12 bg-nx-surface-container-low rounded-xl flex items-center justify-center shrink-0">
-                      {user.organization.logo ? (
-                        <Image src={user.organization.logo} alt={user.organization.name} width={32} height={32} className="rounded-lg object-cover" />
+                      {primaryOrg.logo ? (
+                        <Image src={primaryOrg.logo} alt={primaryOrg.name} width={32} height={32} className="rounded-lg object-cover" />
                       ) : (
                         <Briefcase className="w-5 h-5 text-nx-primary" />
                       )}
@@ -224,59 +240,122 @@ export default async function ProfilePage() {
                           {primaryRole.replace("_", " ") || "Member"}
                         </h3>
                         <span className="text-[11px] font-label font-medium text-nx-on-surface-variant uppercase tracking-widest shrink-0">
-                          {new Date(user.createdAt).getFullYear()} — Present
+                          {format(new Date(user.createdAt), "yyyy")} — Present
                         </span>
                       </div>
-                      <Link href={`/organizations/${user.organization.id}`} className="text-sm font-medium text-nx-on-tertiary-container hover:underline underline-offset-2">
-                        {user.organization.name}
+                      <Link href={`/organizations/${primaryOrg.id}`} className="text-sm font-medium text-nx-on-tertiary-container hover:underline underline-offset-2">
+                        {primaryOrg.name}
                       </Link>
-                      {user.organization.location && (
-                        <p className="text-sm text-nx-on-surface-variant mt-1">{user.organization.location}</p>
-                      )}
+                      <div className="flex items-center gap-4 mt-2 text-xs text-nx-on-surface-variant">
+                        {primaryOrg.location && (
+                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{primaryOrg.location}</span>
+                        )}
+                        <span className="flex items-center gap-1"><Users className="w-3 h-3" />{primaryOrg._count.members} members</span>
+                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{primaryOrg._count.events} events</span>
+                      </div>
                     </div>
                   </div>
                 </div>
               </section>
             )}
 
-            {/* Endorsements — Bento style */}
-            <section>
-              <h2 className="text-xl font-headline font-semibold text-nx-primary mb-6">
-                Network Highlights
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Dark endorsement */}
-                <div className="bg-nx-primary text-white p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
-                  <p className="text-sm font-body italic leading-relaxed opacity-90">
-                    &ldquo;CorpConnect has been instrumental in expanding our partner network. The platform&apos;s B2B focus makes every connection meaningful.&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3 mt-5">
-                    <div className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center">
-                      <Star className="w-4 h-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-headline font-bold">Elite Member</p>
-                      <p className="text-xs opacity-60">CorpConnect Platform</p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Light endorsement */}
-                <div className="bg-nx-surface-container-high p-6 rounded-2xl flex flex-col justify-between min-h-[160px]">
-                  <p className="text-sm font-body italic text-nx-on-surface-variant leading-relaxed">
-                    &ldquo;The event matchmaking and meeting request features are exceptional. A true professional networking evolution.&rdquo;
-                  </p>
-                  <div className="flex items-center gap-3 mt-5">
-                    <div className="w-9 h-9 rounded-full bg-nx-surface-container flex items-center justify-center">
-                      <Building2 className="w-4 h-4 text-nx-primary" />
-                    </div>
-                    <div>
-                      <p className="text-sm font-headline font-bold text-nx-primary">Platform Review</p>
-                      <p className="text-xs text-nx-on-surface-variant">Verified Member</p>
-                    </div>
-                  </div>
-                </div>
+            {/* Upcoming Events */}
+            <section className="bg-white rounded-3xl p-8 shadow-nx-card">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-headline font-semibold text-nx-primary flex items-center">
+                  <SectionAccent />
+                  Upcoming Events
+                </h2>
+                <Link href="/my-events" className="text-xs font-label font-semibold text-nx-on-tertiary-container hover:underline flex items-center gap-1">
+                  View all <ArrowRight className="w-3 h-3" />
+                </Link>
               </div>
+              {upcomingEvents.length > 0 ? (
+                <div className="space-y-4">
+                  {upcomingEvents.map((p) => (
+                    <Link
+                      key={p.id}
+                      href={`/events/${p.event.id}`}
+                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-nx-surface-container-low transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-nx-primary/10 flex items-center justify-center flex-shrink-0">
+                        <CalendarDays className="w-5 h-5 text-nx-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-headline font-semibold text-nx-primary truncate group-hover:underline">
+                          {p.event.title}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-nx-on-surface-variant mt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(p.event.startDateTime), "MMM d, yyyy · h:mm a")}
+                          </span>
+                          {p.event.location && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3" />
+                              {p.event.location}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {p.event.organization && (
+                        <span className="hidden sm:inline-flex items-center gap-1.5 text-[10px] text-nx-on-surface-variant bg-nx-surface-container-high px-2 py-1 rounded-full">
+                          <Building2 className="w-3 h-3" />
+                          {p.event.organization.name}
+                        </span>
+                      )}
+                    </Link>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={CalendarDays}
+                  text="No upcoming events yet"
+                  linkText="Browse Events"
+                  linkHref="/events"
+                />
+              )}
+            </section>
+
+            {/* Recent Activity */}
+            <section className="bg-white rounded-3xl p-8 shadow-nx-card">
+              <h2 className="text-xl font-headline font-semibold text-nx-primary mb-6 flex items-center">
+                <SectionAccent />
+                Recent Activity
+              </h2>
+              {recentParticipations.length > 0 ? (
+                <div className="space-y-4">
+                  {recentParticipations.map((p) => (
+                    <div key={p.id} className="flex items-start gap-4 p-3 rounded-xl bg-nx-surface-container-low">
+                      <div className="w-8 h-8 rounded-full bg-nx-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                        <Star className="w-4 h-4 text-nx-primary" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-body text-nx-on-surface">
+                          Registered for{" "}
+                          <Link href={`/events/${p.event.id}`} className="font-semibold text-nx-primary hover:underline">
+                            {p.event.title}
+                          </Link>
+                        </p>
+                        <p className="text-xs text-nx-on-surface-variant mt-0.5 flex items-center gap-1">
+                          <Clock className="w-3 h-3" />
+                          {format(new Date(p.createdAt), "MMM d, yyyy")}
+                        </p>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {p.status}
+                      </Badge>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  icon={Star}
+                  text="No activity yet — register for events to get started"
+                  linkText="Explore Events"
+                  linkHref="/events"
+                />
+              )}
             </section>
           </div>
 
@@ -293,65 +372,90 @@ export default async function ProfilePage() {
                 {primaryOrg?.location && (
                   <ContactRow icon={<MapPin className="w-4 h-4" />} value={primaryOrg.location} />
                 )}
-                <ContactRow icon={<Globe className="w-4 h-4" />} value="corpconnect.app" />
+                {primaryOrg?.website && (
+                  <ContactRow icon={<Building2 className="w-4 h-4" />} value={(primaryOrg as any).website} />
+                )}
               </div>
 
               <div className="flex gap-3 mt-6 justify-center">
                 <button className="w-9 h-9 rounded-full bg-nx-primary flex items-center justify-center text-white hover:scale-110 transition-transform shadow-nx-primary">
                   <Share2 className="w-4 h-4" />
                 </button>
-                <button className="w-9 h-9 rounded-full bg-nx-primary flex items-center justify-center text-white hover:scale-110 transition-transform shadow-nx-primary">
-                  <Link2 className="w-4 h-4" />
-                </button>
               </div>
             </section>
 
-            {/* Skills / Domains */}
+            {/* Domains / Expertise — derived from org data */}
             <section className="bg-nx-surface-container-low rounded-3xl p-6">
               <p className="text-[10px] font-label font-bold text-nx-on-surface-variant uppercase tracking-[0.1em] mb-5">
-                Strategic Domains
+                Domains &amp; Expertise
               </p>
               <div className="flex flex-wrap gap-2">
-                {[
-                  "B2B Networking",
-                  "Strategic Partnerships",
-                  industry,
-                  "Event Management",
-                  "Corporate Growth",
-                  "Industry Groups",
-                ].filter(Boolean).map((skill) => (
+                {domainTags.map((skill) => (
                   <SkillChip key={skill} label={skill} />
                 ))}
+                {primaryOrg?.isVerified && (
+                  <span className="px-3 py-1.5 bg-green-50 rounded-lg text-xs font-label font-semibold text-green-700 border border-green-200 flex items-center gap-1">
+                    <CheckCircle className="w-3 h-3" /> Verified Org
+                  </span>
+                )}
               </div>
             </section>
 
-            {/* Network stats */}
+            {/* Network — Real org members + connections */}
             <section className="bg-white rounded-3xl p-6 shadow-nx-card overflow-hidden relative">
               <div className="absolute top-0 right-0 w-20 h-20 bg-nx-tertiary-container/5 rounded-bl-full pointer-events-none" />
               <p className="text-[10px] font-label font-bold text-nx-on-surface-variant uppercase tracking-[0.1em] mb-5">
                 Your Network
               </p>
-              <div className="flex items-center gap-4 mb-4">
-                {/* Stacked avatars placeholder */}
-                <div className="flex -space-x-3">
-                  {[0, 1, 2].map((i) => (
-                    <div
-                      key={i}
-                      className="w-9 h-9 rounded-full ring-2 ring-white bg-nx-surface-container-high flex items-center justify-center"
-                    >
-                      <span className="text-[10px] font-bold text-nx-primary">{["JT", "MK", "AR"][i]}</span>
+
+              {orgMembers.length > 0 ? (
+                <>
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="flex -space-x-3">
+                      {orgMembers.slice(0, 4).map((m) => (
+                        <div
+                          key={m.id}
+                          className="w-9 h-9 rounded-full ring-2 ring-white bg-nx-surface-container-high flex items-center justify-center overflow-hidden"
+                          title={m.user.name ?? ""}
+                        >
+                          {m.user.image ? (
+                            <Image src={m.user.image} alt={m.user.name ?? ""} width={36} height={36} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-[10px] font-bold text-nx-primary">
+                              {(m.user.name ?? "?").split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase()}
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                      {orgMembers.length > 4 && (
+                        <div className="w-9 h-9 rounded-full ring-2 ring-white bg-nx-surface-container flex items-center justify-center text-[9px] font-bold text-nx-on-surface-variant">
+                          +{orgMembers.length - 4}
+                        </div>
+                      )}
                     </div>
-                  ))}
-                  <div className="w-9 h-9 rounded-full ring-2 ring-white bg-nx-surface-container flex items-center justify-center text-[9px] font-bold text-nx-on-surface-variant">
-                    +{Math.max(0, orgCount * 3)}
                   </div>
-                </div>
-              </div>
-              <p className="text-xs font-body text-nx-on-surface-variant leading-relaxed">
-                You are connected to{" "}
-                <span className="font-bold text-nx-primary">{orgCount} organization{orgCount !== 1 ? "s" : ""}</span>{" "}
-                and growing across the {industry} cluster.
-              </p>
+                  <p className="text-xs font-body text-nx-on-surface-variant leading-relaxed">
+                    <span className="font-bold text-nx-primary">{orgMembers.length}</span> colleague{orgMembers.length !== 1 ? "s" : ""} in your organization
+                    {connectionsCount > 0 && (
+                      <> · <span className="font-bold text-nx-primary">{connectionsCount}</span> org connection{connectionsCount !== 1 ? "s" : ""}</>
+                    )}
+                  </p>
+                </>
+              ) : (
+                <p className="text-xs font-body text-nx-on-surface-variant leading-relaxed">
+                  {connectionsCount > 0 ? (
+                    <>Your organization has <span className="font-bold text-nx-primary">{connectionsCount}</span> connection{connectionsCount !== 1 ? "s" : ""}</>
+                  ) : (
+                    "Join an organization to start building your network"
+                  )}
+                </p>
+              )}
+
+              {primaryOrg && (
+                <Link href={`/organizations/${primaryOrg.id}`} className="mt-4 inline-flex items-center gap-1 text-xs font-label font-semibold text-nx-on-tertiary-container hover:underline">
+                  View organization <ArrowRight className="w-3 h-3" />
+                </Link>
+              )}
             </section>
 
             {/* Quick actions */}
@@ -364,7 +468,7 @@ export default async function ProfilePage() {
                   href="/organizations/discover"
                   className="flex items-center gap-3 w-full py-2.5 px-4 bg-white/10 hover:bg-white/20 text-white rounded-xl text-sm font-headline font-medium transition-colors"
                 >
-                  <Building2 className="w-4 h-4" />
+                  <Handshake className="w-4 h-4" />
                   Discover Organizations
                 </Link>
                 <Link
