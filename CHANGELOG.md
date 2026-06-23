@@ -1,3 +1,16 @@
+# [1.12.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.11.0...v1.12.0) (2026-06-23)
+
+
+### Bug Fixes
+
+* updated the profile page to dispplay dynamic data ([27a7018](https://github.com/AnirudhAP2k/CorpConnect/commit/27a70186abb006525bef4dd080802c139fd718e4))
+
+
+### Features
+
+* exported the getUserProfileData for the user domain ([fee46d7](https://github.com/AnirudhAP2k/CorpConnect/commit/fee46d74799d8d94444bf1730822eff49aa0a42d))
+* implemented the getUserProfileData function to get dynamic user data from db ([6905931](https://github.com/AnirudhAP2k/CorpConnect/commit/69059312062cd92b6bd3ccefa10f7d58add6e1bf))
+
 # [1.11.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.10.0...v1.11.0) (2026-06-23)
 
 
