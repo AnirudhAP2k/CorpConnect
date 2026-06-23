@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import MembersManagementClient from "@/components/shared/MembersManagementClient";
-import axios from "axios";
+import { getOrganizationById } from "@/domain/organizations";
 
 interface MembersManagementPageProps {
     params: Promise<{
@@ -18,25 +18,15 @@ const MembersManagementPage = async ({ params }: MembersManagementPageProps) => 
         redirect("/login");
     }
 
-    // Fetch organization data
-    let organization;
-    try {
-        const response = await axios.get(
-            `/api/organizations/${id}`,
-        );
+    const organization = await getOrganizationById(id);
 
-        if (response.status !== 200) {
-            notFound();
-        }
-
-        organization = response.data;
-    } catch (error) {
+    if (!organization) {
         notFound();
     }
 
     // Check if current user is OWNER or ADMIN
     const currentUserMembership = organization.members.find(
-        (m: any) => m.userId === userId
+        (m) => m.userId === userId
     );
 
     if (!currentUserMembership || !["OWNER", "ADMIN"].includes(currentUserMembership.role)) {

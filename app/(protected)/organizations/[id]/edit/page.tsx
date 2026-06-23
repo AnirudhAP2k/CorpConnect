@@ -1,8 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import OrganizationForm from "@/components/shared/OrganizationForm";
-import { getAllIndustries } from "@/data/organization";
-import axios from "axios";
+import { getOrganizationById, getAllIndustries } from "@/domain/organizations";
 
 interface EditOrganizationPageProps {
     params: Promise<{
@@ -20,31 +19,24 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
 
     const { id } = await params;
 
-    let organization;
-    try {
-        const response = await axios.get(
-            `/api/organizations/${id}`,
-        );
+    // Fetch org and industries in parallel — no HTTP round-trip
+    const [organization, industries] = await Promise.all([
+        getOrganizationById(id),
+        getAllIndustries(),
+    ]);
 
-        if (response.status !== 200) {
-            notFound();
-        }
-
-        organization = response.data;
-    } catch (error) {
+    if (!organization) {
         notFound();
     }
 
     // Check if current user can edit
     const currentUserMembership = organization.members.find(
-        (m: any) => m.userId === userId
+        (m) => m.userId === userId
     );
 
     if (!currentUserMembership || !["OWNER", "ADMIN"].includes(currentUserMembership.role)) {
         redirect(`/organizations/${id}`);
     }
-
-    const industries = await getAllIndustries();
 
     // Prepare initial data for form
     const initialData = {
@@ -86,3 +78,4 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
 };
 
 export default EditOrganizationPage;
+
