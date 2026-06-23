@@ -1,3 +1,20 @@
+# [1.11.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.10.0...v1.11.0) (2026-06-23)
+
+
+### Bug Fixes
+
+* fixed 404 issue for manage members page ([97a413f](https://github.com/AnirudhAP2k/CorpConnect/commit/97a413fa8e16281d0d0f6c6ccd3a830de84a0778))
+* installed dpendencies via pnpm ([e868ffe](https://github.com/AnirudhAP2k/CorpConnect/commit/e868ffe494ee41ac566dab6f885360ea95bcc9bb))
+* updated dpendencies for pnpm ([9c7ee81](https://github.com/AnirudhAP2k/CorpConnect/commit/9c7ee8115f84f2868b84715e5ead65c4e3337384))
+* updated stripr apiVersion to lastest dahlia ([97f5d04](https://github.com/AnirudhAP2k/CorpConnect/commit/97f5d0459b296d3c95e7244bd0229211dc2dfaa5))
+* updated the fetch of organizatoion details via oranization domain ([ac8690b](https://github.com/AnirudhAP2k/CorpConnect/commit/ac8690bab16f5030b41bcad6933ae9f74e9b1fba))
+
+
+### Features
+
+* installed updated version of dependencies ([43d46a9](https://github.com/AnirudhAP2k/CorpConnect/commit/43d46a92db6f2d66e8a7e703df30aa777b22bece))
+* updated dependencies versions ([e0223a9](https://github.com/AnirudhAP2k/CorpConnect/commit/e0223a9daba26fd039185670491548f20e471b49))
+
 # [1.10.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.9.0...v1.10.0) (2026-06-22)
 
 
