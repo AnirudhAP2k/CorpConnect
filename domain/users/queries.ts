@@ -158,3 +158,124 @@ export async function getFreshSessionUser(
         role: user.organizationMemberships[0]?.role ?? null,
     };
 }
+
+// ─── Profile page aggregate ───────────────────────────────────────────────────
+
+/**
+ * Fetches all dynamic data needed for the user profile page in parallel.
+ * Returns null if the user does not exist.
+ */
+export async function getUserProfileData(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+            organization: {
+                include: {
+                    industry: true,
+                    _count: { select: { members: true, events: true } },
+                },
+            },
+            organizationMemberships: {
+                include: {
+                    organization: {
+                        select: { id: true, name: true, logo: true, isVerified: true, location: true },
+                    },
+                },
+                orderBy: { createdAt: "asc" },
+            },
+        },
+    });
+
+    if (!user) return null;
+
+    const activeOrgId = user.activeOrganizationId ?? user.organizationId;
+
+    // Parallel data fetches
+    const [
+        eventsAttended,
+        eventsRegistered,
+        upcomingEvents,
+        connectionsCount,
+        recentParticipations,
+        orgMembers,
+    ] = await Promise.all([
+        // Events actually attended
+        prisma.eventParticipation.count({
+            where: { userId, status: "ATTENDED" },
+        }),
+
+        // Total event registrations (non-cancelled)
+        prisma.eventParticipation.count({
+            where: { userId, status: { not: "CANCELLED" } },
+        }),
+
+        // Next 3 upcoming events user is registered for
+        prisma.eventParticipation.findMany({
+            where: {
+                userId,
+                status: "REGISTERED",
+                event: { startDateTime: { gte: new Date() } },
+            },
+            include: {
+                event: {
+                    select: {
+                        id: true,
+                        title: true,
+                        startDateTime: true,
+                        image: true,
+                        location: true,
+                        organization: { select: { id: true, name: true, logo: true } },
+                    },
+                },
+            },
+            orderBy: { event: { startDateTime: "asc" } },
+            take: 3,
+        }),
+
+        // Org connections (accepted) — only if user has an active org
+        activeOrgId
+            ? prisma.orgConnection.count({
+                where: {
+                    OR: [
+                        { sourceOrgId: activeOrgId, status: "ACCEPTED" },
+                        { targetOrgId: activeOrgId, status: "ACCEPTED" },
+                    ],
+                },
+            })
+            : 0,
+
+        // Recent event participations for activity feed
+        prisma.eventParticipation.findMany({
+            where: { userId, status: { not: "CANCELLED" } },
+            include: {
+                event: {
+                    select: { id: true, title: true, startDateTime: true },
+                },
+            },
+            orderBy: { createdAt: "desc" },
+            take: 5,
+        }),
+
+        // Other members in same org (for network avatars)
+        activeOrgId
+            ? prisma.organizationMember.findMany({
+                where: { organizationId: activeOrgId, userId: { not: userId } },
+                include: {
+                    user: { select: { id: true, name: true, image: true } },
+                },
+                take: 5,
+                orderBy: { createdAt: "asc" },
+            })
+            : [],
+    ]);
+
+    return {
+        user,
+        eventsAttended,
+        eventsRegistered,
+        upcomingEvents,
+        connectionsCount,
+        recentParticipations,
+        orgMembers,
+    };
+}
