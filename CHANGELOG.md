@@ -1,3 +1,18 @@
+# [1.13.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.12.0...v1.13.0) (2026-06-24)
+
+
+### Bug Fixes
+
+* enqueue SEND_INVITE_EMAIL job upon invite creation ([c7e1938](https://github.com/AnirudhAP2k/CorpConnect/commit/c7e193856639e837a5f22994b9c7a468285c4cda))
+* remove obsolete invites trigger case ([321115b](https://github.com/AnirudhAP2k/CorpConnect/commit/321115b45bc31e4d7af4f6fe8524deda680cefcb))
+* remove obsolete separate invite processing cron job ([994255d](https://github.com/AnirudhAP2k/CorpConnect/commit/994255d53c1fd3281b56ae84efd735a3f749a2fb))
+* route member invite emails through unified job queue ([fd12d8b](https://github.com/AnirudhAP2k/CorpConnect/commit/fd12d8b10c269921e514c997c82c27b8eee046db))
+
+
+### Features
+
+* extract pending invites helper logic ([630e71d](https://github.com/AnirudhAP2k/CorpConnect/commit/630e71dde13c7195de3105405ccafff61b79d106))
+
 # [1.12.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.11.0...v1.12.0) (2026-06-23)
 
 
