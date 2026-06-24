@@ -71,6 +71,7 @@ const OrganizationForm = ({
       hiringStatus: "NOT_HIRING",
       linkedinUrl: "",
       twitterUrl: "",
+      tags: [],
     },
   });
 
@@ -109,6 +110,7 @@ const OrganizationForm = ({
           hiringStatus: values.hiringStatus ?? "NOT_HIRING",
           linkedinUrl: values.linkedinUrl ?? "",
           twitterUrl: values.twitterUrl ?? "",
+          tags: values.tags ?? [],
         };
 
         let response;
@@ -410,6 +412,27 @@ const OrganizationForm = ({
                   value={field.value ?? []}
                   onChange={field.onChange}
                   placeholder="e.g. Co-marketing, Joint Events, Investment..."
+                  maxItems={10}
+                  disabled={isPending}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Tags */}
+        <FormField
+          control={form.control}
+          name="tags"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Tags <span className="text-gray-400 font-normal text-xs">(up to 10)</span></FormLabel>
+              <FormControl>
+                <TagArrayInput
+                  value={field.value ?? []}
+                  onChange={field.onChange}
+                  placeholder="e.g. AI, Fintech, Cloud Infrastructure..."
                   maxItems={10}
                   disabled={isPending}
                 />
