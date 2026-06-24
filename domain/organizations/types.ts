@@ -21,6 +21,7 @@ export type OrganizationDetail = Organization & {
     members: (OrganizationMember & {
         user: Pick<User, "id" | "name" | "email" | "image">;
     })[];
+    orgTags: { tag: { id: string; label: string } }[];
     _count: { events: number; members: number };
 };
 
