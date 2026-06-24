@@ -1,3 +1,23 @@
+# [1.14.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.13.0...v1.14.0) (2026-06-24)
+
+
+### Bug Fixes
+
+* **db:** removed redundant legacy sqlite db from prisma ([58acad3](https://github.com/AnirudhAP2k/CorpConnect/commit/58acad3818b595537e95a236e4c5c76541207304))
+* **dropdown:** swap AlertDialog with Dialog for option creation ([fcc8195](https://github.com/AnirudhAP2k/CorpConnect/commit/fcc8195d9f032afe88ede06a04285d538a28c3f3))
+
+
+### Features
+
+* **orgs:** add orgTags to OrganizationDetail type ([23673b0](https://github.com/AnirudhAP2k/CorpConnect/commit/23673b072839a091373a9089e76aaf0e75d69e7e))
+* **orgs:** add tags field to domain validation schemas ([1b4fa10](https://github.com/AnirudhAP2k/CorpConnect/commit/1b4fa105dc824d191817d91336718b6573d3d553))
+* **orgs:** add tags field to OrganizationForm UI ([02063f4](https://github.com/AnirudhAP2k/CorpConnect/commit/02063f4aa71b5475fafa8dc4152822166593c5a3))
+* **orgs:** add tags field to shared organization create schema ([9e60eda](https://github.com/AnirudhAP2k/CorpConnect/commit/9e60eda9c2b00d8ca264a005dbebdc853a2b8099))
+* **orgs:** fetch orgTags in getOrganizationById query ([e66e434](https://github.com/AnirudhAP2k/CorpConnect/commit/e66e434730cbb90c5cbc5065d7c307842296635b))
+* **orgs:** pre-populate tags in organization edit page ([8a3ff47](https://github.com/AnirudhAP2k/CorpConnect/commit/8a3ff470eb3551ef7cfd48bd5bef8dc2f64d2bfe))
+* **orgs:** wire setOrgTags helper into create and update actions ([ccb2667](https://github.com/AnirudhAP2k/CorpConnect/commit/ccb2667ce8ecb318a96a4631b590eef565661d38))
+* **ui:** add Dialog shadcn component ([a3de664](https://github.com/AnirudhAP2k/CorpConnect/commit/a3de6644f236105c19aa9550ce422ed66b923669))
+
 # [1.13.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.12.0...v1.13.0) (2026-06-24)
 
 
