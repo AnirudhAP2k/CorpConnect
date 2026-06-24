@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
-    triggerInviteProcessing,
     triggerJobProcessing,
     triggerCleanup,
 } from "@/lib/scheduler/cron-jobs";
@@ -19,12 +18,6 @@ export const POST = async (req: NextRequest) => {
         }
 
         switch (type) {
-            case "invites":
-                await triggerInviteProcessing();
-                return NextResponse.json({
-                    message: "Invite processing triggered successfully",
-                });
-
             case "jobs":
                 await triggerJobProcessing();
                 return NextResponse.json({
@@ -38,7 +31,6 @@ export const POST = async (req: NextRequest) => {
                 });
 
             case "all":
-                await triggerInviteProcessing();
                 await triggerJobProcessing();
                 return NextResponse.json({
                     message: "All jobs triggered successfully",
@@ -46,7 +38,7 @@ export const POST = async (req: NextRequest) => {
 
             default:
                 return NextResponse.json(
-                    { error: "Invalid job type. Use: invites, jobs, cleanup, or all" },
+                    { error: "Invalid job type. Use: jobs, cleanup, or all" },
                     { status: 400 }
                 );
         }

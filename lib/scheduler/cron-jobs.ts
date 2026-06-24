@@ -1,6 +1,5 @@
 import cron from "node-cron";
 import {
-    processPendingInvites,
     processJobQueue,
 } from "@/lib/jobs/job-processor";
 import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
@@ -15,12 +14,6 @@ export function initializeScheduler() {
     }
 
     console.log("[Scheduler] Initializing cron jobs...");
-
-    // Process pending invites every 2 minutes
-    cron.schedule("*/2 * * * *", async () => {
-        console.log("[Scheduler] Running: Process Pending Invites");
-        await processPendingInvites();
-    });
 
     // Process job queue every minute
     cron.schedule("* * * * *", async () => {
@@ -39,11 +32,6 @@ export function initializeScheduler() {
 }
 
 // Export for manual triggering (useful for testing)
-export async function triggerInviteProcessing() {
-    console.log("[Scheduler] Manual trigger: Process Pending Invites");
-    await processPendingInvites();
-}
-
 export async function triggerJobProcessing() {
     console.log("[Scheduler] Manual trigger: Process Job Queue");
     await processJobQueue();

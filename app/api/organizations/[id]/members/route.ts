@@ -124,7 +124,7 @@ export const POST = async (
         const expiresAt = new Date();
         expiresAt.setDate(expiresAt.getDate() + 7);
 
-        // Create pending invite (email will be sent by scheduler)
+        // Create pending invite + enqueue email delivery in a single transaction
         const invite = await prisma.pendingInvite.create({
             data: {
                 organizationId,
@@ -133,6 +133,14 @@ export const POST = async (
                 invitedBy: userId,
                 token,
                 expiresAt,
+            },
+        });
+
+        // Enqueue email delivery via the unified job queue
+        await prisma.jobQueue.create({
+            data: {
+                type: "SEND_INVITE_EMAIL",
+                payload: { inviteId: invite.id },
             },
         });
 

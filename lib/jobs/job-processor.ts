@@ -21,98 +21,8 @@ import type { EventReminderPayload } from "@/domain/notifications/types";
 import type { VirtualRoomOpenedPayload } from "@/domain/notifications/types";
 import type { GenerateReportPayload } from "@/lib/jobs/report-generator";
 import type { GenerateTasklistPayload } from "@/lib/jobs/tasklist-generator";
+import { expireStalePendingInvites, processInviteEmail } from "@/lib/jobs/pending-invites";
 
-export async function processPendingInvites() {
-    console.log("[Job Processor] Processing pending invites...");
-
-    try {
-        // Fetch pending invites that haven't exceeded max attempts
-        const pendingInvites = await prisma.pendingInvite.findMany({
-            where: {
-                status: "PENDING",
-                attempts: {
-                    lt: prisma.pendingInvite.fields.maxAttempts,
-                },
-                expiresAt: {
-                    gt: new Date(),
-                },
-            },
-            include: {
-                organization: true,
-                inviter: true,
-            },
-            take: 10, // Process 10 at a time
-        });
-
-        console.log(`[Job Processor] Found ${pendingInvites.length} pending invites`);
-
-        for (const invite of pendingInvites) {
-            try {
-                // Mark as processing
-                await prisma.pendingInvite.update({
-                    where: { id: invite.id },
-                    data: {
-                        attempts: invite.attempts + 1,
-                        lastAttempt: new Date(),
-                    },
-                });
-
-                // Generate invite link
-                const inviteLink = `${process.env.NEXT_PUBLIC_APP_URL}/invite/${invite.token}`;
-
-                // Send email
-                await sendMemberInviteEmail({
-                    organizationName: invite.organization.name,
-                    inviterName: invite.inviter.name || "Someone",
-                    role: invite.role,
-                    inviteLink,
-                    recipientEmail: invite.email,
-                });
-
-                // Update status to SENT
-                await prisma.pendingInvite.update({
-                    where: { id: invite.id },
-                    data: {
-                        status: "SENT",
-                        error: null,
-                    },
-                });
-
-                console.log(`[Job Processor] ✓ Sent invite to ${invite.email}`);
-            } catch (error: any) {
-                console.error(`[Job Processor] ✗ Failed to send invite to ${invite.email}:`, error.message);
-
-                // Update with error
-                await prisma.pendingInvite.update({
-                    where: { id: invite.id },
-                    data: {
-                        status: invite.attempts + 1 >= invite.maxAttempts ? "FAILED" : "PENDING",
-                        error: error.message,
-                    },
-                });
-            }
-        }
-
-        // Mark expired invites
-        await prisma.pendingInvite.updateMany({
-            where: {
-                status: {
-                    in: ["PENDING", "SENT"],
-                },
-                expiresAt: {
-                    lt: new Date(),
-                },
-            },
-            data: {
-                status: "EXPIRED",
-            },
-        });
-
-        console.log("[Job Processor] ✓ Finished processing invites");
-    } catch (error) {
-        console.error("[Job Processor] Error processing invites:", error);
-    }
-}
 
 export async function processJobQueue() {
     console.log("[Job Processor] Processing job queue...");
@@ -187,7 +97,7 @@ async function processJob(job: any) {
 
     switch (job.type) {
         case "SEND_INVITE_EMAIL":
-            // This is now handled by processPendingInvites
+            await processInviteEmail(payload as { inviteId: string });
             break;
 
         case "SEND_NOTIFICATION": {
@@ -217,8 +127,8 @@ async function processJob(job: any) {
             break;
 
         case "CLEANUP_DATA":
-            // TODO: Implement data cleanup
             await cleanupOldJobs();
+            await expireStalePendingInvites();
             break;
 
         case "EMBED_EVENT":
