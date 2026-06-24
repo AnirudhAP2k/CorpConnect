@@ -11,6 +11,7 @@ import {
 } from "./validation";
 import { checkOrganizationPermission } from "./queries";
 import type { OrganizationUpdateInput } from "./validation";
+import { setOrgTags } from "@/domain/tags/helpers";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -36,12 +37,13 @@ export async function createOrganizationAction(formData: FormData) {
         hiringStatus: formData.get("hiringStatus") || undefined,
         linkedinUrl: formData.get("linkedinUrl") || undefined,
         twitterUrl: formData.get("twitterUrl") || undefined,
+        tags: JSON.parse((formData.get("tags") as string) || "[]"),
     };
 
     const parsed = organizationCreateSchema.safeParse(raw);
     if (!parsed.success) return { error: parsed.error.errors[0].message };
 
-    const { logo, industryId, ...rest } = parsed.data;
+    const { logo, industryId, tags: tagLabels, ...rest } = parsed.data;
 
     try {
         const industry = await prisma.industry.findUnique({ where: { id: industryId } });
@@ -66,6 +68,11 @@ export async function createOrganizationAction(formData: FormData) {
         prisma.jobQueue.create({
             data: { type: JobType.EMBED_ORG, payload: { orgId: organization.id } },
         }).catch((err) => console.error("[Embed] Failed to enqueue EMBED_ORG:", err));
+
+        // Persist org tags via junction table
+        if (tagLabels && tagLabels.length > 0) {
+            await setOrgTags(organization.id, tagLabels);
+        }
 
         prisma.jobQueue.create({
             data: {
@@ -109,7 +116,7 @@ export async function updateOrganizationAction(
     if (!hasPermission) return { error: "You don't have permission to edit this organization." };
 
     try {
-        const { industryId, ...rest } = parsed.data;
+        const { industryId, tags: tagLabels, ...rest } = parsed.data;
         const updateData: any = { ...rest };
 
         if (industryId) {
@@ -121,6 +128,10 @@ export async function updateOrganizationAction(
             data: updateData,
             include: { industry: true },
         });
+
+        if (tagLabels !== undefined) {
+            await setOrgTags(organizationId, tagLabels);
+        }
 
         // Re-embed after profile update
         prisma.jobQueue.create({
