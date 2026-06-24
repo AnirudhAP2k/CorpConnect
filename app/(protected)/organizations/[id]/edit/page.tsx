@@ -54,6 +54,7 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
         hiringStatus: organization.hiringStatus ?? "NOT_HIRING",
         linkedinUrl: organization.linkedinUrl ?? "",
         twitterUrl: organization.twitterUrl ?? "",
+        tags: organization.orgTags?.map((ot) => ot.tag.label) ?? [],
     };
 
     return (

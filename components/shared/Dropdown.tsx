@@ -7,17 +7,17 @@ import {
     SelectValue
 } from '@/components/ui/select';
 import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-    AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
-import { Input } from '../ui/input';
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+    DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { createOption, getAllOptions } from '@/actions/category.actions';
 import { OptionsTypes } from '@/lib/types';
 
@@ -31,6 +31,7 @@ interface DropdownProps {
 const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => {
     const [options, setOptions] = useState<OptionsTypes[]>([]);
     const [newOption, setNewOption] = useState('');
+    const [open, setOpen] = useState(false);
 
     const handleAddOption = async () => {
         await createOption({
@@ -39,6 +40,8 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
         })
             .then((option) => {
                 setOptions((prevSate) => [...prevSate, option]);
+                setNewOption('');
+                setOpen(false);
             })
     }
 
@@ -69,21 +72,30 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
 
                 ))}
 
-                <AlertDialog>
-                    <AlertDialogTrigger className="p-medium-14 flex w-full rounded-sm py-3 pl-8 text-primary-500 hover:bg-primary-50 focus:text-primary-500">Add new {type || 'category'}</AlertDialogTrigger>
-                    <AlertDialogContent className="bg-white">
-                        <AlertDialogHeader>
-                            <AlertDialogTitle>New {type || 'category'}</AlertDialogTitle>
-                            <AlertDialogDescription>
-                                <Input type="text" placeholder={`${type || 'category'} name`} className="input-field mt-3" onChange={(e) => { setNewOption(e.target.value) }} />
-                            </AlertDialogDescription>
-                        </AlertDialogHeader>
-                        <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => { startTransition(handleAddOption) }}>Add</AlertDialogAction>
-                        </AlertDialogFooter>
-                    </AlertDialogContent>
-                </AlertDialog>
+                <Dialog open={open} onOpenChange={setOpen}>
+                    <DialogTrigger className="p-medium-14 flex w-full rounded-sm py-3 pl-8 text-primary-500 hover:bg-primary-50 focus:text-primary-500">Add new {type || 'category'}</DialogTrigger>
+                    <DialogContent className="bg-white">
+                        <DialogHeader>
+                            <DialogTitle>New {type || 'category'}</DialogTitle>
+                            <DialogDescription>
+                                Enter a name for the new {type || 'category'}.
+                            </DialogDescription>
+                        </DialogHeader>
+                        <Input
+                            type="text"
+                            placeholder={`${type || 'category'} name`}
+                            className="input-field mt-1"
+                            value={newOption}
+                            onChange={(e) => { setNewOption(e.target.value) }}
+                        />
+                        <DialogFooter>
+                            <DialogClose asChild>
+                                <Button variant="outline">Cancel</Button>
+                            </DialogClose>
+                            <Button onClick={() => { startTransition(handleAddOption) }}>Add</Button>
+                        </DialogFooter>
+                    </DialogContent>
+                </Dialog>
             </SelectContent>
         </Select>
     )

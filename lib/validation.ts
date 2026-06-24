@@ -129,6 +129,7 @@ export const OrganizationCreateSchema = z.object({
     hiringStatus: z.enum(["HIRING", "NOT_HIRING", "OPEN_TO_PARTNERSHIPS"]).optional().default("NOT_HIRING"),
     linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL" }).optional().or(z.literal("")),
     twitterUrl: z.string().url({ message: "Please enter a valid Twitter/X URL" }).optional().or(z.literal("")),
+    tags: z.array(z.string().max(40)).max(10).optional().default([]),
 });
 
 export const OrganizationSubmitSchema = OrganizationCreateSchema.omit({ logo: true }).extend({
