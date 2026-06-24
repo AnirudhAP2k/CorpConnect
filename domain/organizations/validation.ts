@@ -24,6 +24,7 @@ export const organizationCreateSchema = z.object({
     hiringStatus: z.nativeEnum(HiringStatus).optional().default("NOT_HIRING"),
     linkedinUrl: z.string().url("Please enter a valid LinkedIn URL").optional().or(z.literal("")),
     twitterUrl: z.string().url("Please enter a valid Twitter/X URL").optional().or(z.literal("")),
+    tags: z.array(z.string().max(40)).max(10).optional().default([]),
 });
 
 export type OrganizationCreateInput = z.infer<typeof organizationCreateSchema>;
@@ -55,6 +56,7 @@ export const organizationUpdateSchema = z.object({
     hiringStatus: z.nativeEnum(HiringStatus).optional(),
     linkedinUrl: z.string().url().optional().or(z.literal("")),
     twitterUrl: z.string().url().optional().or(z.literal("")),
+    tags: z.array(z.string().max(40)).max(10).optional(),
 });
 
 export type OrganizationUpdateInput = z.infer<typeof organizationUpdateSchema>;
