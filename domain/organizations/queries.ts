@@ -27,6 +27,9 @@ export async function getOrganizationById(id: string): Promise<OrganizationDetai
                 },
                 orderBy: { createdAt: "asc" },
             },
+            orgTags: {
+                include: { tag: { select: { id: true, label: true } } },
+            },
             _count: { select: { members: true, events: true } },
         },
     }) as Promise<OrganizationDetail | null>;
