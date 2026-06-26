@@ -46,6 +46,10 @@ class Settings(BaseSettings):
     # ─── Hashing ──────────────────────────────────────────────────────────
     HASHING_ALGO: str = "HS256"
 
+    # Sentry
+    SENTRY_DSN: str = ""
+    ENVIRONMENT: str = "development"
+
     # Service version
     SERVICE_VERSION: str = "2.0.0"
 
