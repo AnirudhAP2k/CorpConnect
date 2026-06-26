@@ -1,3 +1,17 @@
+# [1.15.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.14.0...v1.15.0) (2026-06-26)
+
+
+### Bug Fixes
+
+* check for duplicate category/industry before creation ([2c86b96](https://github.com/AnirudhAP2k/CorpConnect/commit/2c86b9667b43104f8a2fd2618dae7879b4c11882))
+* show error toast on duplicate option creation ([7b61930](https://github.com/AnirudhAP2k/CorpConnect/commit/7b61930158b24cbd0fb4284ea84628270ea64412))
+
+
+### Features
+
+* add external event invitation tasks to roadmap ([a0229ef](https://github.com/AnirudhAP2k/CorpConnect/commit/a0229efb8f29b35925b05137898c42d8c5ba76ca))
+* draft external event invitation flow design doc ([6d133ae](https://github.com/AnirudhAP2k/CorpConnect/commit/6d133aef5597da1cbfc30d89c04a365961c93c80))
+
 # [1.14.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.13.0...v1.14.0) (2026-06-24)
 
 
