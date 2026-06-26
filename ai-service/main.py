@@ -11,7 +11,21 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+
 from app.config import settings
+
+# Initialize Sentry as early as possible
+if settings.SENTRY_DSN:
+    sentry_sdk.init(
+        dsn=settings.SENTRY_DSN,
+        integrations=[FastApiIntegration()],
+        traces_sample_rate=0.1,
+        profiles_sample_rate=0.1,
+        environment=settings.ENVIRONMENT,
+    )
+
 from app.database import init_db_pool, close_db_pool
 from app.embeddings import load_model
 from app.cache import init_cache

@@ -42,3 +42,6 @@ pypdf==4.2.0
 
 # File uploads
 python-multipart
+
+# Sentry monitoring
+sentry-sdk[fastapi]==2.7.1
