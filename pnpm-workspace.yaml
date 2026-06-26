@@ -1,6 +1,7 @@
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
+  '@sentry/cli': true
   msgpackr-extract: true
   prisma: true
   sharp: true
