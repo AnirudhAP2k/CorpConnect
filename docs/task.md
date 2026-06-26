@@ -523,3 +523,22 @@
 - [ ] **UI Component Integration**
   - [ ] Add an "Invite Guests" button/modal to the Event Detail page layout
   - [ ] Leverage Server Actions with `useTransition` to process invite emails
+
+## Phase 18: Application Monitoring & Observability (Sentry) 🛡️
+> Integrate Sentry SDKs to monitor errors, exceptions, and performance bottlenecks across Next.js and the Python AI Service.
+> See `docs/monitoring_observability_implementation_plan.md` for full context.
+
+- [/] **Next.js SDK Setup**
+  - [x] Install `@sentry/nextjs` dependency
+  - [x] Create Sentry initialization files (`sentry.client.config.ts`, `sentry.server.config.ts`, `sentry.edge.config.ts`)
+  - [x] Wrap Next.js configuration in `next.config.ts` with `withSentryConfig`
+- [/] **Python/FastAPI SDK Setup**
+  - [x] Add `sentry-sdk[fastapi]` to `ai-service/requirements.txt`
+  - [x] Initialize Sentry in `ai-service/main.py`
+- [/] **Environment Configuration**
+  - [x] Document Sentry env vars in `.env.example` and `ai-service/.env.example`
+  - [x] Configure `SENTRY_DSN` in local `.env` files
+- [ ] **Verification & Validation**
+  - [ ] Trigger test errors on client and server runtimes to verify capturing
+  - [ ] Verify that source maps upload correctly on production builds
+
