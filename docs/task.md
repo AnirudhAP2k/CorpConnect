@@ -498,3 +498,28 @@
   - [x] `domain/pitches/actions.ts` — enqueue on `APPROVED` with payload-based dedup
   - [x] `app/.../pitches/[pitchId]/tasks/page.tsx` — phase-grouped checklist UI with progress bar
 - [ ] **White-Labeled Emails**: Enterprise orgs inject custom branding into all outgoing system emails
+
+---
+
+## Phase 17: External Event Invitation Flow (Viral loop user acquisition) 🚀
+> Allow event hosts to invite external participants (users without accounts) to events, driving viral signup and onboarding.
+> See `docs/external_event_invitation_plan.md` for full context.
+
+- [ ] **Database Schema Expansion**
+  - [ ] Add `EventInvite` model in `schema.prisma`
+  - [ ] Run `npx prisma db push` to synchronize database
+- [ ] **Domain Layer Implementation (`domain/events`)**
+  - [ ] Add Zod validation schema in `validation.ts`
+  - [ ] Add `getEventInviteByToken` query in `queries.ts`
+  - [ ] Add `sendEventInvitesAction` server action in `actions.ts`
+- [ ] **Background Job Queue Integration**
+  - [ ] Add `SEND_EVENT_INVITE_EMAIL` to the `JobType` enum in schema
+  - [ ] Create `processEventInviteEmail` worker in `lib/jobs/event-invites.ts`
+  - [ ] Register worker in `job-processor.ts`
+- [ ] **Public Route & Auto-Registration Hook**
+  - [ ] Build `/events/invite/[token]` public page to validate invite links
+  - [ ] Enforce login/registration redirect retaining the return token URL
+  - [ ] Implement atomic db transaction to register user for event and mark invite accepted
+- [ ] **UI Component Integration**
+  - [ ] Add an "Invite Guests" button/modal to the Event Detail page layout
+  - [ ] Leverage Server Actions with `useTransition` to process invite emails

@@ -51,6 +51,18 @@ export const createOption = async ({ optionName, optionType }: CreateOptionProps
 
 export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
     try {
+        const existingCategory = await checkExistingOptionType({
+            optionName: categoryName,
+            optionType: 'category'
+        });
+
+        if (existingCategory) {
+            return {
+                success: false,
+                message: 'Category already exists',
+            };
+        }
+
         const category = await prisma.category.create({
             data: { label: categoryName }
         });
@@ -63,6 +75,18 @@ export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
 
 export const createIndustry = async ({ industryName }: CreateIndustryProps) => {
     try {
+        const existingIndustry = await checkExistingOptionType({
+            optionName: industryName,
+            optionType: 'industry'
+        });
+
+        if (existingIndustry) {
+            return {
+                success: false,
+                message: 'Industry already exists',
+            };
+        }
+
         const industry = await prisma.industry.create({
             data: { label: industryName }
         });
@@ -114,3 +138,16 @@ export const getAllIndustries = async () => {
         handleError(error);
     }
 };
+
+const checkExistingOptionType = async ({ optionName, optionType }: CreateOptionProps) => {
+    switch (optionType) {
+        case 'category':
+            return await prisma.category.findUnique({
+                where: { label: optionName }
+            });
+        case 'industry':
+            return await prisma.industry.findUnique({
+                where: { label: optionName }
+            });
+    }
+}

@@ -20,6 +20,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { createOption, getAllOptions } from '@/actions/category.actions';
 import { OptionsTypes } from '@/lib/types';
+import { toast } from 'sonner';
 
 interface DropdownProps {
     value: string
@@ -39,9 +40,18 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
             optionType: type || 'category'
         })
             .then((option) => {
+                if (!option?.success) {
+                    toast.error(option?.message || 'Failed to add new option');
+                    return;
+                }
+
                 setOptions((prevSate) => [...prevSate, option]);
                 setNewOption('');
                 setOpen(false);
+                toast.success(`${type || 'option'} added successfully!`);
+            })
+            .catch((error) => {
+                toast.error(error.message);
             })
     }
 
