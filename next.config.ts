@@ -11,6 +11,7 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: [
     "*.ngrok-free.dev",
   ],
+  serverExternalPackages: ["cloudinary"],
   images: {
     remotePatterns: [
       {
