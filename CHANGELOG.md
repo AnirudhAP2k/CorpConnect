@@ -1,3 +1,11 @@
+## [1.16.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.0...v1.16.1) (2026-06-29)
+
+
+### Bug Fixes
+
+* **cloudinary:** add cloudinary to serverExternalPackages to prevent Webpack bundling error ([8297c1a](https://github.com/AnirudhAP2k/CorpConnect/commit/8297c1a40d764fd1fce0527838f1cd86d7c1ab16))
+* **cloudinary:** secure connection and clean typescript env assertions ([9088f0f](https://github.com/AnirudhAP2k/CorpConnect/commit/9088f0fb79e7573c4b7e2cf9ad584299d3b0fbfd))
+
 # [1.16.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.15.0...v1.16.0) (2026-06-29)
 
 
