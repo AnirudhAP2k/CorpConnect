@@ -8,19 +8,20 @@ import { Plus } from "lucide-react";
 import { getAttendingEvents, getHostEvents, getPastEvents } from "@/data/events";
 
 interface OrganizationEventsPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
-    searchParams: {
+    }>;
+    searchParams: Promise<{
         tab?: string;
-    };
+    }>;
 }
 
 const OrganizationEventsPage = async ({ params, searchParams }: OrganizationEventsPageProps) => {
     const session = await auth();
     const userId = session?.user?.id;
 
-    const activeTab = searchParams.tab || "hosted";
+    const sp = await searchParams;
+    const activeTab = sp.tab || "hosted";
     const data = await params;
     const { id } = data;
 
@@ -90,7 +91,7 @@ const OrganizationEventsPage = async ({ params, searchParams }: OrganizationEven
                         {tabs.map((tab) => (
                             <Link
                                 key={tab.id}
-                                href={`/organizations/${params.id}/events?tab=${tab.id}`}
+                                href={`/organizations/${id}/events?tab=${tab.id}`}
                                 className={`pb-4 px-1 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
                                     ? "border-primary-600 text-primary-600"
                                     : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
