@@ -1,3 +1,10 @@
+## [1.16.4](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.3...v1.16.4) (2026-06-29)
+
+
+### Bug Fixes
+
+* update chat message role database cast to ChatRole enum ([a48af1c](https://github.com/AnirudhAP2k/CorpConnect/commit/a48af1cced4927ed18fb38774f697d959d384f12))
+
 ## [1.16.3](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.2...v1.16.3) (2026-06-29)
 
 
