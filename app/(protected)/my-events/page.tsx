@@ -12,7 +12,7 @@ import CancelParticipationButton from "@/components/shared/CancelParticipationBu
 type Tab = "upcoming" | "past" | "cancelled";
 
 interface MyEventsPageProps {
-    searchParams: { tab?: Tab };
+    searchParams: Promise<{ tab?: Tab }>;
 }
 
 const statusConfig = {
