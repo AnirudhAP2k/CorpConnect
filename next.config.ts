@@ -45,31 +45,24 @@ export default withSentryConfig(nextConfig, {
   silent: true,
   org: process.env.SENTRY_ORG,
   project: process.env.SENTRY_PROJECT,
-}, {
+
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
   // Upload a larger set of source maps for prettier stack traces
   widenClientFileUpload: true,
 
-  // Automatically annotate React components to show their component name in breadcrumbs & spans
-  reactComponentAnnotation: {
-    enabled: true,
+  webpack: {
+    reactComponentAnnotation: {
+      enabled: true,  // Automatically annotate React components to show their component name in breadcrumbs & spans
+    }
   },
 
-  // Route browser requests to Sentry through a Next.js rewrite to bypass ad-blockers.
-  // Note: This increases your server's load, as client-side events will be routed through it.
   tunnelRoute: "/monitoring",
 
-  // Hides source maps from visitors
-  hideSourceMaps: true,
-
-  // Automatically tree-shake Sentry logger statements to reduce bundle size
-  disableLogger: true,
-
-  // Enables automatic Instrumentation for Vercel Cron Jobs.
-  // See instructions here:
-  // https://docs.sentry.io/product/crons/
-  automaticVercelCronJobs: true,
+  // Upload source maps to Sentry
+  sourcemaps: {
+    disable: false,
+    ignore: ["**/*.d.ts", "**/*.test.ts", "**/*.test.tsx"],
+  },
 });
-
