@@ -76,7 +76,7 @@ app.include_router(search.router,    prefix="/search",    tags=["Search"])
 app.include_router(ingest.router,    prefix="/ingest",    tags=["Document Ingestion"])
 app.include_router(generate.router,  prefix="/generate",  tags=["Content Generation"])
 app.include_router(chat.router,       prefix="/chat",      tags=["Chat"])
-app.include_router(brainstorm.router, prefix="/chat",      tags=["AI Brainstorm"])
+app.include_router(brainstorm.router, prefix="/chat/brainstorm",      tags=["AI Brainstorm"])
 app.include_router(analyse.router,    prefix="/analyse",   tags=["Sentiment Analysis"])
 
 
