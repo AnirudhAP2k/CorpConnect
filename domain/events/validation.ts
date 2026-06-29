@@ -5,7 +5,7 @@ import { EventVisibility, EventType, EventPaymentMode } from "@prisma/client";
 
 export const eventCreateSchema = z.object({
     title: z.string().min(3, "Title must be at least 3 characters").max(100),
-    description: z.string().min(5, "Description must be at least 5 characters").max(1000),
+    description: z.string().min(5, "Description must be at least 5 characters").max(10000),
     location: z.string().min(3, "Location must be at least 3 characters").max(200),
     startDateTime: z.date(),
     endDateTime: z.date(),
@@ -31,7 +31,7 @@ export type EventCreateInput = z.infer<typeof eventCreateSchema>;
 // Note: base schema without the date refinement, so we can safely .omit + .extend
 const eventBaseSchema = z.object({
     title: z.string().min(3, "Title must be at least 3 characters").max(100),
-    description: z.string().min(5, "Description must be at least 5 characters").max(1000),
+    description: z.string().min(5, "Description must be at least 5 characters").max(10000),
     location: z.string().min(3, "Location must be at least 3 characters").max(200),
     categoryId: z.string().uuid("Please select a category"),
     price: z.string().optional().default("0"),
