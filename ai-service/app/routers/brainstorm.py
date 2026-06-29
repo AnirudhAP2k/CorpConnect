@@ -189,7 +189,7 @@ async def _save_message(pool, session_id: str, role: str, content: str) -> None:
         await conn.execute(
             """
             INSERT INTO "ChatMessage" (id, "sessionId", role, content, "createdAt")
-            VALUES (gen_random_uuid(), $1::uuid, $2::"ChatMessageRole", $3, NOW())
+            VALUES (gen_random_uuid(), $1::uuid, $2::"ChatRole", $3, NOW())
             """,
             session_id, role.upper(), content,
         )
