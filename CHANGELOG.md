@@ -1,3 +1,27 @@
+# [1.16.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.15.0...v1.16.0) (2026-06-29)
+
+
+### Bug Fixes
+
+* **git:** ignore local logs directory ([225e162](https://github.com/AnirudhAP2k/CorpConnect/commit/225e162f93af544ccce707de0c355dfdf655fd5d))
+* **sentry:** consolidate withSentryConfig arguments to prevent TS2554 error ([2bdb0b8](https://github.com/AnirudhAP2k/CorpConnect/commit/2bdb0b8301ffff3d1a8dbfa820f74e1428bf4efc))
+
+
+### Features
+
+* add client-side Sentry initialization config ([bf8fc35](https://github.com/AnirudhAP2k/CorpConnect/commit/bf8fc358b5210bff25b9891bf69c9e4fc4dde2f3))
+* add Edge runtime Sentry initialization config ([b99abc7](https://github.com/AnirudhAP2k/CorpConnect/commit/b99abc74e40f67a3398eae751fa42b1ee25dd707))
+* add Sentry environment parameters to settings configuration ([9e060d9](https://github.com/AnirudhAP2k/CorpConnect/commit/9e060d9b36f69f8e5ee9de1168a2634e5c976f07))
+* add server-side Sentry initialization config ([b5b7280](https://github.com/AnirudhAP2k/CorpConnect/commit/b5b7280686b2bf2c28bdf29104da1c5b80fda68a))
+* **docs:** update monitoring and observability implementation plan ([f0e183a](https://github.com/AnirudhAP2k/CorpConnect/commit/f0e183a05b1c8a2c40cef6a43917c4532a07a203))
+* initialize Sentry SDK in Python AI Service entry point ([2d164b3](https://github.com/AnirudhAP2k/CorpConnect/commit/2d164b3cb4b174cd24731ab3c6a7bc9e275f9900))
+* **logging:** add daily rotating file logger utility with console interception ([0c20562](https://github.com/AnirudhAP2k/CorpConnect/commit/0c20562f79de46555a532d993c300fd16602858f))
+* **sentry:** add global error boundary for root level error capturing ([bbc01f4](https://github.com/AnirudhAP2k/CorpConnect/commit/bbc01f4d1d51dbdf8da087ef605296d671b1f4e6))
+* **sentry:** export client-side router transition hooks ([1875056](https://github.com/AnirudhAP2k/CorpConnect/commit/1875056f0b4a18a6bdf68c8b86ff560dafa879f2))
+* **sentry:** initialize server-side sentry tracking and daily log interceptor ([8bc993d](https://github.com/AnirudhAP2k/CorpConnect/commit/8bc993d1d7e9eda51e4e6d0241e4888e04a86536))
+* **sentry:** migrate legacy config files to nextjs standard instrumentation files ([ef49a90](https://github.com/AnirudhAP2k/CorpConnect/commit/ef49a90db9faaa01fa0eddd9d97c72cde2b48668))
+* wrap next.config.ts with Sentry configuration helper ([f98dfb7](https://github.com/AnirudhAP2k/CorpConnect/commit/f98dfb702f95907d01933d4c96e988056676e66b))
+
 # [1.15.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.14.0...v1.15.0) (2026-06-26)
 
 
