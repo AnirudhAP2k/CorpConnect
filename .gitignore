@@ -47,3 +47,5 @@ uploads
 certificates
 
 *.backup.sql
+/logs
+
