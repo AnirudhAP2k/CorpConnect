@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { createOption, getAllOptions } from '@/actions/category.actions';
+import { createOption, getAllOptions, OptionsType } from '@/actions/category.actions';
 import { OptionsTypes } from '@/lib/types';
 import { toast } from 'sonner';
 
@@ -39,13 +39,14 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
             optionName: newOption.trim(),
             optionType: type || 'category'
         })
-            .then((option) => {
-                if (!option?.success) {
-                    toast.error(option?.message || 'Failed to add new option');
+            .then((result) => {
+                if (!result.success) {
+                    toast.error(result?.message || 'Failed to add new option');
                     return;
                 }
 
-                setOptions((prevSate) => [...prevSate, option]);
+                const newOption = result.data as OptionsType;
+                setOptions((prevSate) => [...prevSate, newOption]);
                 setNewOption('');
                 setOpen(false);
                 toast.success(`${type || 'option'} added successfully!`);

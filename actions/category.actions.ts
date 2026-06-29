@@ -12,9 +12,10 @@
 
 import { prisma } from "@/lib/db";
 import { handleError, parseData } from "@/lib/utils";
+import { Category, Industry } from "@prisma/client";
 
 interface CreateOptionProps {
-    optionName: string
+    optionName: string;
     optionType: 'category' | 'industry';
 }
 
@@ -30,26 +31,30 @@ interface GetAllOptionsProps {
     optionType: 'category' | 'industry';
 }
 
-export const createOption = async ({ optionName, optionType }: CreateOptionProps) => {
+export type OptionsType = Category | Industry;
+
+export type OptionResult = {
+    success: boolean;
+    data: OptionsType | null;
+    message: string;
+};
+
+export const createOption = async ({ optionName, optionType }: CreateOptionProps): Promise<OptionResult> => {
     try {
-        let option = null;
         switch (optionType) {
             case 'category':
-                option = await createCategory({ categoryName: optionName });
-                break;
-
+                return await createCategory({ categoryName: optionName });
             case 'industry':
-                option = await createIndustry({ industryName: optionName });
-                break;
+                return await createIndustry({ industryName: optionName });
+            default:
+                throw new Error(`Unsupported option type: ${optionType}`);
         }
-
-        return option;
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
+export const createCategory = async ({ categoryName }: CreateCategoryProps): Promise<OptionResult> => {
     try {
         const existingCategory = await checkExistingOptionType({
             optionName: categoryName,
@@ -60,6 +65,7 @@ export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
             return {
                 success: false,
                 message: 'Category already exists',
+                data: null
             };
         }
 
@@ -67,13 +73,17 @@ export const createCategory = async ({ categoryName }: CreateCategoryProps) => {
             data: { label: categoryName }
         });
 
-        return parseData(category);
+        return {
+            success: true,
+            message: 'Category created successfully',
+            data: parseData(category)
+        };
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-export const createIndustry = async ({ industryName }: CreateIndustryProps) => {
+export const createIndustry = async ({ industryName }: CreateIndustryProps): Promise<OptionResult> => {
     try {
         const existingIndustry = await checkExistingOptionType({
             optionName: industryName,
@@ -84,6 +94,7 @@ export const createIndustry = async ({ industryName }: CreateIndustryProps) => {
             return {
                 success: false,
                 message: 'Industry already exists',
+                data: null
             };
         }
 
@@ -91,31 +102,32 @@ export const createIndustry = async ({ industryName }: CreateIndustryProps) => {
             data: { label: industryName }
         });
 
-        return parseData(industry);
+        return {
+            success: true,
+            message: 'Industry created successfully',
+            data: parseData(industry)
+        };
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-export const getAllOptions = async ({ optionType }: GetAllOptionsProps) => {
+export const getAllOptions = async ({ optionType }: GetAllOptionsProps): Promise<OptionsType[]> => {
     try {
-        let options = [];
         switch (optionType) {
             case 'category':
-                options = await getAllCategories();
-                break;
+                return await getAllCategories();
             case 'industry':
-                options = await getAllIndustries();
-                break;
+                return await getAllIndustries();
+            default:
+                throw new Error(`Unsupported option type: ${optionType}`);
         }
-
-        return options;
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-export const getAllCategories = async () => {
+export const getAllCategories = async (): Promise<Category[]> => {
     try {
         const categories = await prisma.category.findMany({
             orderBy: {
@@ -125,21 +137,21 @@ export const getAllCategories = async () => {
 
         return parseData(categories);
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-export const getAllIndustries = async () => {
+export const getAllIndustries = async (): Promise<Industry[]> => {
     try {
         const industries = await prisma.industry.findMany();
 
         return parseData(industries);
     } catch (error) {
-        handleError(error);
+        return handleError(error);
     }
 };
 
-const checkExistingOptionType = async ({ optionName, optionType }: CreateOptionProps) => {
+const checkExistingOptionType = async ({ optionName, optionType }: CreateOptionProps): Promise<OptionsType | null> => {
     switch (optionType) {
         case 'category':
             return await prisma.category.findUnique({
@@ -150,4 +162,4 @@ const checkExistingOptionType = async ({ optionName, optionType }: CreateOptionP
                 where: { label: optionName }
             });
     }
-}
+};

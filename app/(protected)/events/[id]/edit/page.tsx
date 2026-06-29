@@ -4,9 +4,9 @@ import EventsForm from "@/components/shared/EventsForm";
 import { getEventByIdWithMemberCheck } from "@/data/events";
 
 interface EditEventPageProps {
-    params: {
+    params: Promise<{
         id: string;
-    };
+    }>;
 }
 
 const EditEventPage = async ({ params }: EditEventPageProps) => {
@@ -38,7 +38,7 @@ const EditEventPage = async ({ params }: EditEventPageProps) => {
                         Only organization owners and admins can edit events.
                     </p>
                     <a
-                        href={`/events/${params.id}`}
+                        href={`/events/${id}`}
                         className="inline-block bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600"
                     >
                         Back to Event

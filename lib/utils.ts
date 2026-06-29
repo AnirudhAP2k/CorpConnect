@@ -85,7 +85,7 @@ export const formatPrice = (price: string) => {
 //   )
 // }
 
-export const handleError = (error: unknown) => {
+export const handleError = (error: unknown): never => {
   console.error(error)
   throw new Error(typeof error === 'string' ? error : JSON.stringify(error))
 }
