@@ -166,7 +166,7 @@ export async function rotateRefreshToken(oldToken: string, userAgent?: string, i
 
 export async function revokeToken(token: string) {
     const hashedToken = hashToken(token);
-    console.log("Hashed token:", hashedToken);
+
     return prisma.refreshToken.updateMany({
         where: { token: hashedToken },
         data: { revokedAt: new Date() }
