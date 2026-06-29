@@ -23,19 +23,21 @@ pnpm install @sentry/nextjs
 ```
 
 ### 2.2 Configuration Files
-We will create three initialization files in the root of the project:
+We will use the Next.js 15 standard instrumentation files:
 
-- **`sentry.client.config.ts`** (Client-side tracking)
+- **`instrumentation-client.ts`** (Client-side tracking)
   - Tracks React component crashes, unhandled promise rejections, and browser console errors.
-- **`sentry.server.config.ts`** (Node.js runtime tracking)
-  - Tracks Next.js API Routes, Server Actions, Server Components, and Prisma queries.
-- **`sentry.edge.config.ts`** (Edge runtime tracking)
-  - Tracks Edge components and Middleware execution.
+  - Exports `onRouterTransitionStart` hook to capture navigation transitions.
+- **`instrumentation.ts`** (Server-side and Edge tracking)
+  - Calls `Sentry.init` conditionally for both `nodejs` and `edge` runtimes.
+  - Exports `onRequestError` hook to capture Server Component, Server Action, and API route exceptions.
+- **`app/global-error.tsx`** (Root-level rendering error capture)
+  - Intercepts root layout rendering errors and logs them to Sentry using `Sentry.captureException`.
 
 ### 2.3 `next.config.ts` Wrapper
 We will wrap the existing configuration in `next.config.ts` with `withSentryConfig` to enable:
 - Automatic source maps uploading during build (essential for de-obfuscating production stack traces).
-- Instrumentation of Server Actions and API routes.
+- Dynamic telemetry rewrites.
 
 ---
 
