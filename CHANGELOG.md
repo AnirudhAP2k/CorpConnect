@@ -1,3 +1,12 @@
+## [1.16.3](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.2...v1.16.3) (2026-06-29)
+
+
+### Bug Fixes
+
+* increase maximum event description length to 10000 characters ([d250531](https://github.com/AnirudhAP2k/CorpConnect/commit/d250531bfef15692144a2c7b91bc52efe14f3d49))
+* remove debug console log for hashed tokens in revokeToken ([6412f66](https://github.com/AnirudhAP2k/CorpConnect/commit/6412f66aaf85223ba26c2c44dbf758f17a3d953d))
+* update brainstorm AI router prefix to /chat/brainstorm ([9bfbde3](https://github.com/AnirudhAP2k/CorpConnect/commit/9bfbde3c1fe02f046c29ace4474846edb62e1e13))
+
 ## [1.16.2](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.1...v1.16.2) (2026-06-29)
 
 
