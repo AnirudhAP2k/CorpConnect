@@ -1,3 +1,16 @@
+## [1.16.2](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.1...v1.16.2) (2026-06-29)
+
+
+### Bug Fixes
+
+* make title optional in OptionsTypes interface ([1b80941](https://github.com/AnirudhAP2k/CorpConnect/commit/1b8094134ee058c344fa55420625e0c31086f454))
+* refactor category server actions to be type safe with correct OptionResult type ([5c53bde](https://github.com/AnirudhAP2k/CorpConnect/commit/5c53bdee6ececcdc07a674c52470cc12e741b9cd))
+* restore parseData function and type handleError with never ([67a13ef](https://github.com/AnirudhAP2k/CorpConnect/commit/67a13ef221d6f4e7355622d2d75d927dd02bb5ab))
+* update Dropdown handles to match standardized OptionResult structure ([8843910](https://github.com/AnirudhAP2k/CorpConnect/commit/8843910fda754d05bc9673b84a6b7e8e4d5c342d))
+* update EditEventPageProps for Next.js 15 page props Promise compatibility ([f23c85d](https://github.com/AnirudhAP2k/CorpConnect/commit/f23c85d4240746a24497254ac8b5055575774aa2))
+* update MyEventsPageProps for Next.js 15 searchParams Promise compatibility ([b3e28f1](https://github.com/AnirudhAP2k/CorpConnect/commit/b3e28f130e66de3a8b8eca7b78df910021f5fe2d))
+* update OrganizationEventsPageProps for Next.js 15 params/searchParams Promise compatibility ([dcd7334](https://github.com/AnirudhAP2k/CorpConnect/commit/dcd7334068372beddb290bae2815d47339549a15))
+
 ## [1.16.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.0...v1.16.1) (2026-06-29)
 
 
