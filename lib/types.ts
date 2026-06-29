@@ -71,7 +71,7 @@ export interface MeetingRequest {
 }
 
 export interface OptionsTypes {
-  title: string;
+  title?: string;
   id: string;
   createdAt: Date;
   updatedAt: Date;
