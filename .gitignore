@@ -49,3 +49,13 @@ certificates
 *.backup.sql
 /logs
 
+# Terraform
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/*.tfvars
+terraform/.terraform.lock.hcl
+
+# Monitoring local data
+monitoring/data/
+
