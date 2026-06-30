@@ -9,54 +9,59 @@ FROM node:${NODE_VERSION}-alpine AS base
 WORKDIR /app
 
 ############################
-# Dependencies (prod only)
+# Dependencies (all, needed for build)
 ############################
 FROM base AS deps
 
-COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+COPY package.json pnpm-lock.yaml ./
+RUN npm i -g pnpm && pnpm install --frozen-lockfile
 
 ############################
 # Build stage
 ############################
 FROM base AS build
 
-COPY package.json package-lock.json ./
-RUN npm ci
-
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma client
 RUN npx prisma generate
 
-# Build app (Next.js / TS etc.)
-RUN npm run build
+# Disable Next.js telemetry during build
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Build the Next.js standalone application
+RUN npm i -g pnpm && pnpm run build
 
 ############################
-# Final (minimal runtime)
+# Final (minimal standalone runtime)
 ############################
 FROM node:${NODE_VERSION}-alpine AS final
 
 WORKDIR /app
 ENV NODE_ENV=production
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Copy only required files
-COPY --from=deps /app/node_modules ./node_modules
-COPY --from=build /app/package.json ./package.json
-COPY --from=build /app/dist ./dist
+# Create low-privilege system user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Copy public assets
+COPY --from=build /app/public ./public
+
+# Copy the standalone server and static files
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+# Copy Prisma schema (needed by the Prisma client at runtime)
 COPY --from=build /app/prisma ./prisma
+COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
 
-# Optional: if Next.js, use this instead of dist
-# COPY --from=build /app/.next ./.next
-# COPY --from=build /app/public ./public
-
-# Entrypoint for Prisma migrate (important)
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-USER node
+USER nextjs
 
 EXPOSE 3000
 
-ENTRYPOINT ["/entrypoint.sh"]
-CMD ["node", "dist/index.js"]
+# Standalone output generates server.js as the entrypoint
+CMD ["node", "server.js"]
