@@ -1,68 +1,24 @@
-version: "3.9"
-
 services:
-  ws-service:
-    build:
-      context: ./ws-service
-    container_name: corpconnect-ws
+  # ── Local PostgreSQL Database ──
+  db:
+    image: postgres:15-alpine
+    container_name: corpconnect-db
     restart: always
-
     ports:
-      - "4000:4000"
-
-    env_file:
-      - .env
-
+      - "5435:5432"
     environment:
-      WS_PORT: 4000
-      REDIS_URL: redis://redis:6379
-      NEXTJS_URL: ${NEXTJS_URL:-http://localhost:3000}
+      POSTGRES_DB: ${LOCAL_DB_NAME}
+      POSTGRES_USER: ${LOCAL_DB_USER}
+      POSTGRES_PASSWORD: ${LOCAL_DB_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-    depends_on:
-      - redis
-
-  lv-service:
-    build:
-      context: ./lv-service
-    container_name: corpconnect-lv
-    restart: always
-
-    ports:
-      - "5000:5000"
-
-    env_file:
-      - .env
-
-    environment:
-      LV_PORT: 5000
-      NODE_ENV: production
-      NEXTJS_URL: ${NEXTJS_URL:-http://localhost:3000}
-      LIVEKIT_URL: ${LIVEKIT_URL}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
-      # AUTH_SECRET and DATABASE_URL come from env_file
-
-    depends_on:
-      - redis
-
-  server:
-    build:
-      context: .
-    container_name: corpconnect-server
-    restart: always
-
-    ports:
-      - "3000:3000"
-
-    env_file:
-      - .env
-
-    environment:
-      NODE_ENV: production
-
-    depends_on:
-      - redis
-
+  # ── Redis Cache & PubSub ──
   redis:
     image: redis:7-alpine
     container_name: corpconnect-redis
@@ -71,35 +27,145 @@ services:
       - "6379:6379"
     volumes:
       - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
+  # ── Next.js Server (Standalone) ──
+  server:
+    build:
+      context: .
+    container_name: corpconnect-server
+    restart: always
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      NODE_ENV: production
+      REDIS_URL: redis://redis:6379
+      # To use local Compose DB, set LOCAL_DATABASE_URL in your .env:
+      # DATABASE_URL: ${LOCAL_DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── WebSocket Service ──
+  ws-service:
+    build:
+      context: ./ws-service
+    container_name: corpconnect-ws
+    restart: always
+    ports:
+      - "4000:4000"
+    env_file:
+      - .env
+    environment:
+      WS_PORT: 4000
+      REDIS_URL: redis://redis:6379
+      NEXTJS_URL: ${NEXTJS_URL:-http://server:3000}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── LiveKit Service ──
+  lv-service:
+    build:
+      context: ./lv-service
+    container_name: corpconnect-lv
+    restart: always
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    environment:
+      LV_PORT: 5000
+      NODE_ENV: production
+      NEXTJS_URL: ${NEXTJS_URL:-http://server:3000}
+      LIVEKIT_URL: ${LIVEKIT_URL}
+      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  # ── AI Service (FastAPI) ──
+  ai-service:
+    build:
+      context: ./ai-service
+    container_name: corpconnect-ai
+    restart: always
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # To use local Compose DB, set LOCAL_DATABASE_URL in your .env:
+      # DATABASE_URL: ${LOCAL_DATABASE_URL}
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── N8N Workflow Automation ──
   n8n:
     image: n8nio/n8n:latest
     container_name: corpconnect-n8n
     restart: always
-
     ports:
       - "5678:5678"
-
     environment:
       - N8N_BASIC_AUTH_ACTIVE=true
       - N8N_BASIC_AUTH_USER=${N8N_ADMIN_USER:-admin}
       - N8N_BASIC_AUTH_PASSWORD=${N8N_ADMIN_PASSWORD:-changeme}
-
       - DB_TYPE=postgresdb
-      - DB_POSTGRESDB_HOST=dpg-d7j01ilckfvc73ff3cdg-a.singapore-postgres.render.com
-      - DB_POSTGRESDB_PORT=5432
-      - DB_POSTGRESDB_DATABASE=corp_connect_s4f0
-      - DB_POSTGRESDB_USER=corp_connect_s4f0_user
-      - DB_POSTGRESDB_PASSWORD=${POSTGRES_PASSWORD}
-
+      - DB_POSTGRESDB_HOST=${DB_HOST}
+      - DB_POSTGRESDB_PORT=${DB_PORT}
+      - DB_POSTGRESDB_DATABASE=${DB_NAME}
+      - DB_POSTGRESDB_USER=${DB_USER}
+      - DB_POSTGRESDB_PASSWORD=${DB_PASSWORD}
       - WEBHOOK_URL=${N8N_WEBHOOK_BASE_URL:-http://localhost:5678}
-
     volumes:
       - n8n_data:/home/node/.n8n
-
     depends_on:
-      - redis
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  # ── monitoring - maybe later in future
+  # prometheus:
+  #   image: prom/prometheus:latest
+  #   container_name: corpconnect-prometheus
+  #   restart: always
+  #   volumes:
+  #     - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+  #     - prometheus_data:/prometheus
+  #   ports:
+  #     - "9090:9090"
+
+  # grafana:
+  #   image: grafana/grafana:latest
+  #   container_name: corpconnect-grafana
+  #   restart: always
+  #   ports:
+  #     - "3001:3000"
+  #   volumes:
+  #     - grafana_data:/var/lib/grafana
+  #   environment:
+  #     - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-corpconnect_local}
+  #   depends_on:
+  #     - prometheus
 
 volumes:
+  postgres_data:
   redis_data:
   n8n_data:
+  # prometheus_data:
+  # grafana_data:
