@@ -154,6 +154,22 @@ async def _ensure_brainstorm_session(
 
     # Create a new brainstorm session tagged with contextType=ORGANIZATION + org as context
     session_id = str(uuid_lib.uuid4())
+
+    # Fetch existing sessionId if conditions are met
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """
+            SELECT id FROM "ChatSession"
+            WHERE "userId" = $1::uuid AND "contextId" = $2::uuid AND "contextType" = 'ORGANIZATION'
+            ORDER BY "createdAt" DESC
+            LIMIT 1
+            """,
+            user_id, org_id,
+        )
+        if rows:
+            session_id = str(rows[0]["id"])
+
+    # Upsert chat session for this user and organization
     async with pool.acquire() as conn:
         await conn.execute(
             """
