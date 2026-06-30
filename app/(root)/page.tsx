@@ -39,7 +39,7 @@ export default async function Home() {
                         <span className="inline-block px-3 py-1 mb-6 text-[10px] font-bold tracking-[0.2em] uppercase text-nx-on-tertiary-container bg-nx-tertiary-fixed rounded-[4px] font-label">
                             Network Architecture for Leaders
                         </span>
-                        <h1 className="text-5xl lg:text-7xl font-headline font-bold text-nx-primary leading-[1.1] mb-8 tracking-tight">
+                        <h1 className="text-4xl md:text-5xl lg:text-7xl font-headline font-bold text-nx-primary leading-[1.1] mb-8 tracking-tight">
                             Elite Networking for the <span className="text-nx-on-tertiary-container">Modern Executive.</span>
                         </h1>
                         <p className="text-lg text-nx-secondary mb-10 leading-relaxed font-body max-w-lg">
