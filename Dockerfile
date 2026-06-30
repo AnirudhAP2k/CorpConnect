@@ -31,7 +31,7 @@ RUN npx prisma generate
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Build the Next.js standalone application
-RUN npm i -g pnpm && pnpm run build
+RUN npm i -g pnpm && STANDALONE=true pnpm run build
 
 ############################
 # Final (minimal standalone runtime)
