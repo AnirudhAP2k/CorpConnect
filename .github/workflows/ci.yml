@@ -8,79 +8,113 @@ on:
   workflow_dispatch:
 
 jobs:
-  code-quality:
-    name: Code Quality Checks
+  # ── Node.js Services (Next.js + WS + LiveKit) ──
+  node-quality:
+    name: Node.js — Quality & Build
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      - name: Path Filter
+        uses: dorny/paths-filter@v3
+        id: filter
+        with:
+          filters: |
+            node:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'app/**'
+              - 'components/**'
+              - 'domain/**'
+              - 'lib/**'
+              - 'prisma/**'
+              - 'ws-service/**'
+              - 'lv-service/**'
+              - 'next.config.ts'
+              - 'tsconfig.json'
+
       - name: Set up PNPM
+        if: steps.filter.outputs.node == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 10
 
       - name: Set up Node.js
+        if: steps.filter.outputs.node == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
 
       - name: Install Dependencies
+        if: steps.filter.outputs.node == 'true'
         run: pnpm install
 
       - name: Run ESLint
+        if: steps.filter.outputs.node == 'true'
         run: pnpm run lint
 
-      - name: Run TypeScript Type Check
+      - name: TypeScript Type Check
+        if: steps.filter.outputs.node == 'true'
         run: pnpm tsc --noEmit
 
       - name: Validate Prisma Schema
+        if: steps.filter.outputs.node == 'true'
         run: pnpm prisma validate
 
+      - name: Generate Prisma Client
+        if: steps.filter.outputs.node == 'true'
+        run: pnpm prisma generate
 
-  build:
-    name: Build Verification
+      - name: Build
+        if: steps.filter.outputs.node == 'true'
+        run: pnpm run build
+
+      - name: Run Tests
+        if: steps.filter.outputs.node == 'true'
+        run: pnpm test
+
+  # ── Python AI Service ──
+  python-quality:
+    name: Python AI — Quality
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v4
+      - name: Path Filter
+        uses: dorny/paths-filter@v3
+        id: filter
         with:
-          version: 10
+          filters: |
+            python:
+              - 'ai-service/**'
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
+      - name: Set up Python
+        if: steps.filter.outputs.python == 'true'
+        uses: actions/setup-python@v5
         with:
-          node-version: '20'
-          cache: 'pnpm'
+          python-version: '3.11'
+          cache: 'pip'
 
-      - run: pnpm install
-      - run: pnpm prisma generate
-      - run: pnpm run build
+      - name: Install Dependencies
+        if: steps.filter.outputs.python == 'true'
+        run: |
+          python -m pip install --upgrade pip
+          pip install ruff mypy pytest
+          pip install -r ai-service/requirements.txt
 
+      - name: Run Ruff Linter
+        if: steps.filter.outputs.python == 'true'
+        run: ruff check ai-service/
 
-  test:
-    name: Unit Tests
-    runs-on: ubuntu-latest
+      - name: Run Mypy Type Check
+        if: steps.filter.outputs.python == 'true'
+        run: mypy ai-service/ --ignore-missing-imports
 
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Set up PNPM
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'pnpm'
-
-      - run: pnpm install
-      - run: pnpm prisma generate
-      - run: pnpm test
+      - name: Run Pytest
+        if: steps.filter.outputs.python == 'true'
+        run: pytest ai-service/ -v
