@@ -8,11 +8,13 @@ on:
   workflow_dispatch:
 
 jobs:
-  # ── Node.js Services (Next.js + WS + LiveKit) ──
-  node-quality:
-    name: Node.js — Quality & Build
+  # ── Detect Changes ──
+  changes:
+    name: Detect Changes
     runs-on: ubuntu-latest
-
+    outputs:
+      node: ${{ steps.filter.outputs.node }}
+      python: ${{ steps.filter.outputs.python }}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -34,87 +36,227 @@ jobs:
               - 'lv-service/**'
               - 'next.config.ts'
               - 'tsconfig.json'
+            python:
+              - 'ai-service/**'
+
+  # ── Node.js Services — Lint ──
+  node-lint:
+    name: Node.js — Lint
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up PNPM
-        if: steps.filter.outputs.node == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 10
 
       - name: Set up Node.js
-        if: steps.filter.outputs.node == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'pnpm'
 
       - name: Install Dependencies
-        if: steps.filter.outputs.node == 'true'
         run: pnpm install
 
-      - name: Run ESLint
-        if: steps.filter.outputs.node == 'true'
-        run: pnpm run lint
-
-      - name: TypeScript Type Check
-        if: steps.filter.outputs.node == 'true'
-        run: pnpm tsc --noEmit
-
-      - name: Validate Prisma Schema
-        if: steps.filter.outputs.node == 'true'
-        run: pnpm prisma validate
-
       - name: Generate Prisma Client
-        if: steps.filter.outputs.node == 'true'
         run: pnpm prisma generate
 
-      - name: Build
-        if: steps.filter.outputs.node == 'true'
-        run: pnpm run build
+      - name: Run ESLint
+        run: pnpm run lint
 
-      - name: Run Tests
-        if: steps.filter.outputs.node == 'true'
-        run: pnpm test
-
-  # ── Python AI Service ──
-  python-quality:
-    name: Python AI — Quality
+  # ── Node.js Services — Type Check ──
+  node-typecheck:
+    name: Node.js — Type Check
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.node == 'true'
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Path Filter
-        uses: dorny/paths-filter@v3
-        id: filter
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
         with:
-          filters: |
-            python:
-              - 'ai-service/**'
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+
+      - name: TypeScript Type Check
+        run: pnpm tsc --noEmit
+
+  # ── Node.js Services — Validate Prisma Schema ──
+  node-prisma-validate:
+    name: Node.js — Validate Prisma Schema
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Validate Prisma Schema
+        run: pnpm prisma validate
+
+  # ── Node.js Services — Build ──
+  node-build:
+    name: Node.js — Build
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+
+      - name: Build
+        run: pnpm run build
+
+  # ── Node.js Services — Run Tests ──
+  node-test:
+    name: Node.js — Run Tests
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.node == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up PNPM
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install
+
+      - name: Generate Prisma Client
+        run: pnpm prisma generate
+
+      - name: Run Tests
+        run: pnpm test
+
+  # ── Python AI Service — Lint ──
+  python-lint:
+    name: Python AI — Lint
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
 
       - name: Set up Python
-        if: steps.filter.outputs.python == 'true'
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
           cache: 'pip'
 
       - name: Install Dependencies
-        if: steps.filter.outputs.python == 'true'
         run: |
           python -m pip install --upgrade pip
-          pip install ruff mypy pytest
+          pip install ruff
           pip install -r ai-service/requirements.txt
 
       - name: Run Ruff Linter
-        if: steps.filter.outputs.python == 'true'
         run: ruff check ai-service/
 
+  # ── Python AI Service — Type Check ──
+  python-typecheck:
+    name: Python AI — Type Check
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install mypy
+          pip install -r ai-service/requirements.txt
+
       - name: Run Mypy Type Check
-        if: steps.filter.outputs.python == 'true'
         run: mypy ai-service/ --ignore-missing-imports
 
+  # ── Python AI Service — Run Tests ──
+  python-test:
+    name: Python AI — Run Tests
+    needs: changes
+    if: github.event_name == 'workflow_dispatch' || needs.changes.outputs.python == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: 'pip'
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+          pip install -r ai-service/requirements.txt
+
       - name: Run Pytest
-        if: steps.filter.outputs.python == 'true'
         run: pytest ai-service/ -v
