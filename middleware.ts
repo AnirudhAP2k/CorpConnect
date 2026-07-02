@@ -6,6 +6,7 @@ import {
 	defaultRoute,
 	authRoutes,
 	publicRoutes,
+	publicRoutePrefixes,
 	protectedRoutes,
 	apiAuthRoutes,
 	apiRoutes,
@@ -64,7 +65,8 @@ export default auth(async (req) => {
 		return NextResponse.next({ request: { headers: requestHeaders } });
 	}
 
-	const isPublicRoute = publicRoutes.includes(nextUrl.pathname);
+	const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
+		|| publicRoutePrefixes.some((prefix) => nextUrl.pathname.startsWith(prefix));
 	const isAuthRoute = authRoutes.includes(nextUrl.pathname);
 	const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
 	const isAdminRoute = adminRoutes.includes(nextUrl.pathname);

@@ -22,6 +22,8 @@ import type { VirtualRoomOpenedPayload } from "@/domain/notifications/types";
 import type { GenerateReportPayload } from "@/lib/jobs/report-generator";
 import type { GenerateTasklistPayload } from "@/lib/jobs/tasklist-generator";
 import { expireStalePendingInvites, processInviteEmail } from "@/lib/jobs/pending-invites";
+import { processEventInviteEmail } from "@/lib/jobs/event-invites";
+import type { EventInviteEmailPayload } from "@/lib/jobs/event-invites";
 
 
 export async function processJobQueue() {
@@ -166,6 +168,10 @@ async function processJob(job: any) {
         case "PROCESS_REFUND":
             // TODO: Implement refund processing via Stripe/Razorpay APIs
             console.log("[Job] Processing refund:", payload);
+            break;
+
+        case "SEND_EVENT_INVITE_EMAIL":
+            await processEventInviteEmail(payload as EventInviteEmailPayload);
             break;
 
         default:

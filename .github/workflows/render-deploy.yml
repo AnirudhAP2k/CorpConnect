@@ -1,0 +1,36 @@
+name: Render CD
+
+on:
+  push:
+    branches:
+      - master
+      - main
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Trigger Render Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Trigger Web App Deploy
+        env:
+          RENDER_DEPLOY_HOOK_URL: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL secret is not set. Skipping Web App deployment."
+          else
+            echo "Triggering Render deployment for Next.js Web App..."
+            curl -X POST "$RENDER_DEPLOY_HOOK_URL"
+          fi
+
+      - name: Trigger Python AI Service Deploy
+        env:
+          RENDER_DEPLOY_HOOK_AI_URL: ${{ secrets.RENDER_DEPLOY_HOOK_AI_URL }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK_AI_URL" ]; then
+            echo "RENDER_DEPLOY_HOOK_AI_URL secret is not set. Skipping AI Service deployment."
+          else
+            echo "Triggering Render deployment for Python AI Service..."
+            curl -X POST "$RENDER_DEPLOY_HOOK_AI_URL"
+          fi
