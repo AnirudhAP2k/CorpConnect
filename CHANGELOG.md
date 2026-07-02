@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.4...v1.17.0) (2026-06-30)
+
+
+### Features
+
+* retrieve existing brainstorm session if it exists ([d86d8fd](https://github.com/AnirudhAP2k/CorpConnect/commit/d86d8fdbfaff032a69b19e8936ae9dee2a788043))
+
 ## [1.16.4](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.3...v1.16.4) (2026-06-29)
 
 
