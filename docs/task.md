@@ -505,24 +505,24 @@
 > Allow event hosts to invite external participants (users without accounts) to events, driving viral signup and onboarding.
 > See `docs/external_event_invitation_plan.md` for full context.
 
-- [ ] **Database Schema Expansion**
-  - [ ] Add `EventInvite` model in `schema.prisma`
-  - [ ] Run `npx prisma db push` to synchronize database
-- [ ] **Domain Layer Implementation (`domain/events`)**
-  - [ ] Add Zod validation schema in `validation.ts`
-  - [ ] Add `getEventInviteByToken` query in `queries.ts`
-  - [ ] Add `sendEventInvitesAction` server action in `actions.ts`
-- [ ] **Background Job Queue Integration**
-  - [ ] Add `SEND_EVENT_INVITE_EMAIL` to the `JobType` enum in schema
-  - [ ] Create `processEventInviteEmail` worker in `lib/jobs/event-invites.ts`
-  - [ ] Register worker in `job-processor.ts`
-- [ ] **Public Route & Auto-Registration Hook**
-  - [ ] Build `/events/invite/[token]` public page to validate invite links
-  - [ ] Enforce login/registration redirect retaining the return token URL
-  - [ ] Implement atomic db transaction to register user for event and mark invite accepted
-- [ ] **UI Component Integration**
-  - [ ] Add an "Invite Guests" button/modal to the Event Detail page layout
-  - [ ] Leverage Server Actions with `useTransition` to process invite emails
+- [x] **Database Schema Expansion**
+  - [x] Add `EventInvite` model in `schema.prisma`
+  - [x] Run `npx prisma db push` to synchronize database
+- [x] **Domain Layer Implementation (`domain/events`)**
+  - [x] Add Zod validation schema in `validation.ts`
+  - [x] Add `getEventInviteByToken` query in `queries.ts`
+  - [x] Add `sendEventInvitesAction` server action in `actions.ts`
+- [x] **Background Job Queue Integration**
+  - [x] Add `SEND_EVENT_INVITE_EMAIL` to the `JobType` enum in schema
+  - [x] Create `processEventInviteEmail` worker in `lib/jobs/event-invites.ts`
+  - [x] Register worker in `job-processor.ts`
+- [x] **Public Route & Auto-Registration Hook**
+  - [x] Build `/events/invite/[token]` public page to validate invite links
+  - [x] Enforce login/registration redirect retaining the return token URL
+  - [x] Implement atomic db transaction to register user for event and mark invite accepted
+- [x] **UI Component Integration**
+  - [x] Add an "Invite Guests" button/modal to the Event Detail page layout
+  - [x] Leverage Server Actions with `useTransition` to process invite emails
 
 ## Phase 18: Application Monitoring & Observability (Sentry) 🛡️
 > Integrate Sentry SDKs to monitor errors, exceptions, and performance bottlenecks across Next.js and the Python AI Service.
