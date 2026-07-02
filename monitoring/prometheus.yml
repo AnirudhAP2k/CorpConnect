@@ -1,0 +1,33 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # ── AI Service (FastAPI) ──
+  # Uncomment after adding prometheus-fastapi-instrumentator to ai-service.
+  # See: https://github.com/trallnag/prometheus-fastapi-instrumentator
+  # Steps:
+  #   1. pip install prometheus-fastapi-instrumentator
+  #   2. In main.py:
+  #        from prometheus_fastapi_instrumentator import Instrumentator
+  #        Instrumentator().instrument(app).expose(app)
+  #   3. Uncomment the block below.
+  #
+  # - job_name: "fastapi-ai-service"
+  #   metrics_path: "/metrics"
+  #   static_configs:
+  #     - targets: ["ai-service:8000"]
+
+  # ── Redis ──
+  # Native Redis does NOT expose a Prometheus endpoint.
+  # Uncomment after adding redis-exporter to compose.yaml.
+  # See: https://github.com/oliver006/redis_exporter
+  #
+  # - job_name: "redis"
+  #   static_configs:
+  #     - targets: ["redis-exporter:9121"]

@@ -2,6 +2,7 @@ import type { NextConfig } from "next";
 import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
+  output: process.env.STANDALONE === "true" ? "standalone" : undefined,
   typescript: {
     ignoreBuildErrors: true,
   },
