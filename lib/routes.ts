@@ -16,6 +16,15 @@ export const publicRoutes = [
     '/pricing',
 ];
 
+/**
+ * Dynamic public route prefixes that allow unauthenticated access.
+ * The pages themselves handle auth redirection with proper callbackUrl.
+ */
+export const publicRoutePrefixes = [
+    '/events/invite/',
+    '/invite/',
+];
+
 export const organizationRoutes = [
     '/organizations/:id',
     '/organizations/:id/members',
