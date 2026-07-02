@@ -4,6 +4,7 @@ import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign, Video } from "lucide-react";
+import InviteGuestsModal from "@/components/events/InviteGuestsModal";
 import { format } from "date-fns";
 import Link from "next/link";
 import { getEventById, getMeetingRequestsForEvent, getMatchingOrgsForEvent } from "@/domain/events";
@@ -343,6 +344,10 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
                                                 Edit Event
                                             </Button>
                                         </Link>
+                                        <InviteGuestsModal
+                                            eventId={event.id}
+                                            eventTitle={event.title}
+                                        />
                                     </div>
                                 ) : (
                                     <JoinEventButton
