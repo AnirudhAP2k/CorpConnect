@@ -333,3 +333,28 @@ async function _getMatchingOrgsSQL(
         .sort((a, b) => b.score - a.score)
         .slice(0, 5);
 }
+
+// ─── Event invites ────────────────────────────────────────────────────────────
+
+/**
+ * Fetches an event invite by its unique token.
+ * Includes event details (title, image, dates, location, org) and inviter name.
+ * Used by the public invite acceptance page.
+ */
+export async function getEventInviteByToken(token: string) {
+    return prisma.eventInvite.findUnique({
+        where: { token },
+        include: {
+            event: {
+                include: {
+                    organization: {
+                        select: { id: true, name: true, logo: true },
+                    },
+                },
+            },
+            inviter: {
+                select: { id: true, name: true, image: true },
+            },
+        },
+    });
+}
