@@ -22,6 +22,7 @@ export {
     eventSubmitSchema,
     eventUpdateSchema,
     getEventsSchema,
+    sendEventInvitesSchema,
 } from "./validation";
 
 // Read-only queries (safe for Server Components and API routes)
@@ -35,6 +36,7 @@ export {
     getPastEvents,
     getMeetingRequestsForEvent,
     getMatchingOrgsForEvent,
+    getEventInviteByToken,
 } from "./queries";
 
 // Server Actions (authenticated mutations)
@@ -42,4 +44,5 @@ export {
     createEventAction,
     updateEventAction,
     deleteEventAction,
+    sendEventInvitesAction,
 } from "./actions";
