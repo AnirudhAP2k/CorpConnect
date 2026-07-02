@@ -1,3 +1,26 @@
+# [1.18.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.17.0...v1.18.0) (2026-07-02)
+
+
+### Bug Fixes
+
+* adjust landing page heading sizing and collection grid columns ([baad9ef](https://github.com/AnirudhAP2k/CorpConnect/commit/baad9effad2d6513bbe4ab9cc20a9b9a3de32d8e))
+* **ai:** minor fix in the DockerFile for sentence transformer setup ([e7eb667](https://github.com/AnirudhAP2k/CorpConnect/commit/e7eb667d60ba2beb43156f21aead42c684786be8))
+* **ci:** updated the nodejs and python jobs to run independently to each other ([56a48d6](https://github.com/AnirudhAP2k/CorpConnect/commit/56a48d653068ae0ae4088ffa179c26863069b31e))
+* make nextjs standalone build conditional to fix Windows build errors ([231713a](https://github.com/AnirudhAP2k/CorpConnect/commit/231713a026ff5f01d66101d98391d41c54909971))
+* **script:** removed security-check.ps1 script ([51d8799](https://github.com/AnirudhAP2k/CorpConnect/commit/51d87994adbf4e6a911b5d26423156f85e6febe9))
+
+
+### Features
+
+* add enterprise devops implementation plan documentation ([09f5f0e](https://github.com/AnirudhAP2k/CorpConnect/commit/09f5f0eb1426390de2547d45208fe04ed23f256a))
+* add local database and optimize docker-compose services ([8a91ba6](https://github.com/AnirudhAP2k/CorpConnect/commit/8a91ba6b6ae353bc59b0a082332577ea878e7079))
+* add modular terraform configuration for local docker database ([6880d69](https://github.com/AnirudhAP2k/CorpConnect/commit/6880d690f25360538b574009fccce61355f3dd2f))
+* configure gitignore for terraform and local development files ([c992857](https://github.com/AnirudhAP2k/CorpConnect/commit/c9928573d438a7c360619bddc943a5dbf324d713))
+* configure nextjs standalone build and update Dockerfile ([3e16b1a](https://github.com/AnirudhAP2k/CorpConnect/commit/3e16b1adc0c7aab0000acc70cf49cd541ee8b1ae))
+* implement devsecops pre-commit security checks ([fd12585](https://github.com/AnirudhAP2k/CorpConnect/commit/fd12585a97855f2f5ad1360b14373d58e80fcaf8))
+* **prometheus:** setup prometheus monitoring tool ([dccb747](https://github.com/AnirudhAP2k/CorpConnect/commit/dccb74795718fe8829bbd1d6fc838795defa1aec))
+* update ci pipeline with path-based filtering and python checks ([3a040e7](https://github.com/AnirudhAP2k/CorpConnect/commit/3a040e747e90c2b3ff025d62443f97d3b1792431))
+
 # [1.17.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.16.4...v1.17.0) (2026-06-30)
 
 
