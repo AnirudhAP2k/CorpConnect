@@ -13,7 +13,7 @@ WORKDIR /app
 ############################
 FROM base AS deps
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm i -g pnpm && pnpm install --frozen-lockfile
 
 ############################
@@ -50,11 +50,11 @@ RUN adduser --system --uid 1001 nextjs
 # Copy public assets
 COPY --from=build /app/public ./public
 
-# Copy the standalone server and static files
+# Copy the standalone server and static files (includes traced node_modules)
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema (needed by the Prisma client at runtime)
+# Copy Prisma schema + generated client (engine binaries may not be traced by standalone)
 COPY --from=build /app/prisma ./prisma
 COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
