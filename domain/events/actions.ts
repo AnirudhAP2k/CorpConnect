@@ -4,7 +4,8 @@ import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import { revalidatePath, revalidateTag } from "next/cache";
 import { JobType } from "@prisma/client";
-import { eventSubmitSchema, eventUpdateSchema } from "./validation";
+import { eventSubmitSchema, eventUpdateSchema, sendEventInvitesSchema } from "./validation";
+import cryptoJS from "crypto-js";
 import { getEventWithMemberCheck } from "./queries";
 import { setEventTags } from "@/domain/tags/helpers";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
@@ -179,5 +180,102 @@ export async function deleteEventAction(eventId: string) {
     } catch (error) {
         console.error("[deleteEventAction]", error);
         return { error: "Failed to delete event. Please try again." };
+    }
+}
+
+// ─── Send External Event Invites ──────────────────────────────────────────────
+
+export async function sendEventInvitesAction(rawInput: unknown) {
+    const session = await auth();
+    if (!session?.user?.id) return { error: "Unauthorized. Please sign in." };
+
+    const parsed = sendEventInvitesSchema.safeParse(rawInput);
+    if (!parsed.success) return { error: parsed.error.errors[0].message };
+
+    const { eventId, emails } = parsed.data;
+
+    try {
+        // 1. Verify that the requester is an OWNER/ADMIN of the event's org
+        const event = await prisma.events.findUnique({
+            where: { id: eventId },
+            select: { organizationId: true, title: true },
+        });
+
+        if (!event || !event.organizationId) {
+            return { error: "Event not found or not associated with an organization." };
+        }
+
+        const membership = await prisma.organizationMember.findFirst({
+            where: {
+                userId: session.user.id,
+                organizationId: event.organizationId,
+                role: { in: ["OWNER", "ADMIN"] },
+            },
+        });
+
+        if (!membership) {
+            return { error: "Forbidden: Only organization admins/owners can invite participants." };
+        }
+
+        // 2. Deduplicate — skip emails that already have a PENDING/SENT invite for this event
+        const existingInvites = await prisma.eventInvite.findMany({
+            where: {
+                eventId,
+                email: { in: emails },
+                status: { in: ["PENDING", "SENT", "ACCEPTED"] },
+            },
+            select: { email: true },
+        });
+
+        const alreadyInvited = new Set(existingInvites.map((i) => i.email.toLowerCase()));
+        const newEmails = emails.filter((e) => !alreadyInvited.has(e.toLowerCase()));
+
+        if (newEmails.length === 0) {
+            return {
+                error: "All provided emails have already been invited to this event.",
+            };
+        }
+
+        // 3. Create invites and enqueue background email jobs in one transaction
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7-day expiry
+        const userId = session.user.id;
+
+        await prisma.$transaction(async (tx) => {
+            for (const email of newEmails) {
+                const token = cryptoJS.lib.WordArray.random(32).toString(cryptoJS.enc.Hex);
+
+                const invite = await tx.eventInvite.create({
+                    data: {
+                        eventId,
+                        email,
+                        token,
+                        invitedBy: userId,
+                        expiresAt,
+                    },
+                });
+
+                await tx.jobQueue.create({
+                    data: {
+                        type: JobType.SEND_EVENT_INVITE_EMAIL,
+                        payload: {
+                            inviteId: invite.id,
+                            email: invite.email,
+                            token: invite.token,
+                        },
+                    },
+                });
+            }
+        });
+
+        const skippedCount = emails.length - newEmails.length;
+        const message = skippedCount > 0
+            ? `Sent ${newEmails.length} invitation(s). ${skippedCount} email(s) were already invited.`
+            : `Sent ${newEmails.length} invitation(s) successfully.`;
+
+        revalidatePath(`/events/${eventId}`);
+        return { success: true, message, sentCount: newEmails.length, skippedCount };
+    } catch (error) {
+        console.error("[sendEventInvitesAction]", error);
+        return { error: "Failed to send invitations. Please try again." };
     }
 }
