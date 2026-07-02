@@ -84,3 +84,15 @@ export const getEventsSchema = z.object({
 });
 
 export type GetEventsInput = z.infer<typeof getEventsSchema>;
+
+// ─── Event Invite ─────────────────────────────────────────────────────────────
+
+export const sendEventInvitesSchema = z.object({
+    eventId: z.string().uuid("Invalid event ID"),
+    emails: z
+        .array(z.string().email("Invalid email address"))
+        .min(1, "At least one email is required")
+        .max(50, "Cannot invite more than 50 people at once"),
+});
+
+export type SendEventInvitesInput = z.infer<typeof sendEventInvitesSchema>;
