@@ -1,3 +1,31 @@
+# [1.19.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.18.0...v1.19.0) (2026-07-02)
+
+
+### Bug Fixes
+
+* **ci:** optimize workflow jobs ([49a3abb](https://github.com/AnirudhAP2k/CorpConnect/commit/49a3abb8af0e7f2edd8d4343081c42c4fdd27be8))
+
+
+### Features
+
+* **calendar:** add reusable generic EventCalendar component ([e7d1b66](https://github.com/AnirudhAP2k/CorpConnect/commit/e7d1b66fc7a93bfafc48dd8a152c043ea4496531))
+* **calendar:** refactor GroupCalendar to use generic EventCalendar ([5701419](https://github.com/AnirudhAP2k/CorpConnect/commit/5701419818bf67edf1fb65f2730e7d2e0fe3ddff))
+* **ci:** add Render CD workflow for automated deployments ([3bd66ba](https://github.com/AnirudhAP2k/CorpConnect/commit/3bd66ba08538fc7142f6e5ef5d3782dc5f7d949f))
+* **docs:** update task checklist to mark phase 17 completed ([40a599a](https://github.com/AnirudhAP2k/CorpConnect/commit/40a599a7230f543a3dbe71c1966674f5f37a982c))
+* **events:** add /events/invite public route prefix ([47d442f](https://github.com/AnirudhAP2k/CorpConnect/commit/47d442fea75e03e3d5adf16d312815c9c5b94e2a))
+* **events:** add EventInvite model and SEND_EVENT_INVITE_EMAIL job type ([16c49b4](https://github.com/AnirudhAP2k/CorpConnect/commit/16c49b4fa397cd67dc424bbdf93f8efa76668a91))
+* **events:** add getEventInviteByToken query ([64af99e](https://github.com/AnirudhAP2k/CorpConnect/commit/64af99e621da3d392257a455263ae89fcb09c3ca))
+* **events:** add guest invitation modal for hosts ([0952d69](https://github.com/AnirudhAP2k/CorpConnect/commit/0952d69969a58e76040bb9018aaa97d7fbbb83c4))
+* **events:** add HTML email template for external event invitation ([7aad658](https://github.com/AnirudhAP2k/CorpConnect/commit/7aad658b69a142f5ebf060dd30a5621407641657))
+* **events:** add processEventInviteEmail background job processor ([8b409fb](https://github.com/AnirudhAP2k/CorpConnect/commit/8b409fb2bdc7da2b765a61a7af4d9c984a3502f7))
+* **events:** add public invite acceptance page and atomic registration ([9bb56e9](https://github.com/AnirudhAP2k/CorpConnect/commit/9bb56e9034a30b3cbefcfa184c96cfed2dafa7ab))
+* **events:** add sendEventInvitesAction server action ([48a564d](https://github.com/AnirudhAP2k/CorpConnect/commit/48a564d8459f1f07870653e3ec6b7d2fadbbfad4))
+* **events:** add sendEventInvitesSchema zod validation ([150a826](https://github.com/AnirudhAP2k/CorpConnect/commit/150a826bc52d193a52d224c03bd35555426ae6c3))
+* **events:** allow public access to dynamic event invite links ([cf557b9](https://github.com/AnirudhAP2k/CorpConnect/commit/cf557b9e123a4bb2c68379b1a61374b38db89cf7))
+* **events:** export new event invitation schemas, queries, and actions ([7c46185](https://github.com/AnirudhAP2k/CorpConnect/commit/7c46185ac41a1b68f238b02024d16249c1da0b79))
+* **events:** integrate InviteGuestsModal into event detail sidebar ([315dab0](https://github.com/AnirudhAP2k/CorpConnect/commit/315dab057aa05fad75741b817282edb7f6aec461))
+* **events:** register SEND_EVENT_INVITE_EMAIL job in main job processor ([4890499](https://github.com/AnirudhAP2k/CorpConnect/commit/4890499a0a0e9dc67c7f96aa90a65fed65425030))
+
 # [1.18.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.17.0...v1.18.0) (2026-07-02)
 
 
