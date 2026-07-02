@@ -47,6 +47,7 @@ model User {
   receivedGroupInvites     GroupInvite[]          @relation("GroupInviteeUser")
   sentGroupMessages        GroupMessage[]         @relation("GroupMessageUser")
   eventPitches             EventPitch[]           @relation("UserEventPitches")
+  eventInvitesSent         EventInvite[]          @relation("InviterUser")
 }
 
 model Account {
@@ -167,6 +168,7 @@ model Events {
   feedbacks           EventFeedback[]
   pitchedAs           EventPitch?                  @relation("PitchToEvent")
   report              EventReport?                 @relation("EventToReport")
+  invites             EventInvite[]
 
   @@index([organizationId])
   @@index([categoryId])
@@ -917,6 +919,26 @@ model EventTask {
   @@index([pitchId, isCompleted])
 }
 
+model EventInvite {
+  id        String       @id @default(uuid()) @db.Uuid
+  eventId   String       @db.Uuid
+  email     String
+  token     String       @unique
+  status    InviteStatus @default(PENDING)
+  invitedBy String       @db.Uuid
+  expiresAt DateTime
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+
+  event   Events @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  inviter User   @relation("InviterUser", fields: [invitedBy], references: [id], onDelete: Cascade)
+
+  @@index([email])
+  @@index([token])
+  @@index([eventId, email])
+  @@index([status, createdAt])
+}
+
 enum OrganizationRole {
   OWNER
   ADMIN
@@ -1019,6 +1041,7 @@ enum JobType {
   SEND_PAYMENT_RECEIPT
   ORG_WEBHOOK_DELIVERY
   PROCESS_REFUND
+  SEND_EVENT_INVITE_EMAIL
   VIRTUAL_ROOM_OPENED
 }
 
