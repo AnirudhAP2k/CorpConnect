@@ -39,8 +39,8 @@ RUN npm i -g pnpm && STANDALONE=true pnpm run build
 FROM node:${NODE_VERSION}-alpine AS final
 
 WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3000
+ENV NODE_ENV=${NODE_ENV}
+ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
 
 # Create low-privilege system user
@@ -56,8 +56,10 @@ COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 # Copy Prisma schema + generated client (engine binaries may not be traced by standalone)
 COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/prisma ./node_modules/prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
+
+RUN mkdir -p logs && chown -R nextjs:nodejs logs
 
 USER nextjs
 
