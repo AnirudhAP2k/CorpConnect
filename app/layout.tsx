@@ -3,6 +3,7 @@ import { Manrope, Inter } from "next/font/google";
 import "@/app/globals.css";
 import { Toaster } from "sonner";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { QueryToastListener } from "@/components/shared/QueryToastListener";
 
 // Nexus Corporate Design System — Headline font
 const manrope = Manrope({
@@ -47,6 +48,7 @@ export default function RootLayout({
           disableTransitionOnChange
         >
           {children}
+          <QueryToastListener />
           <Toaster position="top-right" expand={true} richColors />
         </ThemeProvider>
       </body>
