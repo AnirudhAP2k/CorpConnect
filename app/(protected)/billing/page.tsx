@@ -12,7 +12,6 @@ import { PricingPlans } from "@/components/billing/PricingPlans";
 import { getAiUsageStats } from "@/domain/ai";
 import { PLAN_COLORS, STATUS_COLORS, PLAN_FEATURES } from "@/constants";
 import "./billing.css";
-import { toast } from "sonner";
 
 export const metadata = {
     title: "Billing — CorpConnect",
@@ -39,8 +38,7 @@ export default async function BillingPage() {
     });
 
     if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
-        toast.warning("You are not authorized to access this page.");
-        redirect("/dashboard");
+        redirect("/dashboard?flash=unauthorized");
     }
 
     const [org, eventPayments, subscriptions] = await Promise.all([
