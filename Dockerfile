@@ -17,6 +17,16 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm i -g pnpm && pnpm install --frozen-lockfile
 
 ############################
+# Migration stage
+############################
+FROM base AS migrate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN npx prisma generate
+
+############################
 # Build stage
 ############################
 FROM base AS build
@@ -28,7 +38,10 @@ COPY . .
 RUN npx prisma generate
 
 # Disable Next.js telemetry during build
+ARG NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV LV_SERVICE_URL=$LV_SERVICE_URL
 
 # Build the Next.js standalone application
 RUN npm i -g pnpm && STANDALONE=true pnpm run build
