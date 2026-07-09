@@ -37,10 +37,10 @@ services:
   db-migrate:
     build:
       context: .
-      target: build
+      target: migrate
     container_name: corpconnect-db-migrate
-    entrypoint: ["/bin/sh", "entrypoint.sh"]
-    command: ["echo", "Database migrations completed successfully"]
+    entrypoint: [ "/bin/sh", "entrypoint.sh" ]
+    command: [ "echo", "Database migrations completed successfully" ]
     env_file:
       - .env
     environment:
@@ -53,6 +53,9 @@ services:
   server:
     build:
       context: .
+      args:
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+        LV_SERVICE_URL: ${LV_SERVICE_URL}
     container_name: corpconnect-server
     restart: always
     ports:
