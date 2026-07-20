@@ -1,3 +1,29 @@
+# [1.21.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.20.0...v1.21.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **ai-service:** clean up formatting in ai-service client ([822d5cd](https://github.com/AnirudhAP2k/CorpConnect/commit/822d5cd30f08ba22edf2ec9670d5e3afe323b33a))
+* **ai-service:** normalize roughDraft input for LLM cache key ([6db1396](https://github.com/AnirudhAP2k/CorpConnect/commit/6db1396a9812f40707de6240cf1159cf44c534cd))
+* **components:** specify explicit width and height on Image component ([bf79382](https://github.com/AnirudhAP2k/CorpConnect/commit/bf793826bd194be2dbf51a142b1ee9404e303792))
+* **sentry:** disable debug mode in instrumentation setup ([aea0162](https://github.com/AnirudhAP2k/CorpConnect/commit/aea016217a81ec995032efc7fa949cfb280e25cf))
+
+
+### Features
+
+* **ai-service:** update chatbot context query to use networkingIntent ([d95883c](https://github.com/AnirudhAP2k/CorpConnect/commit/d95883caadf6d8e57ed4cbab3b90ea602222d784))
+* **components:** update organization form with networkingIntent selector ([e19d2e5](https://github.com/AnirudhAP2k/CorpConnect/commit/e19d2e589e234e4b8655a145ce13210aff98bbbe))
+* **docker:** add compose.dev.yaml and environment variable pass-through ([a688f23](https://github.com/AnirudhAP2k/CorpConnect/commit/a688f239e65a9b47741103c71fb3003543432a7c))
+* **docker:** add dev target stage in Dockerfile ([b8d4a0e](https://github.com/AnirudhAP2k/CorpConnect/commit/b8d4a0e5d1ac7e51e5f91dcfab481466e906ce41))
+* **domain-org:** extract networkingIntent in organization actions ([8a5724b](https://github.com/AnirudhAP2k/CorpConnect/commit/8a5724b78473cca289ad5ccdc6571d590813ed4d))
+* **domain-org:** update organization schemas with NetworkingIntent ([bd19b68](https://github.com/AnirudhAP2k/CorpConnect/commit/bd19b68c4fc4469ae4fcc1e511cc2e3b682dfa6a))
+* **events:** add getUserHostedEvents query for hosted event management ([00fa0ed](https://github.com/AnirudhAP2k/CorpConnect/commit/00fa0ed1713d9e1d90a5ead35b58585a8139019b))
+* **my-events:** add Hosted events tab and hosted event list view ([4386d83](https://github.com/AnirudhAP2k/CorpConnect/commit/4386d830762a79d52faf489fc525774ae9760803))
+* **org-ui:** populate networkingIntent in organization edit page ([455541f](https://github.com/AnirudhAP2k/CorpConnect/commit/455541f355e3b0b382042560d899b89f3f3d034e))
+* **org-ui:** render networking intent badges on organization profile ([9212d81](https://github.com/AnirudhAP2k/CorpConnect/commit/9212d8190948a2cb232dba3911d093c59bd8db6b))
+* **schema:** replace HiringStatus enum with NetworkingIntent ([a2114d2](https://github.com/AnirudhAP2k/CorpConnect/commit/a2114d2f3ae0aab8c2cfd31a9b82f5e4f921ba35))
+* **validation:** update OrganizationCreateSchema to use NetworkingIntent ([241ffd6](https://github.com/AnirudhAP2k/CorpConnect/commit/241ffd6bd39d4c8428847f97e0a54e99c3754e7e))
+
 # [1.20.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.19.0...v1.20.0) (2026-07-20)
 
 
