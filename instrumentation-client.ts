@@ -6,7 +6,7 @@ Sentry.init({
   // Adjust this value in production, or use tracesSampler for greater control
   tracesSampleRate: 0.1,
 
-  debug: true,
+  debug: false,
 
   // send console.log, console.warn, and console.error calls as logs to Sentry
   integrations: [
