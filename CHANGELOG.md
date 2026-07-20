@@ -1,3 +1,33 @@
+# [1.20.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.19.0...v1.20.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **billing:** redirect unauthorized billing access with flash code ([17faece](https://github.com/AnirudhAP2k/CorpConnect/commit/17faece7e8b2cca4bc857596091f26193f74714c))
+* **db:** accept data loss on prisma db push in entrypoint ([4427069](https://github.com/AnirudhAP2k/CorpConnect/commit/442706953a4de47abca7b16b9819ef9ec3015aaa))
+* **docker:** copy pnpm-workspace.yaml in deps stage ([d63d1ff](https://github.com/AnirudhAP2k/CorpConnect/commit/d63d1ff2d2748f7fc5dc57db3960d41d5a85b2a7))
+* **docker:** parameterize environment and copy prisma engine module ([4ad83ec](https://github.com/AnirudhAP2k/CorpConnect/commit/4ad83ec169f3b6affa4faa8c5986cf79abfe158e))
+* **logger:** handle write stream creation and write errors ([e3cde59](https://github.com/AnirudhAP2k/CorpConnect/commit/e3cde59d68f0f1b2a0953c238d9838338c986cf2))
+* **lv-service:** use optimized multi-stage docker build with correct port ([d5ed5ca](https://github.com/AnirudhAP2k/CorpConnect/commit/d5ed5cae9a56aec397229d49930140e92e6fc500))
+* **prisma:** remove unsupported vector types from schema ([f9b3a32](https://github.com/AnirudhAP2k/CorpConnect/commit/f9b3a32fbb7f32d905de861d6f94369e3cf7f350))
+* **sentry:** use public env var for client-side sentry DSN ([9278a92](https://github.com/AnirudhAP2k/CorpConnect/commit/9278a92b4cf51c68d9ab4cbb0a8c2949180982f2))
+* **ws-service:** optimize docker build with frozen-lockfile and prod only dependencies ([834681f](https://github.com/AnirudhAP2k/CorpConnect/commit/834681ff00dbdce0567bfeac2f1511ea8692b0a0))
+
+
+### Features
+
+* **ai-service:** add dockerignore file ([8c06685](https://github.com/AnirudhAP2k/CorpConnect/commit/8c0668530d4366df74a8b17f6f824e14fb21af96))
+* **compose:** integrate pgvector database and db-migrate orchestration service ([e2318d8](https://github.com/AnirudhAP2k/CorpConnect/commit/e2318d8f214e078eb2b3dd03c8ac46d592fa6881))
+* **compose:** use migrate target for db-migrate and pass env args ([f73d99e](https://github.com/AnirudhAP2k/CorpConnect/commit/f73d99ecdf5b77a65db4c592dcdce63d10ca4b69))
+* **config:** add NEXT_PUBLIC_SENTRY_DSN to env template ([0233cdc](https://github.com/AnirudhAP2k/CorpConnect/commit/0233cdcba400dc40c2051c3115e47adcfb237d5f))
+* **docker:** add migrate stage and pass build arguments ([af48eb1](https://github.com/AnirudhAP2k/CorpConnect/commit/af48eb19cde337be18ae3cea45db4e2848199e42))
+* **layout:** integrate QueryToastListener in root layout ([4ffb9ed](https://github.com/AnirudhAP2k/CorpConnect/commit/4ffb9ed882035601f85104b64240a865133f45f9))
+* **lv-service:** add @types/crypto-js dev dependency ([19fda88](https://github.com/AnirudhAP2k/CorpConnect/commit/19fda887d1cb4829698406b3ea480a7ab86031f5))
+* **lv-service:** add dockerignore file ([20a178b](https://github.com/AnirudhAP2k/CorpConnect/commit/20a178bccbd0d3277b46d03ebf4576a7ee361b15))
+* **shared:** add flash toast registry ([e9617b7](https://github.com/AnirudhAP2k/CorpConnect/commit/e9617b7c575c16fcf30bf6c25a38c5a8df2b842c))
+* **shared:** add QueryToastListener component ([8a6f321](https://github.com/AnirudhAP2k/CorpConnect/commit/8a6f321140430147c97500f8b95e3e059e9541ae))
+* **ws-service:** add dockerignore file ([126711b](https://github.com/AnirudhAP2k/CorpConnect/commit/126711b7e0f927538173156a3c26fd10193b85ef))
+
 # [1.19.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.18.0...v1.19.0) (2026-07-02)
 
 
