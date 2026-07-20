@@ -13,8 +13,18 @@ WORKDIR /app
 ############################
 FROM base AS deps
 
-COPY package.json pnpm-lock.yaml ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 RUN npm i -g pnpm && pnpm install --frozen-lockfile
+
+############################
+# Migration stage
+############################
+FROM base AS migrate
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN npx prisma generate
 
 ############################
 # Build stage
@@ -28,7 +38,10 @@ COPY . .
 RUN npx prisma generate
 
 # Disable Next.js telemetry during build
+ARG NEXT_PUBLIC_SENTRY_DSN
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NEXT_PUBLIC_SENTRY_DSN=$NEXT_PUBLIC_SENTRY_DSN
+ENV LV_SERVICE_URL=$LV_SERVICE_URL
 
 # Build the Next.js standalone application
 RUN npm i -g pnpm && STANDALONE=true pnpm run build
@@ -39,8 +52,8 @@ RUN npm i -g pnpm && STANDALONE=true pnpm run build
 FROM node:${NODE_VERSION}-alpine AS final
 
 WORKDIR /app
-ENV NODE_ENV=production
-ENV PORT=3000
+ENV NODE_ENV=${NODE_ENV}
+ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
 
 # Create low-privilege system user
@@ -50,14 +63,16 @@ RUN adduser --system --uid 1001 nextjs
 # Copy public assets
 COPY --from=build /app/public ./public
 
-# Copy the standalone server and static files
+# Copy the standalone server and static files (includes traced node_modules)
 COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Copy Prisma schema (needed by the Prisma client at runtime)
+# Copy Prisma schema + generated client (engine binaries may not be traced by standalone)
 COPY --from=build /app/prisma ./prisma
-COPY --from=build /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=build /app/node_modules/prisma ./node_modules/prisma
 COPY --from=build /app/node_modules/@prisma ./node_modules/@prisma
+
+RUN mkdir -p logs && chown -R nextjs:nodejs logs
 
 USER nextjs
 

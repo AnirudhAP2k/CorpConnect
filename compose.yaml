@@ -1,7 +1,7 @@
 services:
   # ── Local PostgreSQL Database ──
   db:
-    image: postgres:15-alpine
+    image: pgvector/pgvector:pg15
     container_name: corpconnect-db
     restart: always
     ports:
@@ -13,7 +13,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${LOCAL_DB_USER} -d ${LOCAL_DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -33,10 +33,29 @@ services:
       timeout: 3s
       retries: 5
 
+  # ── Database Migrations ──
+  db-migrate:
+    build:
+      context: .
+      target: migrate
+    container_name: corpconnect-db-migrate
+    entrypoint: [ "/bin/sh", "entrypoint.sh" ]
+    command: [ "echo", "Database migrations completed successfully" ]
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
+    depends_on:
+      db:
+        condition: service_healthy
+
   # ── Next.js Server (Standalone) ──
   server:
     build:
       context: .
+      args:
+        NEXT_PUBLIC_SENTRY_DSN: ${NEXT_PUBLIC_SENTRY_DSN}
+        LV_SERVICE_URL: ${LV_SERVICE_URL}
     container_name: corpconnect-server
     restart: always
     ports:
@@ -46,13 +65,15 @@ services:
     environment:
       NODE_ENV: production
       REDIS_URL: redis://redis:6379
-      # To use local Compose DB, set LOCAL_DATABASE_URL in your .env:
-      # DATABASE_URL: ${LOCAL_DATABASE_URL}
+      # To use local Compose DB, set DATABASE_URL in your .env:
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
 
   # ── WebSocket Service ──
   ws-service:
@@ -63,7 +84,7 @@ services:
     ports:
       - "4000:4000"
     env_file:
-      - .env
+      - ./ws-service/.env
     environment:
       WS_PORT: 4000
       REDIS_URL: redis://redis:6379
@@ -81,14 +102,14 @@ services:
     ports:
       - "5000:5000"
     env_file:
-      - .env
+      - ./lv-service/.env
     environment:
       LV_PORT: 5000
       NODE_ENV: production
       NEXTJS_URL: ${NEXTJS_URL:-http://server:3000}
-      LIVEKIT_URL: ${LIVEKIT_URL}
-      LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
-      LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
+      NEXT_PUBLIC_LIVEKIT_URL: ${NEXT_PUBLIC_LIVEKIT_URL}
+      # LIVEKIT_API_KEY: ${LIVEKIT_API_KEY}
+      # LIVEKIT_API_SECRET: ${LIVEKIT_API_SECRET}
     depends_on:
       redis:
         condition: service_healthy
@@ -102,16 +123,18 @@ services:
     ports:
       - "8000:8000"
     env_file:
-      - .env
+      - ./ai-service/.env
     environment:
-      # To use local Compose DB, set LOCAL_DATABASE_URL in your .env:
-      # DATABASE_URL: ${LOCAL_DATABASE_URL}
+      # To use local Compose DB, set DATABASE_URL in your .env:
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
       REDIS_URL: redis://redis:6379
     depends_on:
       db:
         condition: service_healthy
       redis:
         condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
 
   # ── N8N Workflow Automation ──
   n8n:

@@ -27,7 +27,7 @@ function getLogFileName(): string {
 /**
  * Returns a write stream for the daily log file, creating a new stream if the date changes.
  */
-function getLogStream(): fsType.WriteStream {
+function getLogStream(): fsType.WriteStream | null {
   const logFileName = getLogFileName();
 
   if (logStream && currentLogDateStr === logFileName) {
@@ -41,12 +41,14 @@ function getLogStream(): fsType.WriteStream {
     } catch (e) {
       // Ignore cleanup error
     }
+    logStream = null;
   }
 
   const fs = getFs();
   const path = getPath();
   const logDir = path.join(process.cwd(), "logs");
 
+  let canWrite = true;
   try {
     if (!fs.existsSync(logDir)) {
       fs.mkdirSync(logDir, { recursive: true });
@@ -54,10 +56,23 @@ function getLogStream(): fsType.WriteStream {
   } catch (error) {
     // If we fail to create the directory, we will print it to stdout using raw stream
     process.stderr.write(`Failed to create logs directory: ${error}\n`);
+    canWrite = false;
   }
 
-  logStream = fs.createWriteStream(path.join(logDir, logFileName), { flags: "a" });
-  currentLogDateStr = logFileName;
+  if (canWrite) {
+    try {
+      logStream = fs.createWriteStream(path.join(logDir, logFileName), { flags: "a" });
+      logStream.on("error", (err) => {
+        process.stderr.write(`Log stream error: ${err}\n`);
+        logStream = null;
+      });
+      currentLogDateStr = logFileName;
+    } catch (error) {
+      process.stderr.write(`Failed to create log write stream: ${error}\n`);
+      logStream = null;
+    }
+  }
+
   return logStream;
 }
 
@@ -102,7 +117,9 @@ function safeStringify(obj: any): string {
 export function writeToLogFile(message: string): void {
   try {
     const stream = getLogStream();
-    stream.write(message + "\n");
+    if (stream) {
+      stream.write(message + "\n");
+    }
   } catch (error) {
     process.stderr.write(`Failed writing to sentry log file: ${error}\n`);
   }

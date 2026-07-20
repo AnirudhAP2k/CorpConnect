@@ -9,7 +9,7 @@ if [ "$NODE_ENV" = "production" ]; then
     sleep 2
   done
 else
-  until npx prisma db push; do
+  until npx prisma db push --accept-data-loss; do
     echo "⏳ Waiting for DB..."
     sleep 2
   done
