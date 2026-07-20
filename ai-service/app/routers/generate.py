@@ -131,7 +131,7 @@ async def generate_event_description(body: GenerateDescriptionRequest):
 
     # 1. Check cache first
     # Hash the inputs to create a unique key
-    input_str = f"{body.orgId}:{body.roughDraft}:{body.eventId or ''}"
+    input_str = f"{body.orgId}:{body.roughDraft.lower().strip()}:{body.eventId or ''}"
     prompt_hash = hashlib.md5(input_str.encode()).hexdigest()
     cache_key = cache.llm_generation_key(prompt_hash)
     
