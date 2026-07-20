@@ -1,0 +1,41 @@
+services:
+  server:
+    build:
+      context: .
+      target: dev
+    command: npx run dev
+    volumes:
+      - .:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+      WATCHPACK_POLLING: "true"
+
+  ai-service:
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    volumes:
+      - ./ai-service:/app
+    environment:
+      NODE_ENV: development
+
+  ws-service:
+    build:
+      context: ./ws-service
+      target: builder
+    command: pnpm dev
+    volumes:
+      - ./ws-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
+
+  lv-service:
+    build:
+      context: ./lv-service
+      target: builder
+    command: pnpm dev
+    volumes:
+      - ./lv-service:/app
+      - /app/node_modules
+    environment:
+      NODE_ENV: development
