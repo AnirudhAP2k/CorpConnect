@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { OrganizationSize, NetworkingIntent } from "@prisma/client";
 
 export const LoginSchema = z.object({
     email: z.string().email(),
@@ -126,7 +127,7 @@ export const OrganizationCreateSchema = z.object({
     services: z.array(z.string().max(60)).max(15).optional().default([]),
     technologies: z.array(z.string().max(60)).max(20).optional().default([]),
     partnershipInterests: z.array(z.string().max(60)).max(10).optional().default([]),
-    hiringStatus: z.enum(["HIRING", "NOT_HIRING", "OPEN_TO_PARTNERSHIPS"]).optional().default("NOT_HIRING"),
+    networkingIntent: z.nativeEnum(NetworkingIntent).optional().default("GENERAL_NETWORKING"),
     linkedinUrl: z.string().url({ message: "Please enter a valid LinkedIn URL" }).optional().or(z.literal("")),
     twitterUrl: z.string().url({ message: "Please enter a valid Twitter/X URL" }).optional().or(z.literal("")),
     tags: z.array(z.string().max(40)).max(10).optional().default([]),
