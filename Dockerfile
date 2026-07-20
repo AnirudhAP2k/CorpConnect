@@ -27,6 +27,18 @@ COPY . .
 RUN npx prisma generate
 
 ############################
+# Development stage
+############################
+FROM base AS dev
+ENV NODE_ENV=development
+RUN npm i -g pnpm
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+RUN npx prisma generate
+EXPOSE 3000
+CMD ["pnpm", "dev"]
+
+############################
 # Build stage
 ############################
 FROM base AS build
