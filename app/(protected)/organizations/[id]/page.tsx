@@ -28,10 +28,13 @@ const SIZE_LABELS: Record<string, string> = {
     ENTERPRISE: "Enterprise",
 };
 
-const HIRING_BADGES: Record<string, { label: string; color: string }> = {
-    HIRING: { label: "🟢 Actively Hiring", color: "bg-green-50 text-green-700 border-green-200" },
-    NOT_HIRING: { label: "⚪ Not Hiring", color: "bg-gray-50 text-gray-600 border-gray-200" },
+const INTENT_BADGES: Record<string, { label: string; color: string }> = {
+    GENERAL_NETWORKING: { label: "🌐 General Networking", color: "bg-gray-50 text-gray-600 border-gray-200" },
     OPEN_TO_PARTNERSHIPS: { label: "🤝 Open to Partnerships", color: "bg-blue-50 text-blue-700 border-blue-200" },
+    SEEKING_CLIENTS: { label: "🎯 Seeking Clients", color: "bg-emerald-50 text-emerald-700 border-emerald-200" },
+    SEEKING_VENDORS: { label: "🔍 Seeking Vendors", color: "bg-violet-50 text-violet-700 border-violet-200" },
+    SEEKING_INVESTMENT: { label: "💰 Seeking Investment", color: "bg-amber-50 text-amber-700 border-amber-200" },
+    SPONSORING_EVENTS: { label: "📢 Sponsoring Events", color: "bg-rose-50 text-rose-700 border-rose-200" },
 };
 
 // ─── Small chip array component ────────────────────────────────────────────────
@@ -84,7 +87,7 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
     if (!organization) notFound();
 
     const org = organization as typeof organization & {
-        hiringStatus: string;
+        networkingIntent: string;
         services: string[];
         technologies: string[];
         partnershipInterests: string[];
@@ -97,7 +100,7 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
     const canManageMembers = currentUserMembership?.role === "OWNER";
     const isMember = !!currentUserMembership;
 
-    const hiringBadge = HIRING_BADGES[org.hiringStatus] ?? HIRING_BADGES.NOT_HIRING;
+    const intentBadge = INTENT_BADGES[org.networkingIntent] ?? INTENT_BADGES.GENERAL_NETWORKING;
 
     // Resolve connection status for ConnectButton (only for non-members)
     let connectionStatus: "NONE" | "PENDING_SENT" | "PENDING_RECEIVED" | "ACCEPTED" | "DECLINED" | "WITHDRAWN" | "NO_ACTIVE_ORG" = "NO_ACTIVE_ORG";
@@ -190,8 +193,8 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
                                         <MapPin className="w-3.5 h-3.5" />{organization.location}
                                     </span>
                                 )}
-                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${hiringBadge.color}`}>
-                                    {hiringBadge.label}
+                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${intentBadge.color}`}>
+                                    {intentBadge.label}
                                 </span>
                             </div>
 
@@ -425,9 +428,9 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
                                     </div>
                                 )}
                                 <div className="flex justify-between text-gray-600">
-                                    <span>Hiring</span>
-                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${hiringBadge.color}`}>
-                                        {hiringBadge.label}
+                                    <span>Intent</span>
+                                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full border ${intentBadge.color}`}>
+                                        {intentBadge.label}
                                     </span>
                                 </div>
                                 <div className="flex justify-between text-gray-600">
