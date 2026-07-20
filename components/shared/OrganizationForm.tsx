@@ -68,7 +68,7 @@ const OrganizationForm = ({
       services: [],
       technologies: [],
       partnershipInterests: [],
-      hiringStatus: "NOT_HIRING",
+      networkingIntent: "GENERAL_NETWORKING",
       linkedinUrl: "",
       twitterUrl: "",
       tags: [],
@@ -107,7 +107,7 @@ const OrganizationForm = ({
           services: values.services ?? [],
           technologies: values.technologies ?? [],
           partnershipInterests: values.partnershipInterests ?? [],
-          hiringStatus: values.hiringStatus ?? "NOT_HIRING",
+          networkingIntent: values.networkingIntent ?? "GENERAL_NETWORKING",
           linkedinUrl: values.linkedinUrl ?? "",
           twitterUrl: values.twitterUrl ?? "",
           tags: values.tags ?? [],
@@ -334,23 +334,26 @@ const OrganizationForm = ({
           />
         </div>
 
-        {/* Hiring Status */}
+        {/* Networking Intent */}
         <FormField
           control={form.control}
-          name="hiringStatus"
+          name="networkingIntent"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Hiring Status</FormLabel>
+              <FormLabel>Networking Intent</FormLabel>
               <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
                 <FormControl>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select hiring status" />
+                    <SelectValue placeholder="What are you looking for?" />
                   </SelectTrigger>
                 </FormControl>
                 <SelectContent>
-                  <SelectItem value="HIRING">🟢 Actively Hiring</SelectItem>
-                  <SelectItem value="NOT_HIRING">⚪ Not Hiring</SelectItem>
+                  <SelectItem value="GENERAL_NETWORKING">🌐 General Networking</SelectItem>
                   <SelectItem value="OPEN_TO_PARTNERSHIPS">🤝 Open to Partnerships</SelectItem>
+                  <SelectItem value="SEEKING_CLIENTS">🎯 Seeking Clients</SelectItem>
+                  <SelectItem value="SEEKING_VENDORS">🔍 Seeking Vendors / Solutions</SelectItem>
+                  <SelectItem value="SEEKING_INVESTMENT">💰 Seeking Investment</SelectItem>
+                  <SelectItem value="SPONSORING_EVENTS">📢 Sponsoring Events</SelectItem>
                 </SelectContent>
               </Select>
               <FormMessage />

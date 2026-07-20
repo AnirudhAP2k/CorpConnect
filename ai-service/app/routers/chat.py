@@ -215,7 +215,7 @@ async def _fetch_org_entity_context(pool, org_id: str) -> str:
         org = await conn.fetchrow(
             """
             SELECT o.name, o.description, o.website, o.location,
-                   o.size, o."hiringStatus", o."linkedinUrl",
+                   o.size, o."networkingIntent", o."linkedinUrl",
                    o."partnershipInterests", o.services, o.technologies,
                    o."isVerified",
                    array_agg(t.label ORDER BY t.label) FILTER (WHERE t.label IS NOT NULL) AS tags
@@ -242,7 +242,7 @@ Location: {org['location'] or 'Not provided'}
 Website: {org['website'] or 'Not provided'}
 LinkedIn: {org['linkedinUrl'] or 'Not provided'}
 Size: {org['size']}
-Hiring Status: {org['hiringStatus']}
+Networking Intent: {org['networkingIntent']}
 Services: {services}
 Technologies: {technologies}
 Partnership Interests: {partnerships}

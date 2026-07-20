@@ -34,7 +34,7 @@ export async function createOrganizationAction(formData: FormData) {
         services: JSON.parse((formData.get("services") as string) || "[]"),
         technologies: JSON.parse((formData.get("technologies") as string) || "[]"),
         partnershipInterests: JSON.parse((formData.get("partnershipInterests") as string) || "[]"),
-        hiringStatus: formData.get("hiringStatus") || undefined,
+        networkingIntent: formData.get("networkingIntent") || undefined,
         linkedinUrl: formData.get("linkedinUrl") || undefined,
         twitterUrl: formData.get("twitterUrl") || undefined,
         tags: JSON.parse((formData.get("tags") as string) || "[]"),

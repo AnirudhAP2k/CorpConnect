@@ -62,6 +62,8 @@ const FileUploader = ({ onFieldChange, image, setFiles }: FileUploaderProps) => 
             {preview ? (
                 <div className="relative w-full">
                     <Image
+                        width={50}
+                        height={50}
                         src={preview}
                         alt="Preview"
                         className="w-full max-h-40 object-contain rounded-lg shadow-md"

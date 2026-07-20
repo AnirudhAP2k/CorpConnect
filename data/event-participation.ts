@@ -197,6 +197,72 @@ export async function getUserParticipations(
 }
 
 /**
+ * Get events hosted by the user (created directly or via their organizations)
+ */
+export async function getUserHostedEvents(
+    userId: string,
+    filters?: {
+        upcoming?: boolean;
+    }
+) {
+    try {
+        // Find all organizations the user is a member of
+        const memberships = await prisma.organizationMember.findMany({
+            where: { userId },
+            select: { organizationId: true },
+        });
+
+        const orgIds = memberships.map((m) => m.organizationId);
+
+        const whereClause: Record<string, unknown> = {
+            OR: [
+                { userId },
+                ...(orgIds.length > 0
+                    ? [{ organizationId: { in: orgIds } }]
+                    : []),
+            ],
+        };
+
+        if (filters?.upcoming !== undefined) {
+            whereClause.startDateTime = filters.upcoming
+                ? { gte: new Date() }
+                : { lt: new Date() };
+        }
+
+        const events = await prisma.events.findMany({
+            where: whereClause,
+            include: {
+                category: true,
+                organization: {
+                    select: {
+                        id: true,
+                        name: true,
+                        logo: true,
+                    },
+                },
+                _count: {
+                    select: {
+                        participations: {
+                            where: {
+                                status: { in: ["REGISTERED", "ATTENDED"] },
+                            },
+                        },
+                    },
+                },
+            },
+            orderBy: {
+                startDateTime: "desc",
+            },
+        });
+
+        return events;
+    } catch (error) {
+        console.error("Error fetching user hosted events:", error);
+        throw error;
+    }
+}
+
+/**
  * Register for an event
  * Security: Validates user membership, event capacity, and payment requirements
  */

@@ -214,7 +214,8 @@ export const aiService = {
                 { headers: await authHeaders(), timeout: 30000 },
             );
             return res.data;
-        } catch {
+        } catch (error: any) {
+            console.error(error)
             return null;
         }
     },

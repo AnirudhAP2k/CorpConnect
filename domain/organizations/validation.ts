@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { OrganizationSize, HiringStatus } from "@prisma/client";
+import { OrganizationSize, NetworkingIntent } from "@prisma/client";
 import { ALLOWED_MIME, KYB_DOC_TYPES } from "@/constants";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
@@ -17,11 +17,10 @@ export const organizationCreateSchema = z.object({
     location: z.string().max(100, "Location should be at most 100 characters").optional(),
     size: z.nativeEnum(OrganizationSize).optional().default("STARTUP"),
     logo: z.string().url().optional(),
-    // B2B profile fields
     services: z.array(z.string().max(60)).max(15).optional().default([]),
     technologies: z.array(z.string().max(60)).max(20).optional().default([]),
     partnershipInterests: z.array(z.string().max(60)).max(10).optional().default([]),
-    hiringStatus: z.nativeEnum(HiringStatus).optional().default("NOT_HIRING"),
+    networkingIntent: z.nativeEnum(NetworkingIntent).optional().default("GENERAL_NETWORKING"),
     linkedinUrl: z.string().url("Please enter a valid LinkedIn URL").optional().or(z.literal("")),
     twitterUrl: z.string().url("Please enter a valid Twitter/X URL").optional().or(z.literal("")),
     tags: z.array(z.string().max(40)).max(10).optional().default([]),
@@ -53,7 +52,7 @@ export const organizationUpdateSchema = z.object({
     services: z.array(z.string().max(60)).max(15).optional(),
     technologies: z.array(z.string().max(60)).max(20).optional(),
     partnershipInterests: z.array(z.string().max(60)).max(10).optional(),
-    hiringStatus: z.nativeEnum(HiringStatus).optional(),
+    networkingIntent: z.nativeEnum(NetworkingIntent).optional(),
     linkedinUrl: z.string().url().optional().or(z.literal("")),
     twitterUrl: z.string().url().optional().or(z.literal("")),
     tags: z.array(z.string().max(40)).max(10).optional(),

@@ -1,13 +1,13 @@
 import * as Sentry from "@sentry/nextjs";
-import { setupConsoleInterceptor } from "@/lib/file-logger";
+// import { setupConsoleInterceptor } from "@/lib/file-logger";
 
 export async function register() {
     if (process.env.NEXT_RUNTIME === "nodejs") {
-        setupConsoleInterceptor();
+        // setupConsoleInterceptor();
         Sentry.init({
             dsn: process.env.SENTRY_DSN,
             tracesSampleRate: 0.1,
-            debug: true,
+            debug: false,
             integrations: [
                 Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
             ],
@@ -23,7 +23,7 @@ export async function register() {
         Sentry.init({
             dsn: process.env.SENTRY_DSN,
             tracesSampleRate: 0.1,
-            debug: true,
+            debug: false,
             integrations: [
                 Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
             ],

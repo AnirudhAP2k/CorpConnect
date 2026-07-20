@@ -197,7 +197,7 @@ model Organization {
   location                String?
   size                    OrganizationSize?            @default(STARTUP)
   isVerified              Boolean                      @default(false)
-  hiringStatus            HiringStatus                 @default(NOT_HIRING)
+  networkingIntent        NetworkingIntent             @default(GENERAL_NETWORKING)
   linkedinUrl             String?
   partnershipInterests    String[]                     @default([])
   services                String[]                     @default([])
@@ -246,7 +246,7 @@ model Organization {
 
   @@index([industryId])
   @@index([createdBy])
-  @@index([hiringStatus])
+  @@index([networkingIntent])
   @@index([subscriptionPlan])
 }
 
@@ -960,10 +960,13 @@ enum OrganizationSize {
   ENTERPRISE
 }
 
-enum HiringStatus {
-  HIRING
-  NOT_HIRING
+enum NetworkingIntent {
+  GENERAL_NETWORKING
   OPEN_TO_PARTNERSHIPS
+  SEEKING_CLIENTS
+  SEEKING_VENDORS
+  SEEKING_INVESTMENT
+  SPONSORING_EVENTS
 }
 
 enum OrgConnectionStatus {
