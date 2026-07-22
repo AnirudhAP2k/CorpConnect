@@ -31,6 +31,7 @@ from app.embeddings import encode
 from app.llm import is_llm_configured, get_llm_client
 from app.config import settings
 from app.middleware.auth import require_master_jwt
+from app.prompts import load_prompt
 from datetime import timezone
 
 logger = logging.getLogger(__name__)
@@ -440,16 +441,7 @@ async def chat_message(body: ChatMessageRequest):
     if similar_events:
         source_titles += [f"Related event: {e['title']}" for e in similar_events]
 
-    # ── 5. Build grounded system prompt ──────────────────────────────────────
-    #
-    # Priority order (LLM reads top-to-bottom):
-    #   1. ENTITY FACTS   — ground-truth structured data from Events / Organization
-    #   2. EVENT DOCS     — supplementary OrgDocument chunks (EVENT_DESCRIPTION)
-    #   3. ORG PROFILE    — OrgDocument chunks (COMPANY_DESCRIPTION)
-    #   4. SIMILAR EVENTS — Events.embedding similarity results
-    #   5. PLATFORM POLICIES — LEGAL_COMPLIANCE OrgDocument chunks
-
-    # Build entity facts block (string for EVENT, string for ORG)
+    # ── 5. Build grounded system prompt from YAML template ───────────────────
     entity_block = ""
     if body.contextType == "EVENT" and isinstance(event_entity_text, str):
         entity_block = f"[EVENT FACTS — authoritative, always trust this]\n{event_entity_text}\n"
@@ -473,20 +465,11 @@ async def chat_message(body: ChatMessageRequest):
         _format_context_block("PLATFORM POLICIES",             list(legal_docs)),
     ]))
 
-    system_prompt = f"""You are a helpful AI assistant for "{context_name}" on the CorpConnect platform.
-
-Your role: Answer questions from attendees and members accurately and professionally.
-
-RULES:
-- Answer ONLY based on the context documents and conversation history below.
-- The EVENT FACTS and ORGANIZATION FACTS blocks are the most authoritative source — always prefer them over other blocks when there is a conflict.
-- If the answer is not in the context, say: "I don't have that information right now. Please contact the organizer directly."
-- Be concise (2-4 sentences max unless a longer answer is clearly needed).
-- Do NOT make up dates, prices, names, or contact details.
-- Maintain a friendly, professional tone.
-
-CONTEXT DOCUMENTS:
-{context_section}"""
+    prompt_tpl = load_prompt("chat_concierge")
+    system_prompt = prompt_tpl.format_system(
+        context_name=context_name,
+        context_section=context_section,
+    )
 
     # ── 6. Build messages array with history ─────────────────────────────────
     messages = [
@@ -500,8 +483,8 @@ CONTEXT DOCUMENTS:
     completion = await client.chat.completions.create(
         model=settings.LLM_MODEL_NAME,
         messages=messages,
-        max_tokens=_MAX_REPLY_TOKENS,
-        temperature=0.3,
+        max_tokens=prompt_tpl.max_tokens or _MAX_REPLY_TOKENS,
+        temperature=prompt_tpl.temperature or 0.3,
     )
     reply = completion.choices[0].message.content or "I'm sorry, I couldn't generate a response. Please try again."
 
