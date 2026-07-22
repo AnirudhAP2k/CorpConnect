@@ -21,6 +21,7 @@ from app.database import get_pool
 from app.embeddings import encode
 from app.llm import generate, is_llm_configured
 from app.middleware.auth import require_master_jwt
+from app.prompts import load_prompt
 import json
 import hashlib
 
@@ -76,8 +77,6 @@ async def _retrieve_docs(
     filtered by org and doc type.
     """
     pool = get_pool()
-    placeholders = ", ".join(f"${i+3}" for i in range(len(doc_types)))
-    cast_types = [f"'{dt}':\"OrgDocumentType\"" for dt in doc_types]
 
     query = f"""
         SELECT id, title, content, "docType",
@@ -130,7 +129,6 @@ async def generate_event_description(body: GenerateDescriptionRequest):
         )
 
     # 1. Check cache first
-    # Hash the inputs to create a unique key
     input_str = f"{body.orgId}:{body.roughDraft.lower().strip()}:{body.eventId or ''}"
     prompt_hash = hashlib.md5(input_str.encode()).hexdigest()
     cache_key = cache.llm_generation_key(prompt_hash)
@@ -159,34 +157,32 @@ async def generate_event_description(body: GenerateDescriptionRequest):
     all_docs = brand_docs + legal_docs + event_docs
     source_titles = [d["title"] for d in all_docs]
 
-    # Build the grounded prompt
+    # Build context and load YAML prompt
     context = "\n".join([
         _build_context_block("ORGANIZATION BRAND & MISSION", brand_docs),
         _build_context_block("PLATFORM POLICIES & COMPLIANCE", legal_docs),
         _build_context_block("EXISTING EVENT CONTEXT", event_docs) if event_docs else "",
     ])
 
-    system_prompt = f"""You are an expert event copywriter for a professional B2B networking platform.
-Your task is to expand the user's rough event draft into a polished, engaging,
-and professional event description.
+    prompt_tpl = load_prompt("event_description")
+    system_prompt = prompt_tpl.format_system(context=context)
+    user_message = prompt_tpl.format_user(rough_draft=body.roughDraft)
 
-RULES:
-- Use the provided context to ensure brand voice consistency and legal compliance.
-- Do NOT invent facts not present in the draft or the context.
-- Keep the description between 100-200 words.
-- Use clear, professional, and engaging language.
-- Avoid generic filler phrases.
+    generated = await generate(
+        system_prompt,
+        user_message,
+        max_tokens=prompt_tpl.max_tokens or 600,
+        temperature=prompt_tpl.temperature or 0.4,
+    )
 
-CONTEXT:
-{context}"""
-
-    user_message = f"Please expand this rough event draft into a polished description:\n\n{body.roughDraft}"
-
-    generated = await generate(system_prompt, user_message, max_tokens=600)
-
-    # Extract short improvement suggestions from a second focused call
-    suggestions_prompt = "You are a content editor. List exactly 3 short, actionable improvement suggestions (each under 10 words) for the following event description as a JSON array of strings. Return ONLY the JSON array."
-    suggestions_raw = await generate(suggestions_prompt, generated, max_tokens=150, temperature=0.3)
+    # Extract short improvement suggestions from a second focused call using template
+    suggestions_tpl = load_prompt("event_description_suggestions")
+    suggestions_raw = await generate(
+        suggestions_tpl.system_prompt or "",
+        generated,
+        max_tokens=suggestions_tpl.max_tokens or 150,
+        temperature=suggestions_tpl.temperature or 0.3,
+    )
 
     # Parse suggestions safely
     try:
@@ -248,7 +244,6 @@ async def generate_matchmaking_reason(body: MatchmakingReasonRequest):
         if not row:
             return ("Unknown Organization", "")
 
-        # Use the org's own embedding to find its best company description chunk
         org_query_vector = encode(row["description"] or row["name"])
         docs = await _retrieve_docs(org_query_vector, org_id, ["COMPANY_DESCRIPTION"], top_k=2)
         best_context = "\n".join(d["content"] for d in docs) if docs else (row["description"] or "")
@@ -259,24 +254,22 @@ async def generate_matchmaking_reason(body: MatchmakingReasonRequest):
 
     score_pct = round(body.score * 100)
 
-    system_prompt = """You are an intelligent B2B matchmaking assistant.
-Your task is to explain in 2-3 clear, specific sentences why two organizations are a strong match.
-Base your explanation ONLY on the provided organization profiles.
-Do NOT use generic filler like "synergies" or "alignment". Be concrete and specific.
-Also return a JSON array of 2-4 shared theme keywords (e.g. ["AI", "SaaS", "FinTech"])."""
+    prompt_tpl = load_prompt("matchmaking_reason")
+    system_prompt = prompt_tpl.system_prompt or ""
+    user_message = prompt_tpl.format_user(
+        source_name=source_name,
+        source_context=source_context[:600],
+        target_name=target_name,
+        target_context=target_context[:600],
+        score_pct=score_pct,
+    )
 
-    user_message = f"""ORGANIZATION A: {source_name}
-Profile: {source_context[:600]}
-
-ORGANIZATION B: {target_name}
-Profile: {target_context[:600]}
-
-AI Similarity Score: {score_pct}%
-
-First write the 2-3 sentence explanation.
-Then on a new line write the JSON array of shared themes."""
-
-    response_text = await generate(system_prompt, user_message, max_tokens=300, temperature=0.3)
+    response_text = await generate(
+        system_prompt,
+        user_message,
+        max_tokens=prompt_tpl.max_tokens or 300,
+        temperature=prompt_tpl.temperature or 0.3,
+    )
 
     # Split reason and themes
     reason = response_text
