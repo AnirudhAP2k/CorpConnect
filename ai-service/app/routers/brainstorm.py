@@ -30,6 +30,8 @@ from app.llm import is_llm_configured, get_llm_client
 from app.config import settings
 from app.middleware.auth import require_master_jwt
 
+from app.prompts import load_prompt
+
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(require_master_jwt)])
 
@@ -39,56 +41,6 @@ _HISTORY_LIMIT   = 12   # rolling conversation window for brainstorm sessions
 _MAX_CHAT_TOKENS = 700
 _MAX_BRIEF_TOKENS = 1200
 
-# ─── Brainstorm System Prompt ─────────────────────────────────────────────────
-
-_BRAINSTORM_SYSTEM_PROMPT = """\
-You are an expert enterprise event strategist and creative consultant for CorpConnect, \
-a B2B networking platform. Your role is to help organization members brainstorm and \
-refine event ideas through a structured conversation.
-
-Your personality:
-- Energetic, concise, and action-oriented
-- Ask focused follow-up questions one at a time
-- Push for specific, measurable details (dates, budgets, audience size, agenda items)
-- Offer creative suggestions grounded in B2B networking best practices
-
-Topics to explore through conversation (don't ask all at once — let the conversation flow):
-- Core purpose of the event (networking, learning, product demo, partnership building)
-- Target audience (industry, seniority level, company size)
-- Format (keynote + panels, workshop, roundtable, hackathon, social mixer)
-- Venue type (in-person, virtual, hybrid) and approximate location
-- Duration and tentative dates
-- Key agenda items or session topics
-- Estimated budget range
-- Success metrics (attendance, leads generated, partnerships formed)
-
-IMPORTANT: Keep responses under 150 words. Be conversational, not exhaustive. \
-Do NOT try to summarize the whole brief until the user asks you to."""
-
-# ─── Brief Extraction Prompt ──────────────────────────────────────────────────
-
-_BRIEF_EXTRACTION_PROMPT = """\
-Based on the brainstorming conversation above, extract a structured event brief.
-Return ONLY a valid JSON object — no markdown fences, no extra text.
-
-Required fields:
-{
-  "title":            "<concise event title, max 80 chars>",
-  "description":      "<rich 2-3 sentence event description for the pitch>",
-  "targetAudience":   "<who this event is for>",
-  "location":         "<city/venue or 'Virtual' or null if unknown>",
-  "estimatedBudget":  <budget in USD as a number, or null if unknown>,
-  "agenda": [
-    {"time": "<optional time slot>", "item": "<agenda item description>"}
-  ],
-  "startDateTime":    "<ISO 8601 datetime or null if not yet decided>",
-  "endDateTime":      "<ISO 8601 datetime or null if not yet decided>",
-  "aiBrief":          "<markdown summary of the event idea, 200-400 words, suitable for an admin pitch>"
-}
-
-If information for a field is missing from the conversation, use null for that field.
-Infer reasonable defaults for the agenda if key topics were discussed.
-The aiBrief field must be compelling and professional — it will be shown directly to the org admin."""
 
 # ─── Pydantic Models ──────────────────────────────────────────────────────────
 
@@ -139,7 +91,6 @@ async def _ensure_brainstorm_session(
     Upsert a ChatSession for ORGANIZATION context (reusing the existing ChatSession table).
     Returns the resolved session UUID.
     """
-    # If client provides an explicit existing session ID, verify it belongs to the user
     if session_id_hint and session_id_hint != "new":
         async with pool.acquire() as conn:
             row = await conn.fetchrow(
@@ -152,10 +103,8 @@ async def _ensure_brainstorm_session(
             if row:
                 return str(row["id"])
 
-    # Create a new brainstorm session tagged with contextType=ORGANIZATION + org as context
     session_id = str(uuid_lib.uuid4())
 
-    # Fetch existing sessionId if conditions are met
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
@@ -169,7 +118,6 @@ async def _ensure_brainstorm_session(
         if rows:
             session_id = str(rows[0]["id"])
 
-    # Upsert chat session for this user and organization
     async with pool.acquire() as conn:
         await conn.execute(
             """
@@ -195,7 +143,6 @@ async def _load_history(pool, session_id: str) -> list[dict]:
             """,
             session_id, _HISTORY_LIMIT,
         )
-    # Reverse to chronological order
     return [{"role": r["role"].lower(), "content": r["content"]} for r in reversed(rows)]
 
 
@@ -236,8 +183,9 @@ async def brainstorm_message(
     # 3. Persist the user's message
     await _save_message(pool, session_id, "USER", req.message)
 
-    # 4. Build the LLM message list
-    llm_messages = [{"role": "system", "content": _BRAINSTORM_SYSTEM_PROMPT}]
+    # 4. Load YAML prompt template and build message list
+    prompt_tpl = load_prompt("brainstorm_chat")
+    llm_messages = [{"role": "system", "content": prompt_tpl.system_prompt or ""}]
     llm_messages.extend(history)
     llm_messages.append({"role": "user", "content": req.message})
 
@@ -247,8 +195,8 @@ async def brainstorm_message(
         response = await client.chat.completions.create(
             model=settings.LLM_MODEL_NAME,
             messages=llm_messages,
-            temperature=0.7,
-            max_tokens=_MAX_CHAT_TOKENS,
+            temperature=prompt_tpl.temperature or 0.7,
+            max_tokens=prompt_tpl.max_tokens or _MAX_CHAT_TOKENS,
         )
         reply = response.choices[0].message.content or ""
     except Exception as e:
@@ -283,7 +231,7 @@ async def brainstorm_brief(
     if not session_row:
         raise HTTPException(status_code=404, detail="Brainstorm session not found.")
 
-    # 2. Load full history (no limit — we need everything for accurate extraction)
+    # 2. Load full history
     async with pool.acquire() as conn:
         rows = await conn.fetch(
             """
@@ -301,10 +249,13 @@ async def brainstorm_brief(
             detail="Not enough conversation history to generate a brief. Continue brainstorming first."
         )
 
-    # 3. Build extraction prompt — append the brief extraction instruction as the final user turn
-    llm_messages = [{"role": "system", "content": _BRAINSTORM_SYSTEM_PROMPT}]
+    # 3. Load prompts — use system persona prompt + append brief extraction instruction turn
+    chat_tpl = load_prompt("brainstorm_chat")
+    brief_tpl = load_prompt("brainstorm_brief")
+
+    llm_messages = [{"role": "system", "content": chat_tpl.system_prompt or ""}]
     llm_messages.extend(history)
-    llm_messages.append({"role": "user", "content": _BRIEF_EXTRACTION_PROMPT})
+    llm_messages.append({"role": "user", "content": brief_tpl.user_prompt or ""})
 
     # 4. Call LLM with lower temperature for deterministic JSON extraction
     try:
@@ -312,8 +263,8 @@ async def brainstorm_brief(
         response = await client.chat.completions.create(
             model=settings.LLM_MODEL_NAME,
             messages=llm_messages,
-            temperature=0.1,
-            max_tokens=_MAX_BRIEF_TOKENS,
+            temperature=brief_tpl.temperature or 0.1,
+            max_tokens=brief_tpl.max_tokens or _MAX_BRIEF_TOKENS,
         )
         raw = response.choices[0].message.content or ""
     except Exception as e:
@@ -353,31 +304,6 @@ async def brainstorm_brief(
 
 
 # ─── Tasklist Generation ──────────────────────────────────────────────────────
-
-_TASKLIST_SYSTEM_PROMPT = """\
-You are an expert enterprise event operations manager for CorpConnect, a B2B networking platform.
-Your task is to generate a concrete, actionable operational milestone checklist for an upcoming event.
-
-Guidelines:
-- Generate between 10 and 18 tasks covering the full event lifecycle
-- Organize tasks chronologically (pre-event preparation → event day → post-event)
-- Use dueDayOffset (integer): negative = days BEFORE event start, 0 = event day, positive = days AFTER
-- Priority: 1 = High (must-do, blocks other tasks), 2 = Medium, 3 = Low (nice-to-have)
-- assignedRole: a short role label like "Admin", "Marketing", "Venue Team", "Tech Team", "Speakers Liaison", "Finance"
-- Keep each task title short (max 80 chars), description practical and specific (1-2 sentences)
-- Return ONLY a valid JSON array — no markdown fences, no extra text.
-
-Required JSON format:
-[
-  {
-    "title": "<task title>",
-    "description": "<practical description>",
-    "dueDayOffset": <integer>,
-    "priority": <1, 2, or 3>,
-    "assignedRole": "<role>"
-  }
-]"""
-
 
 class TasklistRequest(BaseModel):
     pitchId:        str = Field(..., description="UUID of the approved EventPitch")
@@ -456,18 +382,21 @@ async def brainstorm_tasklist(
     if req.aiBrief:
         context_parts.append(f"\nFull Event Brief:\n{req.aiBrief}")
 
-    user_prompt = "\n".join(context_parts) + "\n\nGenerate the operational milestone checklist for this event."
+    pitch_context = "\n".join(context_parts)
+
+    tasklist_tpl = load_prompt("brainstorm_tasklist")
+    user_prompt = tasklist_tpl.format_user(pitch_context=pitch_context)
 
     try:
         client = get_llm_client()
         response = await client.chat.completions.create(
             model=settings.LLM_MODEL_NAME,
             messages=[
-                {"role": "system", "content": _TASKLIST_SYSTEM_PROMPT},
+                {"role": "system", "content": tasklist_tpl.system_prompt or ""},
                 {"role": "user", "content": user_prompt},
             ],
-            temperature=0.3,
-            max_tokens=2000,
+            temperature=tasklist_tpl.temperature or 0.3,
+            max_tokens=tasklist_tpl.max_tokens or 2000,
         )
         raw = response.choices[0].message.content or ""
     except Exception as e:
