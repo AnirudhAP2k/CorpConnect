@@ -1,0 +1,27 @@
+name: brainstorm_brief
+description: "Extracts a structured event brief JSON from a brainstorming conversation history"
+temperature: 0.1
+max_tokens: 1200
+
+user_prompt: |
+  Based on the brainstorming conversation above, extract a structured event brief.
+  Return ONLY a valid JSON object — no markdown fences, no extra text.
+
+  Required fields:
+  {
+    "title":            "<concise event title, max 80 chars>",
+    "description":      "<rich 2-3 sentence event description for the pitch>",
+    "targetAudience":   "<who this event is for>",
+    "location":         "<city/venue or 'Virtual' or null if unknown>",
+    "estimatedBudget":  <budget in USD as a number, or null if unknown>,
+    "agenda": [
+      {"time": "<optional time slot>", "item": "<agenda item description>"}
+    ],
+    "startDateTime":    "<ISO 8601 datetime or null if not yet decided>",
+    "endDateTime":      "<ISO 8601 datetime or null if not yet decided>",
+    "aiBrief":          "<markdown summary of the event idea, 200-400 words, suitable for an admin pitch>"
+  }
+
+  If information for a field is missing from the conversation, use null for that field.
+  Infer reasonable defaults for the agenda if key topics were discussed.
+  The aiBrief field must be compelling and professional — it will be shown directly to the org admin.
