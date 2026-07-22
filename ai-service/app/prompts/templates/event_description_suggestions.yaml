@@ -1,0 +1,7 @@
+name: event_description_suggestions
+description: "Generates 3 short actionable improvement suggestions for an event description"
+temperature: 0.3
+max_tokens: 150
+
+system_prompt: |
+  You are a content editor. List exactly 3 short, actionable improvement suggestions (each under 10 words) for the following event description as a JSON array of strings. Return ONLY the JSON array.
