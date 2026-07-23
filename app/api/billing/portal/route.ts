@@ -3,16 +3,15 @@
  *
  * POST /api/billing/portal
  *
- * Creates a Stripe Customer Portal session so the org can self-serve
- * plan management (upgrade / downgrade / cancel).
+ * Creates a self-serve customer portal session so the org can manage its plan.
+ * Thin controller over the billing domain service.
  *
  * Returns: { url: string }
  */
 
-import { prisma } from "@/lib/db";
-import { getStripe } from "@/lib/payment/stripe";
 import { NextRequest, NextResponse } from "next/server";
 import { getApiAuth } from "@/lib/api-auth";
+import { createBillingPortal, BillingError } from "@/domain/billing";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -21,46 +20,12 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { id: authUser.id },
-            select: { activeOrganizationId: true },
-        });
-        if (!user?.activeOrganizationId) {
-            return NextResponse.json({ error: "No active organization" }, { status: 400 });
-        }
-
-        const orgId = user.activeOrganizationId;
-
-        const membership = await prisma.organizationMember.findUnique({
-            where: { userId_organizationId: { userId: authUser.id, organizationId: orgId } },
-            select: { role: true },
-        });
-        if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
-            return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-        }
-
-        const org = await prisma.organization.findUnique({
-            where: { id: orgId },
-            select: { stripeCustomerId: true },
-        });
-
-        if (!org?.stripeCustomerId) {
-            return NextResponse.json(
-                { error: "No Stripe subscription found. Please subscribe first." },
-                { status: 400 }
-            );
-        }
-
-        const stripe = getStripe();
-        const appUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
-
-        const portalSession = await stripe.billingPortal.sessions.create({
-            customer: org.stripeCustomerId,
-            return_url: `${appUrl}/billing`,
-        });
-
-        return NextResponse.json({ url: portalSession.url }, { status: 200 });
+        const portal = await createBillingPortal(authUser.id);
+        return NextResponse.json(portal, { status: 200 });
     } catch (error: any) {
+        if (error instanceof BillingError) {
+            return NextResponse.json({ error: error.message }, { status: error.status });
+        }
         console.error("[billing/portal]", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
