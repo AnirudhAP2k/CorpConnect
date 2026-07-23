@@ -1,0 +1,36 @@
+name: PR Agent
+
+on:
+  pull_request:
+    types: [opened, reopened, ready_for_review, synchronize]
+  issue_comment:
+
+jobs:
+  pr_agent_job:
+    if: ${{ github.event.sender.type != 'Bot' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: write
+      checks: write
+    name: Run PR Agent
+    steps:
+      - name: PR Agent Action
+        id: pragent
+        uses: the-pr-agent/pr-agent@main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GOOGLE_AI_STUDIO__GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+
+          CONFIG__MODEL: "gemini/gemini-3.5-flash"
+          CONFIG__FALLBACK_MODELS: '["gemini/gemini-3.5-flash-lite"]'
+          CONFIG__CUSTOM_MODEL_MAX_TOKENS: "1048576"
+
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
+
+          github_action_config.pr_actions: '["opened", "reopened", "ready_for_review", "synchronize"]'
+          github_action_config.handle_push_trigger: "true"
+          github_action_config.push_commands: '["/describe", "/review"]'
