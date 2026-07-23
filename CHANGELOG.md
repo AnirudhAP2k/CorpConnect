@@ -1,3 +1,81 @@
+# [1.22.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.21.0...v1.22.0) (2026-07-23)
+
+
+### Features
+
+* **ai:** add brainstorm brief prompt template ([d15c8f0](https://github.com/AnirudhAP2k/CorpConnect/commit/d15c8f07970a28a671f8e50efe58c7156f176f99))
+* **ai:** add brainstorm chat prompt template ([e78a947](https://github.com/AnirudhAP2k/CorpConnect/commit/e78a94760565bebfcf11eb8f2fa5a656688ff1b1))
+* **ai:** add brainstorm tasklist prompt template ([9b8c9ce](https://github.com/AnirudhAP2k/CorpConnect/commit/9b8c9ce475f776fc98d91b7cd9c5a24c1c07e1b5))
+* **ai:** add cached YAML prompt loader ([d62b1b1](https://github.com/AnirudhAP2k/CorpConnect/commit/d62b1b1ab6e2e985ff567e5ae1b648f88b57fdfb))
+* **ai:** add concierge chat prompt template ([daf4bdc](https://github.com/AnirudhAP2k/CorpConnect/commit/daf4bdcd097fdb1faad7c69b4868a12b6c14ff30))
+* **ai:** add description suggestions prompt template ([20cde96](https://github.com/AnirudhAP2k/CorpConnect/commit/20cde9652848e8eb4458021592f533cefaf388f9))
+* **ai:** add event description prompt template ([60779ca](https://github.com/AnirudhAP2k/CorpConnect/commit/60779ca1e4002687718f55cef37c981206305995))
+* **ai:** add event summary prompt template ([8620c0e](https://github.com/AnirudhAP2k/CorpConnect/commit/8620c0e2739cdb99bc46d1f7409796c4e547f3b4))
+* **ai:** add matchmaking reason prompt template ([f290435](https://github.com/AnirudhAP2k/CorpConnect/commit/f29043505b047cceb57d153a1489fbfa660599a8))
+* **ai:** add sentiment analysis prompt template ([36671dd](https://github.com/AnirudhAP2k/CorpConnect/commit/36671dd02b013965a5e8303b4ea681a4fe39e9be))
+* **ai:** add YAML prompt dependency ([d5ae7e9](https://github.com/AnirudhAP2k/CorpConnect/commit/d5ae7e9206df80ce9299c093be890948154d03fa))
+* **ai:** expose prompt template loader ([a850fd5](https://github.com/AnirudhAP2k/CorpConnect/commit/a850fd5a16d2af5cb2839fdcfb35a5325edd7016))
+* **ai:** load analysis prompts from templates ([c4a5d4b](https://github.com/AnirudhAP2k/CorpConnect/commit/c4a5d4bd965c9486b938182132d1a3a77b544253))
+* **ai:** load brainstorm prompts from templates ([574768e](https://github.com/AnirudhAP2k/CorpConnect/commit/574768eff7064d4ca460f5f519b281fdfc8f996e))
+* **ai:** load concierge prompt from template ([2759365](https://github.com/AnirudhAP2k/CorpConnect/commit/2759365f09281c6add7e7261a530224447dd4b2c))
+* **ai:** load generation prompts from templates ([838fc0c](https://github.com/AnirudhAP2k/CorpConnect/commit/838fc0c3266106c5e0c4a58f420de5806d08aa42))
+
+# [1.21.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.20.0...v1.21.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **ai-service:** clean up formatting in ai-service client ([822d5cd](https://github.com/AnirudhAP2k/CorpConnect/commit/822d5cd30f08ba22edf2ec9670d5e3afe323b33a))
+* **ai-service:** normalize roughDraft input for LLM cache key ([6db1396](https://github.com/AnirudhAP2k/CorpConnect/commit/6db1396a9812f40707de6240cf1159cf44c534cd))
+* **components:** specify explicit width and height on Image component ([bf79382](https://github.com/AnirudhAP2k/CorpConnect/commit/bf793826bd194be2dbf51a142b1ee9404e303792))
+* **sentry:** disable debug mode in instrumentation setup ([aea0162](https://github.com/AnirudhAP2k/CorpConnect/commit/aea016217a81ec995032efc7fa949cfb280e25cf))
+
+
+### Features
+
+* **ai-service:** update chatbot context query to use networkingIntent ([d95883c](https://github.com/AnirudhAP2k/CorpConnect/commit/d95883caadf6d8e57ed4cbab3b90ea602222d784))
+* **components:** update organization form with networkingIntent selector ([e19d2e5](https://github.com/AnirudhAP2k/CorpConnect/commit/e19d2e589e234e4b8655a145ce13210aff98bbbe))
+* **docker:** add compose.dev.yaml and environment variable pass-through ([a688f23](https://github.com/AnirudhAP2k/CorpConnect/commit/a688f239e65a9b47741103c71fb3003543432a7c))
+* **docker:** add dev target stage in Dockerfile ([b8d4a0e](https://github.com/AnirudhAP2k/CorpConnect/commit/b8d4a0e5d1ac7e51e5f91dcfab481466e906ce41))
+* **domain-org:** extract networkingIntent in organization actions ([8a5724b](https://github.com/AnirudhAP2k/CorpConnect/commit/8a5724b78473cca289ad5ccdc6571d590813ed4d))
+* **domain-org:** update organization schemas with NetworkingIntent ([bd19b68](https://github.com/AnirudhAP2k/CorpConnect/commit/bd19b68c4fc4469ae4fcc1e511cc2e3b682dfa6a))
+* **events:** add getUserHostedEvents query for hosted event management ([00fa0ed](https://github.com/AnirudhAP2k/CorpConnect/commit/00fa0ed1713d9e1d90a5ead35b58585a8139019b))
+* **my-events:** add Hosted events tab and hosted event list view ([4386d83](https://github.com/AnirudhAP2k/CorpConnect/commit/4386d830762a79d52faf489fc525774ae9760803))
+* **org-ui:** populate networkingIntent in organization edit page ([455541f](https://github.com/AnirudhAP2k/CorpConnect/commit/455541f355e3b0b382042560d899b89f3f3d034e))
+* **org-ui:** render networking intent badges on organization profile ([9212d81](https://github.com/AnirudhAP2k/CorpConnect/commit/9212d8190948a2cb232dba3911d093c59bd8db6b))
+* **schema:** replace HiringStatus enum with NetworkingIntent ([a2114d2](https://github.com/AnirudhAP2k/CorpConnect/commit/a2114d2f3ae0aab8c2cfd31a9b82f5e4f921ba35))
+* **validation:** update OrganizationCreateSchema to use NetworkingIntent ([241ffd6](https://github.com/AnirudhAP2k/CorpConnect/commit/241ffd6bd39d4c8428847f97e0a54e99c3754e7e))
+
+# [1.20.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.19.0...v1.20.0) (2026-07-20)
+
+
+### Bug Fixes
+
+* **billing:** redirect unauthorized billing access with flash code ([17faece](https://github.com/AnirudhAP2k/CorpConnect/commit/17faece7e8b2cca4bc857596091f26193f74714c))
+* **db:** accept data loss on prisma db push in entrypoint ([4427069](https://github.com/AnirudhAP2k/CorpConnect/commit/442706953a4de47abca7b16b9819ef9ec3015aaa))
+* **docker:** copy pnpm-workspace.yaml in deps stage ([d63d1ff](https://github.com/AnirudhAP2k/CorpConnect/commit/d63d1ff2d2748f7fc5dc57db3960d41d5a85b2a7))
+* **docker:** parameterize environment and copy prisma engine module ([4ad83ec](https://github.com/AnirudhAP2k/CorpConnect/commit/4ad83ec169f3b6affa4faa8c5986cf79abfe158e))
+* **logger:** handle write stream creation and write errors ([e3cde59](https://github.com/AnirudhAP2k/CorpConnect/commit/e3cde59d68f0f1b2a0953c238d9838338c986cf2))
+* **lv-service:** use optimized multi-stage docker build with correct port ([d5ed5ca](https://github.com/AnirudhAP2k/CorpConnect/commit/d5ed5cae9a56aec397229d49930140e92e6fc500))
+* **prisma:** remove unsupported vector types from schema ([f9b3a32](https://github.com/AnirudhAP2k/CorpConnect/commit/f9b3a32fbb7f32d905de861d6f94369e3cf7f350))
+* **sentry:** use public env var for client-side sentry DSN ([9278a92](https://github.com/AnirudhAP2k/CorpConnect/commit/9278a92b4cf51c68d9ab4cbb0a8c2949180982f2))
+* **ws-service:** optimize docker build with frozen-lockfile and prod only dependencies ([834681f](https://github.com/AnirudhAP2k/CorpConnect/commit/834681ff00dbdce0567bfeac2f1511ea8692b0a0))
+
+
+### Features
+
+* **ai-service:** add dockerignore file ([8c06685](https://github.com/AnirudhAP2k/CorpConnect/commit/8c0668530d4366df74a8b17f6f824e14fb21af96))
+* **compose:** integrate pgvector database and db-migrate orchestration service ([e2318d8](https://github.com/AnirudhAP2k/CorpConnect/commit/e2318d8f214e078eb2b3dd03c8ac46d592fa6881))
+* **compose:** use migrate target for db-migrate and pass env args ([f73d99e](https://github.com/AnirudhAP2k/CorpConnect/commit/f73d99ecdf5b77a65db4c592dcdce63d10ca4b69))
+* **config:** add NEXT_PUBLIC_SENTRY_DSN to env template ([0233cdc](https://github.com/AnirudhAP2k/CorpConnect/commit/0233cdcba400dc40c2051c3115e47adcfb237d5f))
+* **docker:** add migrate stage and pass build arguments ([af48eb1](https://github.com/AnirudhAP2k/CorpConnect/commit/af48eb19cde337be18ae3cea45db4e2848199e42))
+* **layout:** integrate QueryToastListener in root layout ([4ffb9ed](https://github.com/AnirudhAP2k/CorpConnect/commit/4ffb9ed882035601f85104b64240a865133f45f9))
+* **lv-service:** add @types/crypto-js dev dependency ([19fda88](https://github.com/AnirudhAP2k/CorpConnect/commit/19fda887d1cb4829698406b3ea480a7ab86031f5))
+* **lv-service:** add dockerignore file ([20a178b](https://github.com/AnirudhAP2k/CorpConnect/commit/20a178bccbd0d3277b46d03ebf4576a7ee361b15))
+* **shared:** add flash toast registry ([e9617b7](https://github.com/AnirudhAP2k/CorpConnect/commit/e9617b7c575c16fcf30bf6c25a38c5a8df2b842c))
+* **shared:** add QueryToastListener component ([8a6f321](https://github.com/AnirudhAP2k/CorpConnect/commit/8a6f321140430147c97500f8b95e3e059e9541ae))
+* **ws-service:** add dockerignore file ([126711b](https://github.com/AnirudhAP2k/CorpConnect/commit/126711b7e0f927538173156a3c26fd10193b85ef))
+
 # [1.19.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.18.0...v1.19.0) (2026-07-02)
 
 
