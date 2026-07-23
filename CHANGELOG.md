@@ -1,3 +1,36 @@
+# [1.23.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.22.0...v1.23.0) (2026-07-23)
+
+
+### Bug Fixes
+
+* **ci:** enable automatic review, describe, and synchronize push triggers ([043692b](https://github.com/AnirudhAP2k/CorpConnect/commit/043692bdc9c89326475486f8afdd4bf878629837))
+* **ci:** minor fix in fallback model for the pr agent review ([c0bc71d](https://github.com/AnirudhAP2k/CorpConnect/commit/c0bc71d62cd8a5db49afeab5be71b1dba850e6e3))
+* **ci:** minor fix in fallback model to 2.5 flash for pr agent ([f8c8be8](https://github.com/AnirudhAP2k/CorpConnect/commit/f8c8be8fb6771ae6683bc695eb36ec26e4bd0a3b))
+* **ci:** set google ai studio keys and model overrides for PR-Agent ([a74477a](https://github.com/AnirudhAP2k/CorpConnect/commit/a74477a04ffed069dc122f859917937a6a837bf8))
+* **ci:** updated fallback model to 3.5 lite with max token ([cc3c37b](https://github.com/AnirudhAP2k/CorpConnect/commit/cc3c37bad5311ea323a26ab87d4c7ba25f70f4e9))
+* **ci:** updated model for the pr agent review ([9f6926c](https://github.com/AnirudhAP2k/CorpConnect/commit/9f6926c2938527d9f8ac598eb9e8fe0f2776f002))
+
+
+### Features
+
+* **billing:** developed billing domain error file ([f3fbaa0](https://github.com/AnirudhAP2k/CorpConnect/commit/f3fbaa011ec52b8121d6c5b70af1608f10859e81))
+* **billing:** developed billing domain gateway index ([be232a7](https://github.com/AnirudhAP2k/CorpConnect/commit/be232a7c7118a8eac66095c3ea8207d0a2ec8752))
+* **billing:** developed billing domain gateway razorpay adapter ([ebc66a5](https://github.com/AnirudhAP2k/CorpConnect/commit/ebc66a548328a885bc941ab0f11fd150b300a1e5))
+* **billing:** developed billing domain gateway stripe adapter ([64f8706](https://github.com/AnirudhAP2k/CorpConnect/commit/64f8706819da3c180d483e6acc18184767137c56))
+* **billing:** developed billing domain gateway type defination ([62ed877](https://github.com/AnirudhAP2k/CorpConnect/commit/62ed87734643d32ebb4807e8a9609a9b9f9d2dec))
+* **billing:** developed billing domain index logic ([6d2476c](https://github.com/AnirudhAP2k/CorpConnect/commit/6d2476c5a3a8d2d6128d39f8e94d75ae0972c578))
+* **billing:** developed billing domain service logic ([a83d6c1](https://github.com/AnirudhAP2k/CorpConnect/commit/a83d6c13315fa7a0d32ea7c72a1e15000b21c801))
+* **billing:** developed billing domain webhook logic ([b5c3dff](https://github.com/AnirudhAP2k/CorpConnect/commit/b5c3dff7c95dacf4b2735c51e40f78cda17ada72))
+* **billing:** refactored portal api route to use billing domain ([0ecd4d1](https://github.com/AnirudhAP2k/CorpConnect/commit/0ecd4d12ade0ce86fcbb17ca5a76d5660052a516))
+* **billing:** refactored razorpay webhook handler to use billing domain ([5f04020](https://github.com/AnirudhAP2k/CorpConnect/commit/5f040204b8de7da2fa660b5d55e88ad532d2a875))
+* **billing:** refactored status api route to use billing domain ([bb758d7](https://github.com/AnirudhAP2k/CorpConnect/commit/bb758d7578bb8774afe57091c902a14daacdb08a))
+* **billing:** refactored stripe webhook handler to use billing domain ([858c9d6](https://github.com/AnirudhAP2k/CorpConnect/commit/858c9d61ac3c3687f2ee2f6d5d129e2e4b14258a))
+* **billing:** refactored subscribe api route to use billing domain ([15de0ae](https://github.com/AnirudhAP2k/CorpConnect/commit/15de0ae331023aec5104d5005e7f61c0fb63a689))
+* **ci:** added pr-review agent ([03e7c59](https://github.com/AnirudhAP2k/CorpConnect/commit/03e7c591066e03653475f879d718c01c1feaf6bd))
+* **test:** implemented billling gateway test case ([5096bf9](https://github.com/AnirudhAP2k/CorpConnect/commit/5096bf96a49bca39fa815cde45acc945abaee5e5))
+* **test:** implemented billling service test case ([6367171](https://github.com/AnirudhAP2k/CorpConnect/commit/63671711391c5de0ea17be79c7e04dc900e9cf5b))
+* **test:** implemented billling webhook test case ([66e3fce](https://github.com/AnirudhAP2k/CorpConnect/commit/66e3fcec21c820f126d20bdfb56204b0c960ed74))
+
 # [1.22.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.21.0...v1.22.0) (2026-07-23)
 
 
