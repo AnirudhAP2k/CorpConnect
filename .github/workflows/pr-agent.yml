@@ -23,8 +23,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_AI_STUDIO__GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
 
-          CONFIG__MODEL: "gemini/gemini-3.6-flash"
-          CONFIG__FALLBACK_MODELS: '["gemini/gemini-3.6-flash"]'
+          CONFIG__MODEL: "gemini/gemini-3.5-flash"
+          PR_AGENT__MODEL: "gemini/gemini-3.5-flash"
+          CONFIG__FALLBACK_MODELS: '["gemini/gemini-3.5-flash-lite"]'
 
           github_action_config.auto_review: "true"
           github_action_config.auto_describe: "true"
