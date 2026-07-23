@@ -26,6 +26,8 @@ from app.llm import is_llm_configured, get_llm_client
 from app.config import settings
 from app.middleware.auth import require_master_jwt
 
+from app.prompts import load_prompt
+
 logger = logging.getLogger(__name__)
 router = APIRouter(dependencies=[Depends(require_master_jwt)])
 
@@ -47,56 +49,6 @@ class SentimentResponse(BaseModel):
 
 
 # ─── Helpers ─────────────────────────────────────────────────────────────────
-
-_SYSTEM_PROMPT = """\
-You are an event-feedback analyst. Given a star rating (1-5) and optional text,
-return ONLY a valid JSON object with these fields — no markdown, no extra text:
-
-{
-  "sentiment":      "POSITIVE" | "NEUTRAL" | "NEGATIVE",
-  "sentimentScore": <float -1.0 to 1.0>,
-  "themes":         [<up to 4 topic tags from this list:
-                      "Content Quality", "Networking", "Venue",
-                      "Speakers", "Organisation", "Value for Money",
-                      "Online Experience", "Catering", "Schedule", "Overall">],
-  "summary":        "<one concise sentence summarising the feedback>"
-}
-
-Rules:
-- 4-5 stars with positive text → POSITIVE, score ≥ 0.3
-- 3 stars or mixed text        → NEUTRAL,  score near 0.0
-- 1-2 stars or negative text   → NEGATIVE, score ≤ -0.3
-- If feedbackText is empty, base everything on the rating alone.
-- Return ONLY the JSON object, nothing else.
-"""
-
-_FEW_SHOT_EXAMPLES = [
-    {
-        "role": "user",
-        "content": "Rating: 5\nText: Absolutely incredible event! The speakers were world-class and the networking session helped me land two new partnerships. Will definitely attend again."
-    },
-    {
-        "role": "assistant",
-        "content": '{"sentiment":"POSITIVE","sentimentScore":0.95,"themes":["Speakers","Networking","Overall"],"summary":"An outstanding event with world-class speakers and productive networking that led to valuable business partnerships."}'
-    },
-    {
-        "role": "user",
-        "content": "Rating: 3\nText: Some good talks but the venue was too cramped and the Wi-Fi kept dropping during the online sessions."
-    },
-    {
-        "role": "assistant",
-        "content": '{"sentiment":"NEUTRAL","sentimentScore":-0.1,"themes":["Content Quality","Venue","Online Experience"],"summary":"Mixed experience with decent content undermined by an overcrowded venue and poor internet connectivity."}'
-    },
-    {
-        "role": "user",
-        "content": "Rating: 1\nText: Terrible organisation. Half the scheduled speakers didn't show up and no one from the team was available to help."
-    },
-    {
-        "role": "assistant",
-        "content": '{"sentiment":"NEGATIVE","sentimentScore":-0.92,"themes":["Organisation","Speakers"],"summary":"Poorly organised event where scheduled speakers were absent and event staff were unavailable to assist attendees."}'
-    },
-]
-
 
 def _rating_fallback(rating: int, text: str | None) -> SentimentResponse:
     """Derive sentiment purely from rating when LLM is unavailable."""
@@ -156,13 +108,14 @@ async def analyse_sentiment(body: SentimentRequest):
         logger.warning("📊 Sentiment: LLM not configured, using rating fallback.")
         return fallback
 
-    # ── Build user message ────────────────────────────────────────────────────
+    # ── Load prompt template & build messages ───────────────────────────────
+    prompt_tpl = load_prompt("sentiment_analysis")
     text_part = body.feedbackText.strip() if body.feedbackText else "(no text provided)"
-    user_content = f"Rating: {body.rating}\nText: {text_part}"
+    user_content = prompt_tpl.format_user(rating=body.rating, feedback_text=text_part)
 
     messages = [
-        {"role": "system", "content": _SYSTEM_PROMPT},
-        *_FEW_SHOT_EXAMPLES,
+        {"role": "system", "content": prompt_tpl.system_prompt or ""},
+        *(prompt_tpl.few_shot_examples or []),
         {"role": "user", "content": user_content},
     ]
 
@@ -172,8 +125,8 @@ async def analyse_sentiment(body: SentimentRequest):
         completion = await client.chat.completions.create(
             model=settings.LLM_MODEL_NAME,
             messages=messages,
-            max_tokens=200,
-            temperature=0.1,      # Low temp for consistent structured output
+            max_tokens=prompt_tpl.max_tokens or 200,
+            temperature=prompt_tpl.temperature or 0.1,
         )
         raw = completion.choices[0].message.content or ""
         parsed = _parse_llm_json(raw)
@@ -213,30 +166,6 @@ async def analyse_sentiment(body: SentimentRequest):
 
 
 # ─── Event Summary Endpoint ───────────────────────────────────────────────────
-
-_SUMMARY_SYSTEM_PROMPT = """\
-You are a professional post-event analytics consultant for CorpConnect, a B2B networking platform.
-Given aggregated event feedback and performance metrics, write a concise executive summary report.
-
-Return ONLY a valid JSON object — no markdown fences, no extra text:
-
-{
-  "overallScore": <float 0.0–10.0, 1 decimal place>,
-  "strengths": ["<strength 1>", "<strength 2>", "<strength 3>"],
-  "weaknesses": ["<weakness 1>", "<weakness 2>"],
-  "recommendations": ["<recommendation 1>", "<recommendation 2>", "<recommendation 3>"],
-  "executiveSummary": "<2-3 paragraph professional summary suitable for a business report, using the provided metrics and feedback excerpts>"
-}
-
-Guidelines:
-- Base strengths on positive patterns from the feedback
-- Base weaknesses on negative or recurring complaints
-- Recommendations must be actionable and specific
-- The executiveSummary must reference concrete numbers (attendance rate, avg rating, etc.)
-- Keep each array item concise (under 100 chars)
-- If very few feedback items are provided (<3), note the limited sample size in executiveSummary
-"""
-
 
 class EventSummaryRequest(BaseModel):
     eventId:          str
@@ -305,35 +234,35 @@ async def generate_event_summary(body: EventSummaryRequest):
         logger.warning("📋 EventSummary: LLM not configured, using heuristic fallback.")
         return fallback
 
-    # Build the user message from available data
+    # Load template and build user message
+    prompt_tpl = load_prompt("event_summary")
     rate_pct     = round(body.attendanceRate * 100)
     rating_str   = f"{body.avgRating:.1f}/5.0" if body.avgRating else "not available"
     sent_str     = f"{body.sentimentScore:+.2f}" if body.sentimentScore is not None else "not available"
     themes_str   = ", ".join(body.topThemes) if body.topThemes else "none detected"
     samples_text = "\n".join(f"- {s[:250]}" for s in body.feedbackSamples[:15]) or "No feedback text collected."
 
-    user_message = f"""\
-Event: {body.eventTitle}
-Total Attendees: {body.totalAttendees}
-Attendance Rate: {rate_pct}%
-Average Rating: {rating_str}
-Overall Sentiment Score: {sent_str}
-Top Feedback Themes: {themes_str}
-
-Feedback Samples ({len(body.feedbackSamples)} total):
-{samples_text}
-"""
+    user_message = prompt_tpl.format_user(
+        event_title=body.eventTitle,
+        total_attendees=body.totalAttendees,
+        rate_pct=rate_pct,
+        rating_str=rating_str,
+        sent_str=sent_str,
+        themes_str=themes_str,
+        sample_count=len(body.feedbackSamples),
+        samples_text=samples_text,
+    )
 
     try:
         client = get_llm_client()
         completion = await client.chat.completions.create(
             model=settings.LLM_MODEL_NAME,
             messages=[
-                {"role": "system", "content": _SUMMARY_SYSTEM_PROMPT},
+                {"role": "system", "content": prompt_tpl.system_prompt or ""},
                 {"role": "user",   "content": user_message},
             ],
-            max_tokens=1000,
-            temperature=0.3,
+            max_tokens=prompt_tpl.max_tokens or 1000,
+            temperature=prompt_tpl.temperature or 0.3,
         )
         raw = completion.choices[0].message.content or ""
         clean = re.sub(r"^```(?:json)?\s*|\s*```$", "", raw.strip(), flags=re.DOTALL)

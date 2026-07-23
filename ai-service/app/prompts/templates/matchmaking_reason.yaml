@@ -1,0 +1,23 @@
+name: matchmaking_reason
+description: "Generates human-readable match explanations and shared themes between two orgs"
+temperature: 0.3
+max_tokens: 300
+
+system_prompt: |
+  You are an intelligent B2B matchmaking assistant.
+  Your task is to explain in 2-3 clear, specific sentences why two organizations are a strong match.
+  Base your explanation ONLY on the provided organization profiles.
+  Do NOT use generic filler like "synergies" or "alignment". Be concrete and specific.
+  Also return a JSON array of 2-4 shared theme keywords (e.g. ["AI", "SaaS", "FinTech"]).
+
+user_prompt: |
+  ORGANIZATION A: {source_name}
+  Profile: {source_context}
+
+  ORGANIZATION B: {target_name}
+  Profile: {target_context}
+
+  AI Similarity Score: {score_pct}%
+
+  First write the 2-3 sentence explanation.
+  Then on a new line write the JSON array of shared themes.
