@@ -1,3 +1,25 @@
+# [1.22.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.21.0...v1.22.0) (2026-07-23)
+
+
+### Features
+
+* **ai:** add brainstorm brief prompt template ([d15c8f0](https://github.com/AnirudhAP2k/CorpConnect/commit/d15c8f07970a28a671f8e50efe58c7156f176f99))
+* **ai:** add brainstorm chat prompt template ([e78a947](https://github.com/AnirudhAP2k/CorpConnect/commit/e78a94760565bebfcf11eb8f2fa5a656688ff1b1))
+* **ai:** add brainstorm tasklist prompt template ([9b8c9ce](https://github.com/AnirudhAP2k/CorpConnect/commit/9b8c9ce475f776fc98d91b7cd9c5a24c1c07e1b5))
+* **ai:** add cached YAML prompt loader ([d62b1b1](https://github.com/AnirudhAP2k/CorpConnect/commit/d62b1b1ab6e2e985ff567e5ae1b648f88b57fdfb))
+* **ai:** add concierge chat prompt template ([daf4bdc](https://github.com/AnirudhAP2k/CorpConnect/commit/daf4bdcd097fdb1faad7c69b4868a12b6c14ff30))
+* **ai:** add description suggestions prompt template ([20cde96](https://github.com/AnirudhAP2k/CorpConnect/commit/20cde9652848e8eb4458021592f533cefaf388f9))
+* **ai:** add event description prompt template ([60779ca](https://github.com/AnirudhAP2k/CorpConnect/commit/60779ca1e4002687718f55cef37c981206305995))
+* **ai:** add event summary prompt template ([8620c0e](https://github.com/AnirudhAP2k/CorpConnect/commit/8620c0e2739cdb99bc46d1f7409796c4e547f3b4))
+* **ai:** add matchmaking reason prompt template ([f290435](https://github.com/AnirudhAP2k/CorpConnect/commit/f29043505b047cceb57d153a1489fbfa660599a8))
+* **ai:** add sentiment analysis prompt template ([36671dd](https://github.com/AnirudhAP2k/CorpConnect/commit/36671dd02b013965a5e8303b4ea681a4fe39e9be))
+* **ai:** add YAML prompt dependency ([d5ae7e9](https://github.com/AnirudhAP2k/CorpConnect/commit/d5ae7e9206df80ce9299c093be890948154d03fa))
+* **ai:** expose prompt template loader ([a850fd5](https://github.com/AnirudhAP2k/CorpConnect/commit/a850fd5a16d2af5cb2839fdcfb35a5325edd7016))
+* **ai:** load analysis prompts from templates ([c4a5d4b](https://github.com/AnirudhAP2k/CorpConnect/commit/c4a5d4bd965c9486b938182132d1a3a77b544253))
+* **ai:** load brainstorm prompts from templates ([574768e](https://github.com/AnirudhAP2k/CorpConnect/commit/574768eff7064d4ca460f5f519b281fdfc8f996e))
+* **ai:** load concierge prompt from template ([2759365](https://github.com/AnirudhAP2k/CorpConnect/commit/2759365f09281c6add7e7261a530224447dd4b2c))
+* **ai:** load generation prompts from templates ([838fc0c](https://github.com/AnirudhAP2k/CorpConnect/commit/838fc0c3266106c5e0c4a58f420de5806d08aa42))
+
 # [1.21.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.20.0...v1.21.0) (2026-07-20)
 
 
