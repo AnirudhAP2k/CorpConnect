@@ -22,5 +22,23 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GOOGLE_AI_STUDIO__GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          
+          # Model configuration (forcing Gemini 2.0 Flash)
           PR_AGENT__MODEL: "gemini/gemini-2.0-flash"
           CONFIG__MODEL: "gemini/gemini-2.0-flash"
+          
+          # Enable automatic review, description, and improvement suggestions on new PRs
+          github_action_config.auto_review: "true"
+          github_action_config.auto_describe: "true"
+          github_action_config.auto_improve: "true"
+          
+          GITHUB_ACTION_CONFIG__AUTO_REVIEW: "true"
+          GITHUB_ACTION_CONFIG__AUTO_DESCRIBE: "true"
+          GITHUB_ACTION_CONFIG__AUTO_IMPROVE: "true"
+          
+          # Enable handling of push triggers (synchronize event)
+          github.handle_push_trigger: "true"
+          github.push_commands: '["/describe", "/review"]'
+          
+          GITHUB__HANDLE_PUSH_TRIGGER: "true"
+          GITHUB__PUSH_COMMANDS: '["/describe", "/review"]'
