@@ -58,6 +58,11 @@ export const PUT = async (
             return NextResponse.json({ error: "Member not found" }, { status: 404 });
         }
 
+        // Ensure the target member belongs to the org in the URL (prevents cross-tenant mutation)
+        if (memberToUpdate.organizationId !== organizationId) {
+            return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
+
         // Prevent changing own role
         if (memberToUpdate.userId === userId) {
             return NextResponse.json(
@@ -178,6 +183,11 @@ export const DELETE = async (
         });
 
         if (!memberToRemove) {
+            return NextResponse.json({ error: "Member not found" }, { status: 404 });
+        }
+
+        // Ensure the target member belongs to the org in the URL (prevents cross-tenant removal)
+        if (memberToRemove.organizationId !== organizationId) {
             return NextResponse.json({ error: "Member not found" }, { status: 404 });
         }
 
