@@ -10,6 +10,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { aiService } from "@/lib/ai-service";
 import { checkAiQuota, deductAiUsage } from "@/domain/ai";
+import { checkOrganizationPermission } from "@/domain/organizations";
 import { getApiAuth } from "@/lib/api-auth";
 
 export async function POST(req: NextRequest) {
@@ -26,6 +27,12 @@ export async function POST(req: NextRequest) {
 
     if (!sessionId || !organizationId) {
         return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Caller must belong to the org — prevents cross-tenant quota theft.
+    const { hasPermission } = await checkOrganizationPermission(user.id, organizationId);
+    if (!hasPermission) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Quota gate — replaces checkEnterprise with plan + usage check
