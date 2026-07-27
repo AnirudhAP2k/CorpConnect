@@ -1,17 +1,21 @@
 "use server";
 
 import cloudinary from "@/lib/cloudinary";
+import { auth } from "@/auth";
 import type { UploadResult } from "@/lib/types";
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────
 
-/** MIME types that Cloudinary should receive as the "image" resource_type. */
+/**
+ * MIME types that Cloudinary should receive as the "image" resource_type.
+ * SVG is intentionally excluded — it can carry inline <script>, so we never
+ * treat it as a renderable image (falls through to "raw" below).
+ */
 const IMAGE_MIME_TYPES = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
     "image/gif",
-    "image/svg+xml",
     "image/avif",
 ]);
 
@@ -45,6 +49,14 @@ const MAX_FILE_SIZE = process.env.MAX_UPLOAD_SIZE
  * all callers remain unchanged.
  */
 export async function uploadFileAction(formData: FormData): Promise<UploadResult> {
+    // ── Authenticate ────────────────────────────────────────────────────────────
+    // This action is exposed at the client→server boundary, so it must not trust
+    // the caller. Only authenticated users may upload.
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, publicId: null, url: null, imageUrl: null, message: "Unauthorized" };
+    }
+
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string | null) ?? "uploads";
     const publicId = (formData.get("publicId") as string | null) ?? undefined;

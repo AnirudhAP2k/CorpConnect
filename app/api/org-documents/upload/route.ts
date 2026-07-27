@@ -99,6 +99,15 @@ export async function GET(req: NextRequest) {
     const orgId = req.nextUrl.searchParams.get("orgId");
     if (!orgId) return NextResponse.json({ error: "orgId required" }, { status: 400 });
 
+    // ── Verify org membership — KYB documents are sensitive, OWNER/ADMIN only ──
+    const member = await prisma.organizationMember.findFirst({
+        where: { organizationId: orgId, userId: user.id },
+        select: { role: true },
+    });
+    if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
+        return NextResponse.json({ error: "Forbidden — OWNER or ADMIN role required" }, { status: 403 });
+    }
+
     const docs = await prisma.orgDocument.findMany({
         where: {
             organizationId: orgId,

@@ -25,7 +25,7 @@ class Settings(BaseSettings):
     REDIS_URL: str = ""
 
     # CORS
-    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000"]
+    ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://server:3000"]
 
     # Recommendation defaults
     DEFAULT_RECOMMEND_LIMIT: int = 10

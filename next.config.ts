@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     "*.ngrok-free.dev",
   ],
   serverExternalPackages: ["cloudinary"],
+  transpilePackages: ["import-in-the-middle"],
   images: {
     remotePatterns: [
       {

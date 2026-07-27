@@ -1,9 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
 import { resetSchema } from "@/domain/users";
 import { requestPasswordResetAction } from "@/domain/auth";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const POST = async (req: NextRequest) => {
     try {
+        // Throttle reset requests per IP to prevent email bombing / enumeration.
+        const limit = rateLimit(`password-reset:${getClientIp(req)}`, {
+            limit: 5,
+            windowMs: 60 * 60 * 1000,
+        });
+        if (!limit.success) {
+            return NextResponse.json(
+                { error: "Too many password reset requests. Please try again later." },
+                { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+            );
+        }
+
         const data = await req.json();
         const parsed = resetSchema.safeParse(data);
 

@@ -29,6 +29,20 @@ export async function createEventAction(data: Record<string, unknown>) {
         });
 
         if (!organization) return { error: "Organization not found." };
+
+        // Caller must be an OWNER/ADMIN of the org — not just any signed-in user.
+        const membership = await prisma.organizationMember.findFirst({
+            where: {
+                organizationId,
+                userId: session.user.id,
+                role: { in: ["OWNER", "ADMIN"] },
+            },
+            select: { id: true },
+        });
+        if (!membership) {
+            return { error: "Only organization owners and admins can create events." };
+        }
+
         if (!organization.isVerified) {
             return {
                 error: `"${organization.name}" is not yet verified. Complete KYB documents to unlock event creation.`,

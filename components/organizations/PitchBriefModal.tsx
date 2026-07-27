@@ -14,7 +14,6 @@ interface PitchBriefModalProps {
     isOpen: boolean;
     onClose: () => void;
     brief: AIEventBrief;
-    userId: string;
     organizationId: string;
 }
 
@@ -24,7 +23,6 @@ export function PitchBriefModal({
     isOpen,
     onClose,
     brief,
-    userId,
     organizationId,
 }: PitchBriefModalProps) {
     const router = useRouter();
@@ -50,7 +48,6 @@ export function PitchBriefModal({
         setIsSaving(true);
         const result = await createPitchAction({
             organizationId,
-            proposedById:    userId,
             title,
             description,
             aiBrief:         brief.aiBrief,
@@ -72,7 +69,7 @@ export function PitchBriefModal({
         if (!pitchId) return;
         setError(null);
         startTransition(async () => {
-            const result = await submitPitchAction(pitchId, userId);
+            const result = await submitPitchAction(pitchId);
             if (!result.success) { setError(result.error); return; }
             router.push(`/organizations/${organizationId}/pitches`);
             onClose();
@@ -177,11 +174,11 @@ export function PitchBriefModal({
                                     </label>
                                     <div className="space-y-1.5">
                                         {brief.agenda.map((item, i) => (
-                                            <div key={i} className="flex items-start gap-2 px-3 py-2 rounded-lg bg-nx-surface-container border border-nx-outline-variant/60 text-sm">
+                                            <div key={i} className="flex items-start gap-3 px-3.5 py-2.5 rounded-lg bg-nx-surface-container border border-nx-outline-variant/60 text-sm">
                                                 {item.time && (
-                                                    <span className="shrink-0 text-xs text-nx-on-surface-variant font-medium w-12">{item.time}</span>
+                                                    <span className="shrink-0 text-xs text-nx-on-surface-variant font-semibold min-w-[110px] whitespace-pre-line leading-snug">{item.time}</span>
                                                 )}
-                                                <span className="text-nx-on-surface">{item.item}</span>
+                                                <span className="text-nx-on-surface leading-relaxed flex-1">{item.item}</span>
                                             </div>
                                         ))}
                                     </div>

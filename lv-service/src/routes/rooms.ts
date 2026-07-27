@@ -7,15 +7,42 @@ const router = Router();
 
 // ── GET /rooms?eventId= ─────────────────────────────────────────────────────
 // List all active virtual rooms for an event.
-// Available to any authenticated user (participant or host).
+// Restricted to users with access to the event: a registered (non-cancelled)
+// participant, or an OWNER/ADMIN of the hosting organization.
 router.get("/", async (req: Request, res: Response) => {
     const { eventId } = req.query as { eventId?: string };
+    const { userId } = req.auth!;
 
     if (!eventId) {
         return res.status(400).json({ error: "MISSING_EVENT_ID" });
     }
 
     try {
+        // ── Authorize: participant OR host of the event ──────────────────────────
+        const [partResult, hostResult] = await Promise.all([
+            pool.query<{ id: string }>(
+                `SELECT id
+                 FROM "EventParticipation"
+                 WHERE "eventId" = $1
+                   AND "userId" = $2
+                   AND status NOT IN ('CANCELLED', 'WAITLISTED')`,
+                [eventId, userId]
+            ),
+            pool.query<{ role: string }>(
+                `SELECT om.role
+                 FROM "OrganizationMember" om
+                 JOIN "Events" e ON e."organizationId" = om."organizationId"
+                 WHERE e.id = $1
+                   AND om."userId" = $2
+                   AND om.role IN ('OWNER', 'ADMIN')`,
+                [eventId, userId]
+            ),
+        ]);
+
+        if (!partResult.rows.length && !hostResult.rows.length) {
+            return res.status(403).json({ error: "NOT_AUTHORIZED" });
+        }
+
         const result = await pool.query<{
             id: string;
             name: string;

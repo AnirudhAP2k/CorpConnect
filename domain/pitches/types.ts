@@ -101,7 +101,6 @@ export interface SerializedEventPitch {
 /** Input to create or save a DRAFT pitch from the brainstorm brief. */
 export interface CreatePitchInput {
     organizationId:  string;
-    proposedById:    string;
     title:           string;
     description:     string;
     aiBrief:         string;

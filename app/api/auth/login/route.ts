@@ -10,6 +10,7 @@ import { tokenVerificationBaseLink } from "@/constants";
 import { getTwoFactorTokenbyEmail } from "@/data/two-factor-token";
 import { prisma } from "@/lib/db";
 import { getTwoFactorConfirmationbyUserId } from "@/data/two-factor-confirmation";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 
 export const POST = async (req: NextRequest) => {
     if (req.method !== "POST") {
@@ -26,6 +27,18 @@ export const POST = async (req: NextRequest) => {
         }
 
         const { email, password, code } = validated.data;
+
+        // Throttle credential attempts per IP + email to blunt brute-forcing.
+        const limit = rateLimit(`login:${getClientIp(req)}:${email.toLowerCase()}`, {
+            limit: 10,
+            windowMs: 15 * 60 * 1000,
+        });
+        if (!limit.success) {
+            return NextResponse.json(
+                { error: "Too many login attempts. Please try again later." },
+                { status: 429, headers: { "Retry-After": String(limit.retryAfter) } }
+            );
+        }
 
         const user = await getUserByEmail(email);
 
