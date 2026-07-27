@@ -8,7 +8,8 @@ Two auth modes:
 
   2. Tenant key (X-Tenant-ID + X-API-Key headers)
      Used by organisations calling the AI service directly.
-     Keys hashed with bcrypt. Tier-gated. Usage tracked.
+     Keys are stored as SHA-256 hex digests (matching Next.js `hashToken`) and
+     compared in constant time. Tier-gated. Usage tracked.
 
 Tier capabilities:
   FREE       → /embed/* (internal only via master JWT)
@@ -16,7 +17,8 @@ Tier capabilities:
   ENTERPRISE → all endpoints including /search/semantic
 """
 
-import bcrypt
+import hashlib
+import hmac
 from enum import Enum
 from fastapi import HTTPException, Request, Security
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
@@ -83,9 +85,11 @@ async def _validate_tenant_key(tenant_id: str, api_key: str) -> ApiTier:
         # Store in cache (ttl=60s)
         await cache.set(cache_key, credential, ttl=60)
 
-    # Verify against bcrypt hash
-    key_matches = bcrypt.checkpw(api_key.encode(), credential["apiKey"].encode())
-    if not key_matches:
+    # Verify against the stored SHA-256 hex digest (matches Next.js `hashToken`).
+    # API keys are high-entropy random tokens, so a fast hash + constant-time
+    # comparison is appropriate (and must match how the key was persisted).
+    provided_hash = hashlib.sha256(api_key.encode()).hexdigest()
+    if not hmac.compare_digest(provided_hash, credential["apiKey"]):
         raise HTTPException(status_code=401, detail="Invalid API key")
 
     # Check usage limit (cached snapshot — still effective for preventing massive overruns)
