@@ -4,6 +4,7 @@ import { useState, useRef, useCallback, useEffect, useTransition } from "react";
 import { cn } from "@/lib/utils";
 import { Sparkles, Send, Loader2, FileText, ChevronRight, RotateCcw } from "lucide-react";
 import { format } from "date-fns";
+import Link from "next/link";
 import type { AIEventBrief } from "@/lib/ai-service";
 import { PitchBriefModal } from "@/components/organizations/PitchBriefModal";
 
@@ -149,6 +150,13 @@ export function BrainstormChat({ userId, organizationId }: BrainstormChatProps) 
                     {messages.filter((m) => m.role === "user").length} exchange{messages.filter((m) => m.role === "user").length !== 1 ? "s" : ""}
                 </p>
                 <div className="flex items-center gap-2">
+                    <Link
+                        href={`/organizations/${organizationId}/pitches`}
+                        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-nx-on-surface-variant hover:bg-nx-surface-container transition-colors"
+                    >
+                        <FileText className="w-3.5 h-3.5" />
+                        My Pitches
+                    </Link>
                     <button
                         onClick={handleReset}
                         className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs text-nx-on-surface-variant hover:bg-nx-surface-container transition-colors"
@@ -264,7 +272,6 @@ export function BrainstormChat({ userId, organizationId }: BrainstormChatProps) 
                     isOpen={briefModalOpen}
                     onClose={() => setBriefModalOpen(false)}
                     brief={brief}
-                    userId={userId}
                     organizationId={organizationId}
                 />
             )}
