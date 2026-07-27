@@ -13,6 +13,7 @@
  */
 
 import { prisma } from "@/lib/db";
+import { auth } from "@/auth";
 import { revalidatePath } from "next/cache";
 import { OrganizationRole } from "@prisma/client";
 import { isEnterpriseOrg } from "@/lib/enterprise";
@@ -71,21 +72,28 @@ async function assertOrgRole(
 export async function createPitchAction(
     input: CreatePitchInput,
 ): Promise<ActionResult<SerializedEventPitch>> {
-    // 1. Validate input
+    // 1. Authenticate — identity comes from the session, never the client.
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+    const proposedById = session.user.id;
+
+    // 2. Validate input
     const parsed = createPitchSchema.safeParse(input);
     if (!parsed.success) {
         return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid input" };
     }
     const data = parsed.data;
 
-    // 2. Enterprise gate
+    // 3. Enterprise gate
     const isEnterprise = await assertEnterprise(data.organizationId);
     if (!isEnterprise) {
         return { success: false, error: "Event pitching is an Enterprise-only feature." };
     }
 
-    // 3. Caller must be a member of the org
-    const isMember = await assertOrgRole(data.proposedById, data.organizationId, [
+    // 4. Caller must be a member of the org
+    const isMember = await assertOrgRole(proposedById, data.organizationId, [
         OrganizationRole.OWNER,
         OrganizationRole.ADMIN,
         OrganizationRole.MEMBER,
@@ -98,7 +106,7 @@ export async function createPitchAction(
         const pitch = await prisma.eventPitch.create({
             data: {
                 organizationId:  data.organizationId,
-                proposedById:    data.proposedById,
+                proposedById,
                 title:           data.title,
                 description:     data.description,
                 aiBrief:         data.aiBrief,
@@ -127,11 +135,15 @@ export async function createPitchAction(
  */
 export async function submitPitchAction(
     pitchId: string,
-    callerUserId: string,
 ): Promise<ActionResult<SerializedEventPitch>> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+
     const pitch = await prisma.eventPitch.findUnique({ where: { id: pitchId } });
     if (!pitch) return { success: false, error: "Pitch not found." };
-    if (pitch.proposedById !== callerUserId) {
+    if (pitch.proposedById !== session.user.id) {
         return { success: false, error: "Only the pitch author can submit it." };
     }
     if (!["DRAFT", "REVISION_REQUESTED"].includes(pitch.status)) {
@@ -180,9 +192,13 @@ export async function submitPitchAction(
  */
 export async function updatePitchAction(
     pitchId: string,
-    callerUserId: string,
     input: UpdatePitchInput,
 ): Promise<ActionResult<SerializedEventPitch>> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+
     const parsed = updatePitchSchema.safeParse(input);
     if (!parsed.success) {
         return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid input" };
@@ -191,7 +207,7 @@ export async function updatePitchAction(
 
     const pitch = await prisma.eventPitch.findUnique({ where: { id: pitchId } });
     if (!pitch) return { success: false, error: "Pitch not found." };
-    if (pitch.proposedById !== callerUserId) {
+    if (pitch.proposedById !== session.user.id) {
         return { success: false, error: "Only the pitch author can edit it." };
     }
     if (!["DRAFT", "REVISION_REQUESTED"].includes(pitch.status)) {
@@ -224,9 +240,13 @@ export async function updatePitchAction(
  */
 export async function reviewPitchAction(
     pitchId: string,
-    callerUserId: string,
     input: ReviewPitchInput,
 ): Promise<ActionResult<SerializedEventPitch>> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+
     const parsed = reviewPitchSchema.safeParse(input);
     if (!parsed.success) {
         return { success: false, error: parsed.error.errors[0]?.message ?? "Invalid review input" };
@@ -237,7 +257,7 @@ export async function reviewPitchAction(
     if (!pitch) return { success: false, error: "Pitch not found." };
 
     // Caller must be ADMIN or OWNER of the org
-    const isAdmin = await assertOrgRole(callerUserId, pitch.organizationId, [
+    const isAdmin = await assertOrgRole(session.user.id, pitch.organizationId, [
         OrganizationRole.OWNER,
         OrganizationRole.ADMIN,
     ]);
