@@ -3,13 +3,19 @@ services:
     build:
       context: .
       target: dev
-    command: npx run dev
+    command: pnpm exec next dev
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
     environment:
       NODE_ENV: development
       WATCHPACK_POLLING: "true"
+      # Container-to-container calls must use Compose service names.
+      AI_SERVICE_URL: http://ai-service:8000
+      LV_SERVICE_URL: http://lv-service:5000
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
 
   ai-service:
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
@@ -17,6 +23,8 @@ services:
       - ./ai-service:/app
     environment:
       NODE_ENV: development
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
 
   ws-service:
     build:
@@ -28,6 +36,9 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
+      NEXTJS_URL: http://server:3000
+      REDIS_URL: redis://redis:6379
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
 
   lv-service:
     build:
@@ -39,3 +50,5 @@ services:
       - /app/node_modules
     environment:
       NODE_ENV: development
+      NEXTJS_URL: http://server:3000
+      DATABASE_URL: ${LOCAL_DATABASE_URL}
