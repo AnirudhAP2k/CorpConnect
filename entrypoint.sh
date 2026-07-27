@@ -13,6 +13,9 @@ else
     echo "⏳ Waiting for DB..."
     sleep 2
   done
+
+  echo "🔧 Restoring pgvector embedding columns & indexes..."
+  npx tsx scripts/enable-pgvector.ts
 fi
 
 echo "✅ Database ready"
