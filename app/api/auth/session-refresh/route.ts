@@ -27,9 +27,25 @@ import { SESSION_COOKIE_NAME, JWT_MAX_AGE_SECONDS } from "@/constants";
  *
  * On any failure → redirect to /login.
  */
+
+/**
+ * Only allow same-origin, path-relative redirect targets. Rejects absolute URLs
+ * (`https://evil.com`), protocol-relative (`//evil.com`) and backslash tricks so
+ * `returnTo` can never be abused as an open-redirect for phishing.
+ */
+function sanitizeReturnTo(raw: string | null): string {
+    const fallback = "/dashboard";
+    if (!raw) return fallback;
+    // Must be a single-slash-rooted relative path.
+    if (!raw.startsWith("/") || raw.startsWith("//") || raw.startsWith("/\\")) {
+        return fallback;
+    }
+    return raw;
+}
+
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
-    const returnTo = searchParams.get("returnTo") || "/dashboard";
+    const returnTo = sanitizeReturnTo(searchParams.get("returnTo"));
 
     const cookieStore = await cookies();
     const refreshToken = cookieStore.get("refreshToken")?.value;
