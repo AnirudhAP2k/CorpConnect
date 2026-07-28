@@ -53,6 +53,91 @@
 
     /* 8px base radius (ROUND_EIGHT from Stitch) */
     --radius: 0.5rem;
+
+    /* ── Nexus Corporate Semantic Tokens (space-separated RGB channels) ─────
+       Usage in Tailwind: rgb(var(--nx-primary) / <alpha-value>)
+       This enables Tailwind opacity modifiers like bg-nx-primary/80 ──────── */
+
+    /* Primary (Deep Navy) */
+    --nx-primary: 4 22 39;
+    --nx-primary-container: 26 43 60;
+    --nx-on-primary: 255 255 255;
+    --nx-on-primary-container: 129 146 167;
+    --nx-inverse-primary: 183 200 222;
+
+    /* Primary Fixed (identical in light & dark per MD3) */
+    --nx-primary-fixed: 210 228 251;
+    --nx-primary-fixed-dim: 183 200 222;
+    --nx-on-primary-fixed: 11 29 45;
+    --nx-on-primary-fixed-var: 56 72 90;
+
+    /* Secondary (Slate Blue) */
+    --nx-secondary: 84 95 114;
+    --nx-secondary-container: 213 224 247;
+    --nx-on-secondary: 255 255 255;
+    --nx-on-secondary-container: 88 99 119;
+
+    /* Secondary Fixed (identical in light & dark per MD3) */
+    --nx-secondary-fixed: 216 227 250;
+    --nx-secondary-fixed-dim: 188 199 221;
+    --nx-on-secondary-fixed: 17 28 44;
+    --nx-on-secondary-fixed-var: 60 71 90;
+
+    /* Tertiary (Professional Blue Accent) */
+    --nx-tertiary: 0 22 44;
+    --nx-tertiary-container: 0 43 78;
+    --nx-on-tertiary: 255 255 255;
+    --nx-on-tertiary-container: 72 148 226;
+
+    /* Tertiary Fixed (identical in light & dark per MD3) */
+    --nx-tertiary-fixed: 210 228 255;
+    --nx-tertiary-fixed-dim: 159 202 255;
+    --nx-on-tertiary-fixed: 0 29 55;
+    --nx-on-tertiary-fixed-var: 0 73 126;
+
+    /* Surface (Warm Neutral) */
+    --nx-surface: 251 249 250;
+    --nx-surface-dim: 219 217 219;
+    --nx-surface-bright: 251 249 250;
+    --nx-surface-tint: 79 96 115;
+    --nx-surface-variant: 228 226 227;
+    --nx-surface-container-low: 245 243 244;
+    --nx-surface-container: 239 237 239;
+    --nx-surface-container-high: 233 231 233;
+    --nx-surface-container-highest: 228 226 227;
+    --nx-surface-container-lowest: 255 255 255;
+    --nx-inverse-surface: 48 48 50;
+    --nx-inverse-on-surface: 242 240 242;
+
+    /* On Surface */
+    --nx-on-surface: 27 28 29;
+    --nx-on-surface-variant: 68 71 76;
+
+    /* Background */
+    --nx-background: 251 249 250;
+    --nx-on-background: 27 28 29;
+
+    /* Outline */
+    --nx-outline: 116 119 125;
+    --nx-outline-variant: 196 198 205;
+
+    /* Error */
+    --nx-error: 186 26 26;
+    --nx-error-container: 255 218 214;
+    --nx-on-error: 255 255 255;
+    --nx-on-error-container: 147 0 10;
+
+    /* Success — MD3 tonal green, mirrors the error role structure */
+    --nx-success: 15 107 52;
+    --nx-success-container: 167 242 184;
+    --nx-on-success: 255 255 255;
+    --nx-on-success-container: 0 33 14;
+
+    /* Warning — MD3 tonal amber, mirrors the error role structure */
+    --nx-warning: 138 81 0;
+    --nx-warning-container: 255 221 179;
+    --nx-on-warning: 255 255 255;
+    --nx-on-warning-container: 43 23 0;
   }
 
   .dark {
@@ -86,6 +171,71 @@
     --border: 220 10% 22%;
     --input: 220 10% 18%;
     --ring: 207 67% 87%;
+
+    /* ── Nexus Corporate Dark Tokens ─────────────────────────────────────── */
+
+    /* Primary — in dark mode, roles swap: surface becomes dark, primaries lighten */
+    --nx-primary: 183 200 222;
+    --nx-primary-container: 56 72 90;
+    --nx-on-primary: 11 29 45;
+    --nx-on-primary-container: 210 228 251;
+    --nx-inverse-primary: 4 22 39;
+
+    /* Secondary */
+    --nx-secondary: 188 199 221;
+    --nx-secondary-container: 60 71 90;
+    --nx-on-secondary: 17 28 44;
+    --nx-on-secondary-container: 216 227 250;
+
+    /* Tertiary */
+    --nx-tertiary: 159 202 255;
+    --nx-tertiary-container: 0 73 126;
+    --nx-on-tertiary: 0 29 55;
+    --nx-on-tertiary-container: 210 228 255;
+
+    /* Surface — dark equivalents */
+    --nx-surface: 27 28 29;
+    --nx-surface-dim: 27 28 29;
+    --nx-surface-bright: 55 56 58;
+    --nx-surface-tint: 183 200 222;
+    --nx-surface-variant: 68 71 76;
+    --nx-surface-container-low: 33 34 35;
+    --nx-surface-container: 39 40 41;
+    --nx-surface-container-high: 46 47 48;
+    --nx-surface-container-highest: 54 55 56;
+    --nx-surface-container-lowest: 20 21 22;
+    --nx-inverse-surface: 228 226 227;
+    --nx-inverse-on-surface: 48 48 50;
+
+    /* On Surface */
+    --nx-on-surface: 228 226 227;
+    --nx-on-surface-variant: 196 198 205;
+
+    /* Background */
+    --nx-background: 27 28 29;
+    --nx-on-background: 228 226 227;
+
+    /* Outline */
+    --nx-outline: 142 145 151;
+    --nx-outline-variant: 68 71 76;
+
+    /* Error */
+    --nx-error: 255 180 171;
+    --nx-error-container: 147 0 10;
+    --nx-on-error: 104 0 5;
+    --nx-on-error-container: 255 218 214;
+
+    /* Success */
+    --nx-success: 139 213 160;
+    --nx-success-container: 0 83 34;
+    --nx-on-success: 0 57 25;
+    --nx-on-success-container: 167 242 184;
+
+    /* Warning */
+    --nx-warning: 255 185 92;
+    --nx-warning-container: 104 60 0;
+    --nx-on-warning: 74 40 0;
+    --nx-on-warning-container: 255 221 179;
   }
 }
 
@@ -99,8 +249,8 @@
 body {
   /* Nexus Corporate body font: Inter */
   font-family: var(--font-inter), 'Inter', system-ui, sans-serif;
-  background-color: #fbf9fa;
-  color: #1b1c1d;
+  background-color: rgb(var(--nx-background));
+  color: rgb(var(--nx-on-surface));
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -249,15 +399,15 @@ body {
 
   /* SHADCN OVERRIDES */
   .select-field {
-    @apply w-full bg-grey-50 h-[54px] placeholder:text-grey-500 rounded-full p-regular-16 px-5 py-3 border-none focus-visible:ring-transparent focus:ring-transparent !important;
+    @apply w-full bg-nx-surface-container-low text-nx-on-surface h-[54px] placeholder:text-nx-outline rounded-full p-regular-16 px-5 py-3 border-none focus-visible:ring-nx-on-tertiary-container/40 focus:ring-nx-on-tertiary-container/40 !important;
   }
 
   .input-field {
-    @apply bg-grey-50 h-[54px] focus-visible:ring-offset-0 placeholder:text-grey-500 rounded-full p-regular-16 px-4 py-3 border-none focus-visible:ring-transparent !important;
+    @apply bg-nx-surface-container-low text-nx-on-surface h-[54px] focus-visible:ring-offset-0 placeholder:text-nx-outline rounded-full p-regular-16 px-4 py-3 border-none focus-visible:ring-nx-on-tertiary-container/40 !important;
   }
 
   .textarea {
-    @apply bg-grey-50 flex flex-1 placeholder:text-grey-500 p-regular-16 px-5 py-3 border-none focus-visible:ring-transparent !important;
+    @apply bg-nx-surface-container-low text-nx-on-surface flex flex-1 placeholder:text-nx-outline p-regular-16 px-5 py-3 border-none focus-visible:ring-nx-on-tertiary-container/40 !important;
   }
 
   .button {
@@ -293,7 +443,7 @@ body {
 .cl-formButtonPrimary:hover,
 .cl-formButtonPrimary:focus,
 .cl-formButtonPrimary:active {
-  background-color: #705CF7
+  background-color: rgb(var(--nx-primary-container));
 }
 
 /* ========================================== REACT-DATEPICKER STYLES */
@@ -309,13 +459,13 @@ body {
 }
 
 .react-datepicker__day--selected {
-  background-color: #624cf5 !important;
-  color: #ffffff !important;
+  background-color: rgb(var(--nx-primary)) !important;
+  color: rgb(var(--nx-on-primary)) !important;
   border-radius: 4px;
 }
 
 .react-datepicker__time-list-item--selected {
-  background-color: #624cf5 !important;
+  background-color: rgb(var(--nx-primary)) !important;
 }
 
 /* ========================================== REACT-DAY-PICKER STYLES */
@@ -352,18 +502,18 @@ body {
 /* ========================================== TAG INPUT STYLES */
 
 .tag-input-wrapper {
-  border: 1px solid #e2e8f0;
+  border: 1px solid rgb(var(--nx-outline-variant) / 0.6);
   border-radius: 8px;
   padding: 6px 10px;
   min-height: 42px;
-  background: white;
+  background: rgb(var(--nx-surface-container-lowest));
   cursor: text;
   transition: border-color 0.15s;
 }
 
 .tag-input-wrapper:focus-within {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+  border-color: rgb(var(--nx-on-tertiary-container));
+  box-shadow: 0 0 0 3px rgb(var(--nx-on-tertiary-container) / 0.1);
 }
 
 .tag-chips {
@@ -377,8 +527,8 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  background: #eef2ff;
-  color: #4338ca;
+  background: rgb(var(--nx-secondary-container));
+  color: rgb(var(--nx-on-secondary-container));
   font-size: 12px;
   font-weight: 500;
   padding: 3px 8px;
@@ -391,13 +541,13 @@ body {
   background: none;
   border: none;
   cursor: pointer;
-  color: #6366f1;
+  color: rgb(var(--nx-on-tertiary-container));
   padding: 0;
   margin-left: 2px;
 }
 
 .tag-chip-remove:hover {
-  color: #dc2626;
+  color: rgb(var(--nx-error));
 }
 
 .tag-input-container {
@@ -420,10 +570,10 @@ body {
   top: calc(100% + 6px);
   left: 0;
   min-width: 200px;
-  background: white;
-  border: 1px solid #e2e8f0;
+  background: rgb(var(--nx-surface-container-lowest));
+  border: 1px solid rgb(var(--nx-outline-variant) / 0.6);
   border-radius: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 16px rgb(var(--nx-on-surface) / 0.1);
   z-index: 50;
   overflow: hidden;
 }
@@ -439,26 +589,26 @@ body {
   background: none;
   text-align: left;
   cursor: pointer;
-  color: #374151;
+  color: rgb(var(--nx-on-surface));
   transition: background 0.1s;
 }
 
 .tag-dropdown-item:hover,
 .tag-dropdown-item--active {
-  background: #f5f3ff;
-  color: #4338ca;
+  background: rgb(var(--nx-surface-container-low));
+  color: rgb(var(--nx-on-tertiary-container));
 }
 
 .tag-dropdown-loading {
-  color: #9ca3af;
+  color: rgb(var(--nx-on-surface-variant));
   cursor: default;
 }
 
 .tag-dropdown-create {
-  color: #6366f1;
+  color: rgb(var(--nx-on-tertiary-container));
   font-weight: 500;
 }
 
 .tag-dropdown-create:hover {
-  background: #eef2ff;
+  background: rgb(var(--nx-secondary-container));
 }
