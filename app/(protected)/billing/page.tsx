@@ -3,6 +3,8 @@
  *
  * Billing management page accessible from org settings.
  * Shows current plan, usage metrics, payment history, and upgrade CTAs.
+ *
+ * Rebuilt on Nexus Corporate nx-* design tokens — no separate billing.css.
  */
 
 import { auth } from "@/auth";
@@ -11,7 +13,7 @@ import { redirect } from "next/navigation";
 import { PricingPlans } from "@/components/billing/PricingPlans";
 import { getAiUsageStats } from "@/domain/ai";
 import { PLAN_COLORS, STATUS_COLORS, PLAN_FEATURES } from "@/constants";
-import "./billing.css";
+import { BadgeCheck, CreditCard, Calendar, Users, TrendingUp, Zap, Globe, IndianRupee } from "lucide-react";
 
 export const metadata = {
     title: "Billing — CorpConnect",
@@ -97,47 +99,56 @@ export default async function BillingPage() {
     const aiUsagePercent = aiUsage.limit > 0 ? Math.min(100, Math.round((aiUsage.used / aiUsage.limit) * 100)) : 0;
 
     return (
-        <div className="billing-page">
-            <div className="billing-container">
+        <div className="min-h-screen bg-nx-surface-container-low py-8 px-4 sm:px-6">
+            <div className="max-w-4xl mx-auto flex flex-col gap-8">
 
                 {/* Header */}
-                <div className="billing-header">
+                <div className="flex items-center justify-between">
                     <div>
-                        <h1 className="billing-title">Billing & Subscription</h1>
-                        <p className="billing-subtitle">{org.name}</p>
+                        <h1 className="text-2xl font-headline font-bold text-nx-on-surface tracking-tight">
+                            Billing & Subscription
+                        </h1>
+                        <p className="text-sm text-nx-on-surface-variant mt-1">{org.name}</p>
                     </div>
                     {org.isVerified && (
-                        <div className="verified-badge">
-                            <span>✓ Verified</span>
-                        </div>
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-nx-secondary-container text-nx-on-secondary-container">
+                            <BadgeCheck className="w-3.5 h-3.5" />
+                            Verified
+                        </span>
                     )}
                 </div>
 
                 {/* Current Plan Card */}
-                <div className="current-plan-card">
-                    <div className="plan-status-row">
-                        <div>
-                            <span className="plan-tag" style={{ background: planColor }}>
+                <div className="bg-nx-surface-container-lowest rounded-2xl shadow-nx-card p-6 flex flex-col gap-5">
+                    <div className="flex items-center justify-between flex-wrap gap-3">
+                        <div className="flex items-center gap-3">
+                            <span
+                                className="px-3 py-1 rounded-full text-xs font-bold text-white tracking-wider uppercase"
+                                style={{ background: planColor }}
+                            >
                                 {org.subscriptionPlan}
                             </span>
-                            <span className="status-tag" style={{ color: statusColor }}>
+                            <span className="text-sm font-medium" style={{ color: statusColor }}>
                                 • {org.subscriptionStatus}
                             </span>
                         </div>
                         {org.subscriptionExpiresAt && (
-                            <span className="plan-expiry">
+                            <span className="text-xs text-nx-on-surface-variant flex items-center gap-1">
+                                <Calendar className="w-3.5 h-3.5" />
                                 Renews {org.subscriptionExpiresAt.toLocaleDateString("en-IN")}
                             </span>
                         )}
                     </div>
 
-                    <div className="plan-features-grid">
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                         {PLAN_FEATURES[org.subscriptionPlan].map((f) => (
-                            <div key={f.text} className="plan-feature-item">
-                                <span className="feature-dot" style={{ background: planColor }} />
-                                {f.text}
+                            <div key={f.text} className="flex items-start gap-2 text-sm text-nx-on-surface-variant">
+                                <span className="w-1.5 h-1.5 rounded-full mt-1.5 shrink-0" style={{ background: planColor }} />
+                                <span>{f.text}</span>
                                 {f.isNew && (
-                                    <span className="feature-new-badge">NEW</span>
+                                    <span className="px-1.5 py-0.5 rounded-full text-[0.6rem] font-bold bg-nx-on-tertiary-container text-white uppercase tracking-wider shrink-0">
+                                        New
+                                    </span>
                                 )}
                             </div>
                         ))}
@@ -145,60 +156,61 @@ export default async function BillingPage() {
 
                     {org.subscriptionPlan !== "FREE" && (
                         <form action="/api/billing/portal" method="POST">
-                            <button type="submit" className="manage-billing-btn">
-                                Manage Billing via Stripe →
+                            <button
+                                type="submit"
+                                className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-nx-on-tertiary-container border border-nx-outline-variant/40 hover:bg-nx-surface-container-high transition-colors"
+                            >
+                                <CreditCard className="w-4 h-4" />
+                                Manage Billing via Stripe
                             </button>
                         </form>
                     )}
                 </div>
 
                 {/* Usage Metrics */}
-                <div className="usage-metrics">
-                    <div className="usage-metric">
-                        <span className="metric-value">{org._count.events}</span>
-                        <span className="metric-label">Total Events Hosted</span>
-                    </div>
-                    <div className="usage-metric">
-                        <span className="metric-value">{org._count.members}</span>
-                        <span className="metric-label">Org Members</span>
-                    </div>
-                    <div className="usage-metric">
-                        <span className="metric-value">
-                            ₹{(totalRevenue / 100).toLocaleString("en-IN", { maximumFractionDigits: 0 })}
-                        </span>
-                        <span className="metric-label">Total Event Revenue</span>
-                    </div>
-                    <div className="usage-metric">
-                        <span className="metric-value">{eventPayments.length}</span>
-                        <span className="metric-label">Payments Received</span>
-                    </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    {[
+                        { value: org._count.events, label: "Events Hosted", icon: Calendar },
+                        { value: org._count.members, label: "Org Members", icon: Users },
+                        { value: `₹${(totalRevenue / 100).toLocaleString("en-IN", { maximumFractionDigits: 0 })}`, label: "Total Revenue", icon: TrendingUp },
+                        { value: eventPayments.length, label: "Payments", icon: CreditCard },
+                    ].map((metric) => (
+                        <div key={metric.label} className="bg-nx-surface-container-lowest rounded-xl shadow-nx-card p-5 flex flex-col items-center gap-1 text-center">
+                            <metric.icon className="w-4 h-4 text-nx-on-surface-variant mb-1" />
+                            <span className="text-2xl font-bold text-nx-on-tertiary-container">{metric.value}</span>
+                            <span className="text-[0.7rem] text-nx-on-surface-variant uppercase tracking-widest font-medium">{metric.label}</span>
+                        </div>
+                    ))}
                 </div>
 
                 {/* AI Usage */}
                 {org.subscriptionPlan !== "FREE" && (
-                    <div className="ai-usage-card">
-                        <div className="ai-usage-header">
-                            <h3 className="ai-usage-title">⚡ AI Credits</h3>
-                            <span className="ai-usage-plan" style={{ color: planColor }}>
+                    <div className="bg-nx-surface-container-lowest rounded-2xl shadow-nx-card p-6 flex flex-col gap-4">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-base font-semibold text-nx-on-surface flex items-center gap-2">
+                                <Zap className="w-4 h-4 text-nx-on-tertiary-container" />
+                                AI Credits
+                            </h3>
+                            <span className="text-xs font-bold uppercase tracking-wider" style={{ color: planColor }}>
                                 {org.subscriptionPlan} Plan
                             </span>
                         </div>
-                        <div className="ai-progress-bar">
+                        <div className="w-full h-2 bg-nx-surface-container-high rounded-full overflow-hidden">
                             <div
-                                className="ai-progress-fill"
+                                className="h-full rounded-full transition-all duration-500"
                                 style={{
                                     width: `${aiUsagePercent}%`,
                                     background: aiUsagePercent >= 90
-                                        ? "#ef4444"
+                                        ? "rgb(var(--nx-error))"
                                         : aiUsagePercent >= 70
-                                            ? "#f59e0b"
-                                            : "linear-gradient(90deg, #6366f1, #8b5cf6)",
+                                            ? "rgb(var(--nx-warning))"
+                                            : "linear-gradient(90deg, rgb(var(--nx-tertiary-container)), rgb(var(--nx-on-tertiary-container)))",
                                 }}
                             />
                         </div>
-                        <div className="ai-usage-stats">
+                        <div className="flex justify-between text-xs text-nx-on-surface-variant">
                             <span>{aiUsage.used.toLocaleString()} / {aiUsage.limit.toLocaleString()} credits used</span>
-                            <span className="ai-usage-remaining">
+                            <span className="font-semibold text-nx-on-tertiary-container">
                                 {(aiUsage.limit - aiUsage.used).toLocaleString()} remaining
                             </span>
                         </div>
@@ -207,86 +219,88 @@ export default async function BillingPage() {
 
                 {/* Upgrade Plans */}
                 {(org.subscriptionPlan === "FREE" || org.subscriptionPlan === "PRO") && (
-                    <div className="upgrade-section">
-                        <h2 className="section-title">
-                            {org.subscriptionPlan === "FREE" ? "Upgrade Your Plan" : "Upgrade to Enterprise"}
-                        </h2>
-                        <p className="section-subtitle">
-                            {org.subscriptionPlan === "FREE"
-                                ? "Unlock AI matchmaking, unlimited events, and paid event collection."
-                                : "Unlock Group Messaging, AI Event Brainstorming, post-event analytics reports, and more."
-                            }
-                        </p>
+                    <div className="flex flex-col gap-4">
+                        <div>
+                            <h2 className="text-lg font-headline font-semibold text-nx-on-surface">
+                                {org.subscriptionPlan === "FREE" ? "Upgrade Your Plan" : "Upgrade to Enterprise"}
+                            </h2>
+                            <p className="text-sm text-nx-on-surface-variant mt-1">
+                                {org.subscriptionPlan === "FREE"
+                                    ? "Unlock AI matchmaking, unlimited events, and paid event collection."
+                                    : "Unlock Group Messaging, AI Event Brainstorming, post-event analytics reports, and more."
+                                }
+                            </p>
+                        </div>
                         <PricingPlans currentPlan={org.subscriptionPlan} />
                     </div>
                 )}
 
                 {/* Payment History */}
                 {eventPayments.length > 0 && (
-                    <div className="payment-history">
-                        <h2 className="section-title">Event Payment History</h2>
-                        <div className="payment-table-wrapper">
-                            <table className="payment-table">
-                                <thead>
-                                    <tr>
-                                        <th>Event</th>
-                                        <th>Provider</th>
-                                        <th>Amount</th>
-                                        <th>Status</th>
-                                        <th>Date</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {eventPayments.map((p) => (
-                                        <tr key={p.id}>
-                                            <td>{p.event.title}</td>
-                                            <td>
-                                                <span className="provider-chip">
-                                                    {p.provider === "STRIPE" ? "🌍 Stripe" : "🇮🇳 Razorpay"}
-                                                </span>
-                                            </td>
-                                            <td>
-                                                {p.currency.toUpperCase()}&nbsp;
-                                                {(p.amount / 100).toFixed(2)}
-                                            </td>
-                                            <td>
-                                                <span
-                                                    className="status-chip"
-                                                    style={{ color: p.status === "SUCCEEDED" ? "#22c55e" : "#ef4444" }}
-                                                >
-                                                    {p.status}
-                                                </span>
-                                            </td>
-                                            <td>{p.createdAt.toLocaleDateString("en-IN")}</td>
+                    <div className="flex flex-col gap-4">
+                        <h2 className="text-lg font-headline font-semibold text-nx-on-surface">Event Payment History</h2>
+                        <div className="bg-nx-surface-container-lowest rounded-2xl shadow-nx-card overflow-hidden">
+                            <div className="overflow-x-auto">
+                                <table className="w-full text-sm">
+                                    <thead>
+                                        <tr className="bg-nx-surface-container">
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-nx-on-surface-variant uppercase tracking-wider">Event</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-nx-on-surface-variant uppercase tracking-wider">Provider</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-nx-on-surface-variant uppercase tracking-wider">Amount</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-nx-on-surface-variant uppercase tracking-wider">Status</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-nx-on-surface-variant uppercase tracking-wider">Date</th>
                                         </tr>
-                                    ))}
-                                </tbody>
-                            </table>
+                                    </thead>
+                                    <tbody className="divide-y divide-nx-outline-variant/20">
+                                        {eventPayments.map((p) => (
+                                            <tr key={p.id} className="hover:bg-nx-surface-container-low transition-colors">
+                                                <td className="px-4 py-3 text-nx-on-surface">{p.event.title}</td>
+                                                <td className="px-4 py-3">
+                                                    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-nx-surface-container text-nx-on-surface-variant">
+                                                        {p.provider === "STRIPE" ? <><Globe className="w-3 h-3" /> Stripe</> : <><IndianRupee className="w-3 h-3" /> Razorpay</>}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-nx-on-surface font-medium">
+                                                    {p.currency.toUpperCase()}&nbsp;{(p.amount / 100).toFixed(2)}
+                                                </td>
+                                                <td className="px-4 py-3">
+                                                    <span className={`text-xs font-semibold ${p.status === "SUCCEEDED" ? "text-nx-success" : "text-nx-error"}`}>
+                                                        {p.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-4 py-3 text-nx-on-surface-variant">{p.createdAt.toLocaleDateString("en-IN")}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </div>
                 )}
 
                 {/* Subscription History */}
                 {subscriptions.length > 0 && (
-                    <div className="sub-history">
-                        <h2 className="section-title">Subscription History</h2>
-                        <div className="sub-list">
+                    <div className="flex flex-col gap-4">
+                        <h2 className="text-lg font-headline font-semibold text-nx-on-surface">Subscription History</h2>
+                        <div className="flex flex-col gap-3">
                             {subscriptions.map((s, i) => (
-                                <div key={i} className="sub-item">
-                                    <div className="sub-item-left">
-                                        <span className="plan-tag" style={{ background: PLAN_COLORS[s.plan], fontSize: "12px" }}>
+                                <div key={i} className="bg-nx-surface-container-lowest rounded-xl shadow-nx-card px-5 py-4 flex items-center justify-between flex-wrap gap-3">
+                                    <div className="flex items-center gap-2.5">
+                                        <span
+                                            className="px-2.5 py-0.5 rounded-full text-[0.7rem] font-bold text-white uppercase tracking-wider"
+                                            style={{ background: PLAN_COLORS[s.plan] }}
+                                        >
                                             {s.plan}
                                         </span>
-                                        <span className="provider-chip">
-                                            {s.provider === "STRIPE" ? "🌍 Stripe" : "🇮🇳 Razorpay"}
+                                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs bg-nx-surface-container text-nx-on-surface-variant">
+                                            {s.provider === "STRIPE" ? <><Globe className="w-3 h-3" /> Stripe</> : <><IndianRupee className="w-3 h-3" /> Razorpay</>}
                                         </span>
                                     </div>
-                                    <div className="sub-item-right">
-                                        <span className="sub-period">
-                                            {s.currentPeriodStart.toLocaleDateString("en-IN")} –{" "}
-                                            {s.currentPeriodEnd.toLocaleDateString("en-IN")}
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-xs text-nx-on-surface-variant">
+                                            {s.currentPeriodStart.toLocaleDateString("en-IN")} – {s.currentPeriodEnd.toLocaleDateString("en-IN")}
                                         </span>
-                                        <span className="status-chip" style={{ color: STATUS_COLORS[s.status] }}>
+                                        <span className="text-xs font-semibold" style={{ color: STATUS_COLORS[s.status] }}>
                                             {s.status}
                                         </span>
                                     </div>
