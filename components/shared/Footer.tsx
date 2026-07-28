@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Share2, AtSign } from "lucide-react";
+import { AtSign } from "lucide-react";
 
 const Footer = () => {
   return (
@@ -32,7 +32,7 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-nx-secondary">
               <li><Link href="/events" className="hover:text-nx-primary transition-colors">Events Directory</Link></li>
               <li><Link href="/organizations/discover" className="hover:text-nx-primary transition-colors">Discover Organizations</Link></li>
-              <li><Link href="/groups" className="hover:text-nx-primary transition-colors">Industry Groups</Link></li>
+              <li><Link href="/pricing" className="hover:text-nx-primary transition-colors">Membership Tiers</Link></li>
               <li><Link href="/dashboard" className="hover:text-nx-primary transition-colors">Dashboard</Link></li>
             </ul>
           </div>
@@ -44,7 +44,7 @@ const Footer = () => {
               <li><Link href="/profile" className="hover:text-nx-primary transition-colors">My Profile</Link></li>
               <li><Link href="/my-events" className="hover:text-nx-primary transition-colors">My Events</Link></li>
               <li><Link href="/events/create" className="hover:text-nx-primary transition-colors">Host an Event</Link></li>
-              <li><Link href="/onboarding" className="hover:text-nx-primary transition-colors">Join the Network</Link></li>
+              <li><Link href="/register" className="hover:text-nx-primary transition-colors">Join the Network</Link></li>
             </ul>
           </div>
 
@@ -52,16 +52,14 @@ const Footer = () => {
           <div>
             <h5 className="font-headline font-bold text-nx-primary mb-6">Connect</h5>
             <ul className="space-y-4 text-sm text-nx-secondary mb-8">
-              <li><Link href="/sign-up" className="hover:text-nx-primary transition-colors">Apply for Access</Link></li>
+              <li><Link href="/contact" className="hover:text-nx-primary transition-colors">Contact Sales</Link></li>
+              <li><Link href="/register" className="hover:text-nx-primary transition-colors">Apply for Access</Link></li>
               <li><Link href="/login" className="hover:text-nx-primary transition-colors">Log In</Link></li>
             </ul>
             <div className="flex gap-4">
-              <a href="#" aria-label="Share" className="w-10 h-10 rounded-full bg-nx-surface-container-high flex items-center justify-center hover:bg-nx-tertiary-fixed transition-colors text-nx-on-surface">
-                <Share2 className="w-4 h-4" />
-              </a>
-              <a href="#" aria-label="Contact" className="w-10 h-10 rounded-full bg-nx-surface-container-high flex items-center justify-center hover:bg-nx-tertiary-fixed transition-colors text-nx-on-surface">
+              <Link href="/contact" aria-label="Contact" className="w-10 h-10 rounded-full bg-nx-surface-container-high flex items-center justify-center hover:bg-nx-tertiary-fixed transition-colors text-nx-on-surface">
                 <AtSign className="w-4 h-4" />
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -71,8 +69,8 @@ const Footer = () => {
             © {new Date().getFullYear()} CorpConnect. All Rights Reserved.
           </p>
           <div className="flex gap-8 text-[10px] font-bold text-nx-on-surface-variant uppercase tracking-widest font-label">
-            <Link href="#" className="hover:text-nx-primary transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-nx-primary transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-nx-primary transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-nx-primary transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>
