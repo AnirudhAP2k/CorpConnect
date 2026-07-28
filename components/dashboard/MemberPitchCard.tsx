@@ -13,7 +13,7 @@ const STATUS_CONFIG: Record<PitchStatus, { label: string; icon: React.ReactNode;
     PITCHED:            { label: "Submitted",          icon: <Clock className="w-3.5 h-3.5" />,         classes: "bg-blue-50 border-blue-200 text-blue-700" },
     IN_REVIEW:          { label: "Under Review",       icon: <Clock className="w-3.5 h-3.5" />,         classes: "bg-amber-50 border-amber-200 text-amber-700" },
     REVISION_REQUESTED: { label: "Revision Needed",   icon: <RotateCcw className="w-3.5 h-3.5" />,     classes: "bg-orange-50 border-orange-200 text-orange-700" },
-    APPROVED:           { label: "Approved! 🎉",       icon: <CheckCircle className="w-3.5 h-3.5" />,   classes: "bg-emerald-50 border-emerald-200 text-emerald-700" },
+    APPROVED:           { label: "Approved",           icon: <CheckCircle className="w-3.5 h-3.5" />,   classes: "bg-emerald-50 border-emerald-200 text-emerald-700" },
     REJECTED:           { label: "Not Approved",       icon: <XCircle className="w-3.5 h-3.5" />,       classes: "bg-red-50 border-red-200 text-red-700" },
 };
 
