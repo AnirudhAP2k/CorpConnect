@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
-import { Building2, Calendar, TrendingUp, Zap, Star, ArrowRight, Sparkles, MessageCircle, PenTool, Bot } from "lucide-react";
+import { Building2, Calendar, TrendingUp, Zap, Star, ArrowRight, Sparkles, MessageCircle, PenTool, Bot, Shield } from "lucide-react";
 import StatCard from "@/components/dashboard/StatCard";
 import EventRow from "@/components/dashboard/EventRow";
 import { getUserDashboardStats, getRecommendedEvents } from "@/data/dashboard";
@@ -84,7 +84,7 @@ const DashboardPage = async () => {
                         {user?.isAppAdmin && (
                             <Link href="/admin/dashboard">
                                 <Button variant="outline" size="sm">
-                                    ⚡ Admin Console
+                                    <Shield className="mr-1 h-4 w-4" /> Admin Console
                                 </Button>
                             </Link>
                         )}
