@@ -7,7 +7,6 @@ import OrganizationSwitcher from '@/components/shared/OrganizationSwitcher'
 import { prisma } from '@/lib/db'
 import { getNotificationsByUserId } from '@/domain/notifications'
 import MobileSidebar from '@/components/shared/MobileSidebar'
-import { ThemeToggle } from '@/components/shared/ThemeToggle'
 import { logout } from '@/actions/logout.actions'
 import { TopNavLinks } from '@/components/shared/TopNavLinks'
 import { NotificationBell, ReminderItem } from '@/components/shared/NotificationBell'
@@ -152,12 +151,12 @@ const TopHeader = async () => {
                                         className="rounded-full border"
                                     />
                                 </Link>
-                                <ThemeToggle />
+                                {/* ThemeToggle hidden until dark-mode demo-path migration is complete */}
                             </div>
                         </>
                     ) : (
                         <div className='flex items-center gap-3'>
-                            <ThemeToggle />
+                            {/* ThemeToggle hidden until dark-mode demo-path migration is complete */}
                             <Button asChild className="rounded-full" size="lg">
                                 <Link href="/login">Login</Link>
                             </Button>
