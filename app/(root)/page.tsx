@@ -47,7 +47,7 @@ export default async function Home() {
                         </p>
                         <div className="flex flex-wrap gap-4">
                             <Button asChild className="bg-nx-primary text-white px-10 py-7 rounded-xl font-headline font-semibold text-base hover:opacity-90 transition-all duration-200 shadow-nx-primary">
-                                <Link href="/onboarding">Join the Network</Link>
+                                <Link href="/register">Join the Network</Link>
                             </Button>
                             <Button asChild variant="outline" className="bg-nx-surface-container-high text-nx-on-surface px-10 py-7 rounded-xl font-headline font-semibold text-base border-0 hover:bg-nx-surface-container-highest transition-all duration-200">
                                 <Link href="#events">Explore Events</Link>
@@ -141,10 +141,19 @@ export default async function Home() {
                         </p>
                     </div>
 
-                    <div className="flex flex-col w-full gap-5 md:flex-row bg-white p-4 rounded-2xl shadow-sm">
-                        <div className="flex-1 text-nx-on-surface-variant font-medium opacity-50 px-2 py-1">
-                            Search functionality active internally...
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-nx-surface-container-lowest p-6 rounded-2xl shadow-nx-card">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-xl bg-nx-tertiary-fixed flex items-center justify-center text-nx-on-tertiary-container shrink-0">
+                                <CalendarDays className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <h3 className="text-sm font-headline font-bold text-nx-primary">Curated Summit Directory</h3>
+                                <p className="text-xs text-nx-secondary">Filter by sector, region, or host organization inside the executive portal</p>
+                            </div>
                         </div>
+                        <Button asChild variant="outline" className="text-xs font-headline font-bold rounded-xl border-nx-surface-variant text-nx-primary hover:bg-nx-surface-container-high shrink-0">
+                            <Link href="/register">Access Full Directory →</Link>
+                        </Button>
                     </div>
 
                     <Collection
