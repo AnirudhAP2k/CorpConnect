@@ -85,7 +85,7 @@ export function PitchBriefModal({
                         <div className="flex items-center gap-2 mb-1">
                             <FileText className="w-5 h-5 text-nx-primary" />
                             <h2 className="text-base font-headline font-bold text-nx-on-surface">
-                                {step === "review" ? "Review Your Event Brief" : "Pitch Saved! 🎉"}
+                                {step === "review" ? "Review Your Event Brief" : "Pitch Saved"}
                             </h2>
                         </div>
                         <p className="text-xs text-nx-on-surface-variant">
