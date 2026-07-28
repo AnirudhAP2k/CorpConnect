@@ -5,10 +5,13 @@
  *
  * Three-column pricing card (FREE / PRO / ENTERPRISE) with monthly/yearly toggle.
  * Calls POST /api/billing/subscribe on CTA click.
+ *
+ * Rebuilt on Nexus Corporate nx-* tokens — no billing.css dependency.
  */
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 type Plan = "FREE" | "PRO" | "ENTERPRISE";
 type Provider = "stripe" | "razorpay";
@@ -103,10 +106,10 @@ export function PricingPlans({ currentPlan = "FREE", onSelectPlan }: PricingPlan
                 if (data.url) {
                     window.location.href = data.url;
                 } else {
-                    alert(data.error ?? "Failed to start checkout");
+                    toast.error(data.error ?? "Failed to start checkout");
                 }
             } catch {
-                alert("Something went wrong. Please try again.");
+                toast.error("Something went wrong. Please try again.");
             } finally {
                 setLoadingPlan(null);
             }
@@ -116,44 +119,62 @@ export function PricingPlans({ currentPlan = "FREE", onSelectPlan }: PricingPlan
     const isINR = provider === "razorpay";
 
     return (
-        <div className="pricing-plans">
+        <div className="flex flex-col gap-6">
             {/* Toggle */}
-            <div className="pricing-controls">
-                <div className="billing-toggle">
+            <div className="flex items-center flex-wrap gap-3">
+                <div className="inline-flex items-center bg-nx-surface-container rounded-full p-1">
                     <button
-                        className={`billing-btn ${billing === "monthly" ? "active" : ""}`}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+                            billing === "monthly"
+                                ? "bg-nx-primary text-nx-on-primary shadow-nx-primary"
+                                : "text-nx-on-surface-variant hover:text-nx-on-surface"
+                        }`}
                         onClick={() => setBilling("monthly")}
                     >
                         Monthly
                     </button>
                     <button
-                        className={`billing-btn ${billing === "yearly" ? "active" : ""}`}
+                        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all flex items-center gap-1.5 ${
+                            billing === "yearly"
+                                ? "bg-nx-primary text-nx-on-primary shadow-nx-primary"
+                                : "text-nx-on-surface-variant hover:text-nx-on-surface"
+                        }`}
                         onClick={() => setBilling("yearly")}
                     >
                         Yearly
-                        <span className="save-badge">Save 17%</span>
+                        <span className="px-1.5 py-0.5 rounded-full text-[0.6rem] font-bold bg-nx-on-tertiary-container text-white">
+                            Save 17%
+                        </span>
                     </button>
                 </div>
 
-                <div className="provider-toggle">
-                    <span className="provider-label">Pay with:</span>
+                <div className="inline-flex items-center bg-nx-surface-container rounded-full p-1 gap-1">
+                    <span className="text-xs text-nx-on-surface-variant px-2 font-medium">Pay with:</span>
                     <button
-                        className={`provider-btn ${provider === "stripe" ? "active" : ""}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            provider === "stripe"
+                                ? "bg-nx-primary text-nx-on-primary"
+                                : "text-nx-on-surface-variant hover:text-nx-on-surface"
+                        }`}
                         onClick={() => setProvider("stripe")}
                     >
-                        🌍 Stripe (USD)
+                        Stripe (USD)
                     </button>
                     <button
-                        className={`provider-btn ${provider === "razorpay" ? "active" : ""}`}
+                        className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                            provider === "razorpay"
+                                ? "bg-nx-primary text-nx-on-primary"
+                                : "text-nx-on-surface-variant hover:text-nx-on-surface"
+                        }`}
                         onClick={() => setProvider("razorpay")}
                     >
-                        🇮🇳 Razorpay (INR)
+                        Razorpay (INR)
                     </button>
                 </div>
             </div>
 
             {/* Cards */}
-            <div className="pricing-grid">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 {PLANS.map((plan) => {
                     const isCurrent = plan.name === currentPlan;
                     const isPaid = plan.name !== "FREE";
@@ -163,34 +184,44 @@ export function PricingPlans({ currentPlan = "FREE", onSelectPlan }: PricingPlan
                     return (
                         <div
                             key={plan.name}
-                            className={`pricing-card ${plan.highlighted ? "highlighted" : ""} ${isCurrent ? "current" : ""}`}
+                            className={`relative bg-nx-surface-container-lowest rounded-2xl p-6 flex flex-col gap-5 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-nx-float ${
+                                plan.highlighted
+                                    ? "shadow-nx-float ring-1 ring-nx-on-tertiary-container/30"
+                                    : "shadow-nx-card"
+                            } ${isCurrent ? "opacity-75" : ""}`}
                         >
                             {plan.badge && (
-                                <div className="plan-badge">{plan.badge}</div>
+                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[0.65rem] font-bold uppercase tracking-wider bg-nx-cta-gradient text-white whitespace-nowrap">
+                                    {plan.badge}
+                                </div>
                             )}
 
-                            <div className="plan-header">
-                                <h3 className="plan-name">{plan.name}</h3>
-                                <div className="plan-price">
-                                    <span className="price-amount">{price}</span>
+                            <div className="flex flex-col gap-1">
+                                <h3 className="text-sm font-bold text-nx-on-surface uppercase tracking-wider">{plan.name}</h3>
+                                <div className="flex items-baseline gap-1">
+                                    <span className="text-3xl font-bold text-nx-on-surface">{price}</span>
                                     {isPaid && (
-                                        <span className="price-period">/{billing === "monthly" ? "mo" : "yr"}</span>
+                                        <span className="text-sm text-nx-on-surface-variant">/{billing === "monthly" ? "mo" : "yr"}</span>
                                     )}
                                 </div>
-                                <p className="plan-description">{plan.description}</p>
+                                <p className="text-xs text-nx-on-surface-variant">{plan.description}</p>
                             </div>
 
-                            <ul className="plan-features">
+                            <ul className="flex flex-col gap-2.5 flex-1">
                                 {plan.features.map((f) => (
-                                    <li key={f} className="plan-feature">
-                                        <span className="feature-check">✓</span>
+                                    <li key={f} className="flex items-start gap-2 text-sm text-nx-on-surface-variant">
+                                        <span className="text-nx-on-tertiary-container font-bold shrink-0 mt-0.5">✓</span>
                                         {f}
                                     </li>
                                 ))}
                             </ul>
 
                             <button
-                                className={`plan-cta ${plan.highlighted ? "cta-primary" : "cta-secondary"} ${isCurrent ? "cta-current" : ""}`}
+                                className={`w-full py-2.5 rounded-xl text-sm font-semibold transition-all ${
+                                    plan.highlighted
+                                        ? "bg-nx-cta-gradient text-nx-on-primary hover:shadow-nx-primary"
+                                        : "bg-nx-surface-container-high text-nx-on-surface-variant hover:bg-nx-surface-container-highest"
+                                } ${isCurrent ? "opacity-50 cursor-default" : ""}`}
                                 onClick={() => handleSubscribe(plan.name)}
                                 disabled={isCurrent || plan.name === "FREE" || isLoading}
                             >
