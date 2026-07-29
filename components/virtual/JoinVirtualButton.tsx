@@ -34,6 +34,33 @@ export function JoinVirtualButton({
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // Declared before the gates below: hooks must run unconditionally on every
+    // render, and several of those gates return early.
+    const handleJoin = useCallback(async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await fetch("/api/virtual/token", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roomId }),
+            });
+
+            if (!res.ok) {
+                const data = await res.json();
+                setError(data.message ?? "Unable to join the session.");
+                return;
+            }
+
+            // Navigate to the full-screen join page — token will be re-fetched there
+            router.push(`/events/${eventId}/join/${roomId}`);
+        } catch {
+            setError("Connection error. Please try again.");
+        } finally {
+            setLoading(false);
+        }
+    }, [eventId, roomId, router]);
+
     // Gate: only ONLINE or HYBRID events have virtual sessions
     if (eventType === "OFFLINE") return null;
 
@@ -80,31 +107,6 @@ export function JoinVirtualButton({
             </div>
         );
     }
-
-    const handleJoin = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch("/api/virtual/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ roomId }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                setError(data.message ?? "Unable to join the session.");
-                return;
-            }
-
-            // Navigate to the full-screen join page — token will be re-fetched there
-            router.push(`/events/${eventId}/join/${roomId}`);
-        } catch {
-            setError("Connection error. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }, [eventId, roomId, router]);
 
     return (
         <div className="space-y-2">
