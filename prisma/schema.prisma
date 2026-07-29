@@ -153,6 +153,9 @@ model Events {
   paymentMode         EventPaymentMode             @default(FREE)
   currency            String                       @default("INR")
   externalPayUrl      String?
+  /// pgvector column, managed by scripts/enable-pgvector.ts and queried via $queryRaw.
+  /// Declared here so `prisma db push` preserves it instead of dropping it as drift.
+  embedding           Unsupported("vector(384)")?
   participations      EventParticipation[]
   eventTags           EventTag[]
   eventViews          EventView[]
@@ -210,6 +213,9 @@ model Organization {
   subscriptionExpiresAt   DateTime?
   paymentWebhookUrl       String?
   preferredCurrency       String                       @default("INR")
+  /// pgvector column, managed by scripts/enable-pgvector.ts and queried via $queryRaw.
+  /// Declared here so `prisma db push` preserves it instead of dropping it as drift.
+  embedding               Unsupported("vector(384)")?
   apiCredentials          ApiCredential[]
   participations          EventParticipation[]
   events                  Events[]
@@ -285,6 +291,9 @@ model OrgDocument {
   taxRefNumber   String?
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
+  /// pgvector column, managed by scripts/enable-pgvector.ts and queried via $queryRaw.
+  /// Declared here so `prisma db push` preserves it instead of dropping it as drift.
+  embedding      Unsupported("vector(384)")?
   organization   Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
