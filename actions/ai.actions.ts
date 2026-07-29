@@ -10,7 +10,7 @@
  */
 
 export {
-    useAIFeature,
+    consumeAIFeature,
     getAdminAIStats,
     sendChatMessage,
     getChatHistory,
