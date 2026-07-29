@@ -1,3 +1,11 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
+-- Enable pgvector before creating vector(384) columns. This must live in the
+-- migration (rather than only in entrypoint.sh) so Prisma's shadow database
+-- can replay the migration during `prisma migrate dev`.
+CREATE EXTENSION IF NOT EXISTS vector;
+
 -- CreateEnum
 CREATE TYPE "OrganizationRole" AS ENUM ('OWNER', 'ADMIN', 'MEMBER');
 
@@ -11,7 +19,7 @@ CREATE TYPE "EventType" AS ENUM ('ONLINE', 'OFFLINE', 'HYBRID');
 CREATE TYPE "OrganizationSize" AS ENUM ('STARTUP', 'SME', 'ENTERPRISE');
 
 -- CreateEnum
-CREATE TYPE "HiringStatus" AS ENUM ('HIRING', 'NOT_HIRING', 'OPEN_TO_PARTNERSHIPS');
+CREATE TYPE "NetworkingIntent" AS ENUM ('GENERAL_NETWORKING', 'OPEN_TO_PARTNERSHIPS', 'SEEKING_CLIENTS', 'SEEKING_VENDORS', 'SEEKING_INVESTMENT', 'SPONSORING_EVENTS');
 
 -- CreateEnum
 CREATE TYPE "OrgConnectionStatus" AS ENUM ('PENDING', 'ACCEPTED', 'DECLINED', 'WITHDRAWN');
@@ -38,7 +46,7 @@ CREATE TYPE "AutomationStatus" AS ENUM ('ACTIVE', 'PAUSED', 'DELETED');
 CREATE TYPE "FeedbackSentiment" AS ENUM ('POSITIVE', 'NEUTRAL', 'NEGATIVE');
 
 -- CreateEnum
-CREATE TYPE "JobType" AS ENUM ('SEND_INVITE_EMAIL', 'SEND_NOTIFICATION', 'SEND_EVENT_REMINDER', 'GENERATE_REPORT', 'GENERATE_TASKLIST', 'CLEANUP_DATA', 'EMBED_EVENT', 'EMBED_ORG', 'ANALYSE_FEEDBACK_SENTIMENT', 'TRIGGER_N8N_WORKFLOW', 'GENERATE_MATCHMAKING_REASON', 'VERIFY_ORG_LEVEL_1', 'VERIFY_ORG_LEVEL_2', 'SEND_PAYMENT_RECEIPT', 'ORG_WEBHOOK_DELIVERY', 'PROCESS_REFUND', 'VIRTUAL_ROOM_OPENED');
+CREATE TYPE "JobType" AS ENUM ('SEND_INVITE_EMAIL', 'SEND_NOTIFICATION', 'SEND_EVENT_REMINDER', 'GENERATE_REPORT', 'GENERATE_TASKLIST', 'CLEANUP_DATA', 'EMBED_EVENT', 'EMBED_ORG', 'ANALYSE_FEEDBACK_SENTIMENT', 'TRIGGER_N8N_WORKFLOW', 'GENERATE_MATCHMAKING_REASON', 'VERIFY_ORG_LEVEL_1', 'VERIFY_ORG_LEVEL_2', 'SEND_PAYMENT_RECEIPT', 'ORG_WEBHOOK_DELIVERY', 'PROCESS_REFUND', 'SEND_EVENT_INVITE_EMAIL', 'VIRTUAL_ROOM_OPENED');
 
 -- CreateEnum
 CREATE TYPE "OrgDocumentType" AS ENUM ('COMPANY_DESCRIPTION', 'EVENT_DESCRIPTION', 'LEGAL_COMPLIANCE', 'GENERAL', 'INCORPORATION_CERT', 'TAX_CERTIFICATE', 'ADDRESS_PROOF', 'OTHER_KYB');
@@ -214,6 +222,7 @@ CREATE TABLE "Events" (
     "paymentMode" "EventPaymentMode" NOT NULL DEFAULT 'FREE',
     "currency" TEXT NOT NULL DEFAULT 'INR',
     "externalPayUrl" TEXT,
+    "embedding" vector(384),
 
     CONSTRAINT "Events_pkey" PRIMARY KEY ("id")
 );
@@ -242,7 +251,7 @@ CREATE TABLE "Organization" (
     "location" TEXT,
     "size" "OrganizationSize" DEFAULT 'STARTUP',
     "isVerified" BOOLEAN NOT NULL DEFAULT false,
-    "hiringStatus" "HiringStatus" NOT NULL DEFAULT 'NOT_HIRING',
+    "networkingIntent" "NetworkingIntent" NOT NULL DEFAULT 'GENERAL_NETWORKING',
     "linkedinUrl" TEXT,
     "partnershipInterests" TEXT[] DEFAULT ARRAY[]::TEXT[],
     "services" TEXT[] DEFAULT ARRAY[]::TEXT[],
@@ -255,6 +264,7 @@ CREATE TABLE "Organization" (
     "subscriptionExpiresAt" TIMESTAMP(3),
     "paymentWebhookUrl" TEXT,
     "preferredCurrency" TEXT NOT NULL DEFAULT 'INR',
+    "embedding" vector(384),
 
     CONSTRAINT "Organization_pkey" PRIMARY KEY ("id")
 );
@@ -290,6 +300,7 @@ CREATE TABLE "OrgDocument" (
     "taxRefNumber" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "embedding" vector(384),
 
     CONSTRAINT "OrgDocument_pkey" PRIMARY KEY ("id")
 );
@@ -811,6 +822,21 @@ CREATE TABLE "EventTask" (
     CONSTRAINT "EventTask_pkey" PRIMARY KEY ("id")
 );
 
+-- CreateTable
+CREATE TABLE "EventInvite" (
+    "id" UUID NOT NULL,
+    "eventId" UUID NOT NULL,
+    "email" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "status" "InviteStatus" NOT NULL DEFAULT 'PENDING',
+    "invitedBy" UUID NOT NULL,
+    "expiresAt" TIMESTAMP(3) NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EventInvite_pkey" PRIMARY KEY ("id")
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
 
@@ -866,7 +892,7 @@ CREATE INDEX "Organization_industryId_idx" ON "Organization"("industryId");
 CREATE INDEX "Organization_createdBy_idx" ON "Organization"("createdBy");
 
 -- CreateIndex
-CREATE INDEX "Organization_hiringStatus_idx" ON "Organization"("hiringStatus");
+CREATE INDEX "Organization_networkingIntent_idx" ON "Organization"("networkingIntent");
 
 -- CreateIndex
 CREATE INDEX "Organization_subscriptionPlan_idx" ON "Organization"("subscriptionPlan");
@@ -1159,6 +1185,21 @@ CREATE INDEX "EventTask_pitchId_idx" ON "EventTask"("pitchId");
 -- CreateIndex
 CREATE INDEX "EventTask_pitchId_isCompleted_idx" ON "EventTask"("pitchId", "isCompleted");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "EventInvite_token_key" ON "EventInvite"("token");
+
+-- CreateIndex
+CREATE INDEX "EventInvite_email_idx" ON "EventInvite"("email");
+
+-- CreateIndex
+CREATE INDEX "EventInvite_token_idx" ON "EventInvite"("token");
+
+-- CreateIndex
+CREATE INDEX "EventInvite_eventId_email_idx" ON "EventInvite"("eventId", "email");
+
+-- CreateIndex
+CREATE INDEX "EventInvite_status_createdAt_idx" ON "EventInvite"("status", "createdAt");
+
 -- AddForeignKey
 ALTER TABLE "User" ADD CONSTRAINT "User_activeOrganizationId_fkey" FOREIGN KEY ("activeOrganizationId") REFERENCES "Organization"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
@@ -1404,3 +1445,27 @@ ALTER TABLE "EventReport" ADD CONSTRAINT "EventReport_eventId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "EventTask" ADD CONSTRAINT "EventTask_pitchId_fkey" FOREIGN KEY ("pitchId") REFERENCES "EventPitch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventInvite" ADD CONSTRAINT "EventInvite_eventId_fkey" FOREIGN KEY ("eventId") REFERENCES "Events"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "EventInvite" ADD CONSTRAINT "EventInvite_invitedBy_fkey" FOREIGN KEY ("invitedBy") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- Prisma can preserve Unsupported("vector(384)") columns but cannot express
+-- pgvector operator-class indexes in schema.prisma. Keep them in SQL so clean,
+-- production, and shadow databases all receive the same search indexes.
+CREATE INDEX "events_embedding_idx"
+ON "Events"
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+CREATE INDEX "org_embedding_idx"
+ON "Organization"
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
+
+CREATE INDEX "org_document_embedding_idx"
+ON "OrgDocument"
+USING ivfflat (embedding vector_cosine_ops)
+WITH (lists = 100);
