@@ -27,7 +27,7 @@ export default function LoginPage() {
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                     sizes="(max-width: 1024px) 100vw, 55vw"
                 />
-                
+
                 {/* Gradient Overlays */}
                 <div className="absolute inset-0 bg-gradient-to-t from-[#041627] via-[#041627]/75 to-transparent z-10" />
                 <div className="absolute inset-0 bg-nx-primary/20 backdrop-brightness-90 z-0" />
