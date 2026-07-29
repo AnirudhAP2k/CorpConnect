@@ -126,8 +126,14 @@ export function GroupMembersPanel({
     const [localMembers, setLocalMembers] = useState(members);
     const canManage = currentUserRole === "OWNER" || currentUserRole === "ADMIN";
 
-    // Sync prop changes (e.g. after invite accepted)
-    useEffect(() => { setLocalMembers(members); }, [members]);
+    // Local state exists so removals can be applied optimistically. Re-sync during
+    // render when the prop changes (e.g. after an invite is accepted) so a fresh
+    // server list always wins over the optimistic copy.
+    const [syncedMembers, setSyncedMembers] = useState(members);
+    if (syncedMembers !== members) {
+        setSyncedMembers(members);
+        setLocalMembers(members);
+    }
 
     const handleRemove = useCallback(async (userId: string) => {
         const confirmed = window.confirm("Remove this member from the group?");
