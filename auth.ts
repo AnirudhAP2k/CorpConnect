@@ -27,8 +27,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 
     events: {
         async signOut(message) {
-            let cookieStore = await cookies();
-            let refreshToken = cookieStore.get("refreshToken")?.value || null;
+            const cookieStore = await cookies();
+            const refreshToken = cookieStore.get("refreshToken")?.value || null;
 
             if (refreshToken) {
                 try {
