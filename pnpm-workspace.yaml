@@ -1,7 +1,12 @@
+overrides:
+  '@types/react': 19.2.7
+  '@types/react-dom': 19.2.3
+
 allowBuilds:
   '@prisma/client': true
   '@prisma/engines': true
   '@sentry/cli': true
+  esbuild: true
   msgpackr-extract: true
   prisma: true
   sharp: true
