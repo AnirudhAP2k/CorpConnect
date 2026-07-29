@@ -125,7 +125,7 @@ export default async function MessagingLayout({
     return (
         <div className="flex h-full overflow-hidden">
             {/* ── Left panel: conversation list ── */}
-            <aside className="w-72 shrink-0 border-r border-nx-outline-variant overflow-hidden hidden md:flex flex-col bg-[#f8f7f8]">
+            <aside className="w-72 shrink-0 border-r border-nx-outline-variant overflow-hidden hidden md:flex flex-col bg-nx-surface-container-low">
                 {/* Direct messages section */}
                 <div className={isEnterprise ? "flex-shrink-0 overflow-y-auto max-h-[55%]" : "flex-1 overflow-hidden"}>
                     <Suspense fallback={<ConversationListSkeleton />}>

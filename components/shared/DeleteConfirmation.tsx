@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useState, useTransition } from 'react'
-import { usePathname } from 'next/navigation'
+import { useCallback, useTransition } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
 import Image from 'next/image'
 import axios from 'axios'
+import { toast } from 'sonner'
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,8 +19,8 @@ import {
 
 const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [response, setResponse] = useState<string>("");
 
   const handleDeleteEvent = useCallback(
     async ({ eventId, path }: { eventId: string; path: string }) => {
@@ -27,24 +28,16 @@ const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
         .delete(`/api/events?id=${eventId}&path=${path}`)
         .then((response) => {
           const message = response.data.message || 'Event deleted successfully';
-          console.log(message);
-          setResponse(message);
+          toast.success(message);
+          router.refresh();
         })
         .catch((error) => {
           const errMessage = error.response?.data?.error || error.message;
-          console.error("Error deleting event:", errMessage);
-          alert(errMessage);
+          toast.error(errMessage);
         });
     },
-    [pathname]
+    [router]
   );
-
-  useEffect(() => {
-    if (response) {
-      window.location.reload();
-      setResponse("");
-    }
-  }, [response]);
 
   return (
     <AlertDialog>

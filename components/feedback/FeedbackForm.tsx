@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Star } from "lucide-react";
+import { Star, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { submitFeedback } from "@/actions/feedback.actions";
@@ -42,7 +42,7 @@ export function FeedbackForm({ eventId, eventTitle, existing, onSuccess }: Feedb
     if (submitted) {
         return (
             <div className="text-center py-8 space-y-2">
-                <div className="text-4xl">🎉</div>
+                <CheckCircle2 className="w-10 h-10 text-nx-on-tertiary-container mx-auto" />
                 <p className="font-semibold text-lg">Thank you for your feedback!</p>
                 <p className="text-sm text-muted-foreground">
                     Our AI will analyse your response shortly and help organizers improve future events.

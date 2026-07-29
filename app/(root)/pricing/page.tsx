@@ -106,7 +106,7 @@ export default function PricingPage() {
                             ))}
                         </ul>
                         <Button asChild variant="outline" className="w-full py-6 rounded-xl border-2 border-nx-primary text-nx-primary font-headline font-bold text-sm tracking-wide uppercase hover:bg-nx-primary hover:text-white transition-all duration-200">
-                            <Link href={user ? "/billing" : "/register"}>Contact Sales</Link>
+                            <Link href="/contact">Contact Sales</Link>
                         </Button>
                     </div>
                 </div>

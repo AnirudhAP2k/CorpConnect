@@ -95,7 +95,7 @@ export default function AboutPage() {
           </p>
           <div className="flex flex-wrap gap-4 pt-2">
             <Button asChild className="bg-nx-primary text-white px-8 py-6 rounded-xl font-headline font-bold hover:opacity-90 transition-all">
-              <Link href="/sign-up">Join the Network</Link>
+              <Link href="/register">Join the Network</Link>
             </Button>
             <Button asChild variant="outline" className="border-nx-surface-variant text-nx-on-surface px-8 py-6 rounded-xl font-headline font-bold hover:bg-nx-surface-container-high transition-all">
               <Link href="/organizations/discover">Discover Organisations</Link>
@@ -331,7 +331,7 @@ export default function AboutPage() {
             </p>
             <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Button asChild className="bg-nx-on-tertiary-container text-nx-primary px-10 py-6 rounded-xl font-headline font-bold hover:bg-white transition-all shadow-xl">
-                <Link href="/sign-up">Apply for Membership</Link>
+                <Link href="/register">Apply for Membership</Link>
               </Button>
               <Button asChild variant="outline" className="border border-white/30 text-white px-10 py-6 rounded-xl font-headline font-bold hover:bg-white/10 transition-all bg-transparent outline-none">
                 <Link href="/events">Browse Events</Link>
