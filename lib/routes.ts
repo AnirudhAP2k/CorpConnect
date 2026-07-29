@@ -11,9 +11,12 @@ export const authRoutes = [
 export const publicRoutes = [
     '/',
     '/about',
+    '/contact',
     '/events',
     '/organizations/discover',
     '/pricing',
+    '/privacy',
+    '/terms',
 ];
 
 /**
@@ -25,25 +28,16 @@ export const publicRoutePrefixes = [
     '/invite/',
 ];
 
-export const organizationRoutes = [
-    '/organizations/:id',
-    '/organizations/:id/members',
-    '/organizations/:id/events',
-    '/organizations/:id/events/:eventId',
-    '/organizations/:id/members/:memberId',
-    '/organizations/:id/events/:eventId/invites',
+export const organizationRoutePrefix = '/organizations';
+
+export const apiRoutePrefix = "/api";
+
+export const apiAuthRoutePrefix = "/api/auth";
+
+export const publicApiRoutes = [
+    "/api/health",
+    "/api/jobs/trigger",
 ];
-
-export const protectedRoutes = [
-    '/dashboard',
-    '/events/create',
-    '/profile',
-    ...organizationRoutes
-];
-
-export const apiRoutes = "/api/";
-
-export const apiAuthRoutes = "/api/auth";
 
 export const publicApiPrefixes = [
     "/api/webhooks/",
@@ -53,10 +47,4 @@ export const onboardingRoutes = [
     '/onboarding'
 ];
 
-export const adminRoutes = [
-    '/admin/dashboard',
-    '/admin/organizations',
-    '/admin/users',
-    '/admin/events',
-    '/admin/jobs',
-];
+export const adminRoutePrefix = '/admin';
