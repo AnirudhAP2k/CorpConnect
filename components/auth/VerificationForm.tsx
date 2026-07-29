@@ -15,11 +15,13 @@ const VerificationForm = () => {
     const router = useRouter();
     const token = searchParams.get('token');
 
+    // A missing token is derived from the URL rather than pushed into state, so the
+    // effect below never has to set state synchronously on mount.
+    const tokenError = token ? "" : "Verification token missing!";
+    const displayedError = errors || tokenError;
+
     const onSubmit = useCallback(async () => {
-        if(!token) {
-            setErrors("Verification token missing!");
-            return;
-        }
+        if(!token) return;
 
         await axios
                 .get(`/api/auth/token-verification?token=${token}`)
@@ -44,7 +46,7 @@ const VerificationForm = () => {
             backButonLabel="Back to login"
             backButonHref="/login"
         >
-            { !success && !errors ? (
+            { !success && !displayedError ? (
                 <div className="flex justify-center items-center w-full pb-5">
                     <div role="status">
                         <svg aria-hidden="true" className="inline w-8 h-8 text-gray-200 animate-spin dark:text-gray-600 fill-blue-500" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -54,8 +56,8 @@ const VerificationForm = () => {
                         <span className="sr-only">Loading...</span>
                     </div>
                 </div>
-            ) : errors ? (
-                <FormErrors message={errors} />
+            ) : displayedError ? (
+                <FormErrors message={displayedError} />
             ) : (
                 <FormSuccess message={success} />
             )}
