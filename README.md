@@ -146,12 +146,42 @@ To keep organizational workspaces compliant, the platform enforces strict busine
 ### 2. Database Initialization
 From the project root:
 ```bash
-# Enable pgvector in your PostgreSQL instance
-npx ts-node scripts/enable-pgvector.ts
+# 1. Install the pgvector extension. Must run before the schema sync, because the
+#    embedding columns are declared as Unsupported("vector(384)").
+npx tsx scripts/enable-pgvector.ts --extension-only
 
-# Apply the Prisma schema and generate client
+# 2. Apply the Prisma schema and generate the client
 npx prisma db push
+
+# 3. Create the embedding columns and IVFFlat indexes.
+#    Additive — existing embeddings are preserved on re-runs.
+npx tsx scripts/enable-pgvector.ts
+
+# 4. Seed the reference tables (industries, event categories).
+#    Onboarding and event creation both require these; idempotent.
+pnpm db:seed
 ```
+
+> The Docker entrypoint (`entrypoint.sh`) runs all four steps automatically on
+> container start, in every environment.
+
+### 2a. Create the First Platform Admin
+`User.isAppAdmin` defaults to `false` and nothing in the UI can set it, so a fresh
+deployment has no way to reach `/admin` — and therefore no way to approve the KYB
+submissions that gate organization verification. Bootstrap it once:
+
+```bash
+# Register through the normal sign-up flow first, then promote that account:
+pnpm grant-admin you@company.com
+
+# Inside Docker:
+docker compose exec server npx tsx scripts/grant-admin.ts you@company.com
+
+# To revoke:
+pnpm grant-admin you@company.com --revoke
+```
+
+Sign out and back in afterwards so the session picks up the new claim.
 
 ### 3. Next.js Web Application
 ```bash
