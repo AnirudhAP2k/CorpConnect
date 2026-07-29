@@ -184,7 +184,7 @@ export async function revokeAllUserTokens(userId: string) {
 }
 
 export const setRefreshToken = async (token: string) => {
-    let cookieStore = await cookies();
+    const cookieStore = await cookies();
 
     cookieStore.set("refreshToken", token, {
         httpOnly: true,
