@@ -12,6 +12,10 @@ import { createNotification } from "@/domain/notifications";
 import { GENERIC_EMAIL_PROVIDERS } from "@/constants";
 import { prisma } from "@/lib/db";
 import { sendMail } from "@/lib/mailer";
+import {
+    sendOrgVerificationEmail,
+    type OrgVerificationOutcome,
+} from "@/lib/email-templates/org-verification";
 
 export interface OrgVerificationPayload {
     orgId: string;
@@ -43,7 +47,10 @@ export async function processOrgLevel1(payload: OrgVerificationPayload): Promise
             },
         });
         console.log(`[OrgVerification] ✗ Auto-rejected "${org.name}" (Failed L1)`);
-        await notifyOrgOwner(creatorEmail, org.name, "rejected");
+        await notifyOrgOwner(creatorEmail, org.name, orgId, "rejected",
+            "The email domain used to create this organization belongs to a generic email provider. " +
+            "Please re-submit using your company's own email domain.",
+        );
     } else {
         await prisma.organizationMeta.update({
             where: { organizationId: orgId },
@@ -54,7 +61,7 @@ export async function processOrgLevel1(payload: OrgVerificationPayload): Promise
 }
 
 export async function processOrgLevel2(payload: OrgVerificationPayload): Promise<void> {
-    const { orgId } = payload;
+    const { orgId, creatorEmail } = payload;
 
     const org = await prisma.organization.findUnique({
         where: { id: orgId },
@@ -66,6 +73,10 @@ export async function processOrgLevel2(payload: OrgVerificationPayload): Promise
     console.log(`[OrgVerification] Triggered Level-2 notification for "${org.name}" (${orgId})`);
 
     await notifyAdmins(org.name, orgId, "Organization submitted KYB documents for Level-2 manual review.");
+
+    // Confirm receipt to the submitter. Without this the submitter sees the form
+    // succeed and then hears nothing until an admin happens to review it.
+    await notifyOrgOwner(creatorEmail, org.name, orgId, "pending");
 }
 
 // ─── Internal helpers ──────────────────────────────────────────────────────────
@@ -123,7 +134,29 @@ async function notifyAdmins(orgName: string, orgId: string, reason: string | nul
     }
 }
 
-async function notifyOrgOwner(email: string, orgName: string, status: "approved" | "rejected") {
-    // Simplified for demo flow
-    console.log(`[Email] Org ${orgName} was ${status}. Sent notification to ${email}`);
+export async function notifyOrgOwner(
+    email: string,
+    orgName: string,
+    orgId: string,
+    outcome: OrgVerificationOutcome,
+    note?: string | null,
+) {
+    if (!email || email === "unknown") {
+        console.warn(`[OrgVerification] No recipient email for "${orgName}" (${outcome}); skipping email.`);
+        return;
+    }
+
+    try {
+        await sendOrgVerificationEmail({
+            recipientEmail: email,
+            organizationName: orgName,
+            organizationId: orgId,
+            outcome,
+            note,
+        });
+        console.log(`[OrgVerification] Sent "${outcome}" email for "${orgName}" to ${email}`);
+    } catch (err) {
+        // Never let a mail failure fail the surrounding job or request.
+        console.error(`[OrgVerification] Failed to email org owner (${outcome}):`, err);
+    }
 }
