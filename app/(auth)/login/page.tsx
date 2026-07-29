@@ -1,6 +1,12 @@
 import Image from "next/image";
 import LoginForm from "@/components/auth/LoginForm";
-import { Building2, Globe2, Users, ShieldCheck } from "lucide-react";
+import { Building2, Globe2, Users, ShieldCheck, BrainCircuit, CalendarCheck } from "lucide-react";
+
+const LOGIN_HIGHLIGHTS = [
+    { icon: BrainCircuit, label: "AI-Powered Partner Matching" },
+    { icon: Building2, label: "Verified Organization Profiles" },
+    { icon: CalendarCheck, label: "Private Executive Summits" },
+];
 
 export const metadata = {
     title: "Sign In — CorpConnect Executive Suite",
@@ -38,24 +44,18 @@ export default function LoginPage() {
                             Architect Your <span className="text-nx-on-tertiary-container">Network.</span>
                         </h1>
                         <p className="text-nx-on-primary-container text-sm md:text-base leading-relaxed max-w-lg font-body">
-                            Access an exclusive ecosystem of 12,000+ verified B2B organizations, AI-matched strategic partners, and private executive summits.
+                            Access an exclusive ecosystem of verified B2B organizations, AI-matched strategic partners, and private executive summits.
                         </p>
                     </div>
 
-                    {/* Stat Badges */}
-                    <div className="grid grid-cols-3 gap-3 pt-2">
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-center">
-                            <span className="block text-xl font-headline font-extrabold text-white">40+</span>
-                            <span className="text-[10px] text-nx-on-primary-container font-label uppercase">Countries</span>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-center">
-                            <span className="block text-xl font-headline font-extrabold text-nx-on-tertiary-container">12k+</span>
-                            <span className="text-[10px] text-nx-on-primary-container font-label uppercase">Organizations</span>
-                        </div>
-                        <div className="bg-white/10 backdrop-blur-md rounded-2xl p-3 border border-white/10 text-center">
-                            <span className="block text-xl font-headline font-extrabold text-white">95%</span>
-                            <span className="text-[10px] text-nx-on-primary-container font-label uppercase">Retention</span>
-                        </div>
+                    {/* Feature Highlights */}
+                    <div className="flex flex-wrap gap-3 pt-2">
+                        {LOGIN_HIGHLIGHTS.map((item) => (
+                            <div key={item.label} className="inline-flex items-center gap-2.5 bg-white/10 backdrop-blur-md rounded-2xl px-4 py-2.5 border border-white/10">
+                                <item.icon className="w-4 h-4 text-nx-on-tertiary-container shrink-0" />
+                                <span className="text-xs font-label font-semibold text-white">{item.label}</span>
+                            </div>
+                        ))}
                     </div>
                 </div>
             </div>
