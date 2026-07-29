@@ -23,7 +23,7 @@ export const CardWrapper = ({
     showSocial
 }: CardWrapperProps) => {
     return (
-        <Card className="w-full max-w-[440px] bg-nx-surface-container-lowest border border-nx-outline-variant/30 rounded-3xl shadow-nx-float p-2 sm:p-4">
+        <Card className="w-full max-w-[440px] bg-nx-surface-container-lowest/95 backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl p-2 sm:p-4 text-nx-on-surface">
             <CardHeader className="space-y-1 pt-4 pb-2">
                 <Header title={headerTitle} label={headerLabel} />
             </CardHeader>
@@ -34,7 +34,7 @@ export const CardWrapper = ({
                 <CardFooter className="flex flex-col gap-4 pb-4">
                     <div className="relative w-full flex items-center justify-center">
                         <div className="absolute inset-0 flex items-center">
-                            <span className="w-full border-t border-nx-outline-variant/40" />
+                            <span className="w-full border-t border-nx-outline-variant/30" />
                         </div>
                         <span className="relative bg-nx-surface-container-lowest px-3 text-[11px] font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant">
                             Or continue with
