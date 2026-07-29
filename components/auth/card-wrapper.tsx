@@ -36,7 +36,7 @@ export const CardWrapper = ({
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t border-nx-outline-variant/30" />
                         </div>
-                        <span className="relative bg-nx-surface-container-lowest px-3 text-[11px] font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant">
+                        <span className="relative px-3 text-[11px] font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant">
                             Or continue with
                         </span>
                     </div>
