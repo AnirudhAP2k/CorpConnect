@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { DateRange } from "react-day-picker";
 import { DayPicker } from "react-day-picker";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -8,18 +8,34 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import "react-day-picker/dist/style.css";
 
-export default function DateRangeFilter({ clearRange }: { clearRange: boolean }) {
+function toRange(from: string | null, to: string | null): DateRange | undefined {
+    if (!from && !to) return undefined;
+    return {
+        from: from ? new Date(from) : undefined,
+        to: to ? new Date(to) : undefined,
+    };
+}
+
+export default function DateRangeFilter() {
     const router = useRouter();
     const searchParams = useSearchParams();
 
-    const [range, setRange] = useState<DateRange | undefined>({
-        from: searchParams.get("fromDate")
-            ? new Date(searchParams.get("fromDate")!)
-            : undefined,
-        to: searchParams.get("toDate")
-            ? new Date(searchParams.get("toDate")!)
-            : undefined,
-    });
+    const fromParam = searchParams.get("fromDate");
+    const toParam = searchParams.get("toDate");
+
+    const [range, setRange] = useState<DateRange | undefined>(() =>
+        toRange(fromParam, toParam),
+    );
+
+    // The URL is the source of truth for the applied filter, but the picker needs
+    // local state to hold a selection before it is applied. Re-sync on render when
+    // the URL's date params change so the two cannot drift apart.
+    const urlKey = `${fromParam ?? ""}|${toParam ?? ""}`;
+    const [syncedKey, setSyncedKey] = useState(urlKey);
+    if (syncedKey !== urlKey) {
+        setSyncedKey(urlKey);
+        setRange(toRange(fromParam, toParam));
+    }
 
     const applyFilter = () => {
         const params = new URLSearchParams(searchParams.toString());
@@ -45,12 +61,6 @@ export default function DateRangeFilter({ clearRange }: { clearRange: boolean })
         params.delete("toDate");
         router.push(`/events?${params.toString()}`);
     };
-
-    useEffect(() => {
-        if (clearRange) {
-            clearFilter();
-        }
-    }, [clearRange]);
 
     return (
         <div className="mb-6">
