@@ -14,7 +14,7 @@ export { checkAiQuota, deductAiUsage, getAiUsageStats } from "./quota";
 
 // Server Actions (authenticated, quota-gated mutations)
 export {
-    useAIFeature,
+    consumeAIFeature,
     getAdminAIStats,
     sendChatMessage,
     getChatHistory,
