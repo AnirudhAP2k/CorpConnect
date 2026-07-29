@@ -1,122 +1,35 @@
-import NextAuth from "next-auth"
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
-import authConfig from "@/auth.config"
-import { verifyMobileAccessToken } from "@/lib/mobile-auth";
+import authConfig from "@/auth.config";
+import { handleApiRequest } from "@/lib/middleware/api-request";
+import { decidePageAccess } from "@/lib/middleware/page-access";
 import {
-	defaultRoute,
-	authRoutes,
-	publicRoutes,
-	publicRoutePrefixes,
-	protectedRoutes,
-	apiAuthRoutes,
-	apiRoutes,
-	publicApiPrefixes,
-	onboardingRoutes,
-	adminRoutes,
-	organizationRoutes
-} from "@/lib/routes";
-import { setApiAuth } from "@/lib/api-auth";
-import { AUTH_SESSION_HEADER } from "@/constants";
+	classifyRoute,
+	isApiRouteKind,
+} from "@/lib/middleware/route-policy";
 
 const { auth } = NextAuth(authConfig);
 
-const SESSION_REFRESH_PATH = "/api/auth/session-refresh";
-
-
 export default auth(async (req) => {
 	const { nextUrl } = req;
-	const isLoggedIn = !!req.auth;
+	const kind = classifyRoute(nextUrl.pathname);
 
-	const isApiAuthRoute = nextUrl.pathname.startsWith(apiAuthRoutes);
-	const isApiRoute = nextUrl.pathname.startsWith(apiRoutes);
-
-	if (isApiAuthRoute) {
-		return;
+	if (isApiRouteKind(kind)) {
+		return handleApiRequest(req, kind, req.auth?.user);
 	}
 
-	if (isApiRoute) {
+	const decision = decidePageAccess({
+		kind,
+		isLoggedIn: Boolean(req.auth),
+		user: req.auth?.user,
+		pathname: nextUrl.pathname,
+		search: nextUrl.search,
+		hasRefreshToken: Boolean(req.cookies.get("refreshToken")?.value),
+	});
 
-		const isPublicApiRoute = publicApiPrefixes.some((prefix) =>
-			nextUrl.pathname.startsWith(prefix)
-		);
-
-		if (isPublicApiRoute) return;
-
-		const requestHeaders = new Headers(req.headers);
-		requestHeaders.delete(AUTH_SESSION_HEADER);
-
-		// ── Hybrid Mobile Auth ─────────────────────────────────────────────────
-		const mobilePayload = await verifyMobileAccessToken(req);
-		if (mobilePayload) {
-			setApiAuth(requestHeaders, mobilePayload);
-
-			return NextResponse.next({ request: { headers: requestHeaders } });
-		}
-
-		if (!isLoggedIn) {
-			return Response.json({ error: "Unauthorized" }, { status: 401 });
-		}
-
-		if (req.auth?.user?.id) {
-			const user = req.auth.user;
-			setApiAuth(requestHeaders, user);
-		}
-
-		return NextResponse.next({ request: { headers: requestHeaders } });
-	}
-
-	const isPublicRoute = publicRoutes.includes(nextUrl.pathname)
-		|| publicRoutePrefixes.some((prefix) => nextUrl.pathname.startsWith(prefix));
-	const isAuthRoute = authRoutes.includes(nextUrl.pathname);
-	const isOnboardingRoute = onboardingRoutes.includes(nextUrl.pathname);
-	const isAdminRoute = adminRoutes.includes(nextUrl.pathname);
-	const isOrganizationRoute = organizationRoutes.includes(nextUrl.pathname);
-
-	if (isAuthRoute) {
-		if (isLoggedIn) {
-			return Response.redirect(new URL(defaultRoute, nextUrl));
-		}
-		return;
-	}
-
-	if (!isPublicRoute && !isLoggedIn) {
-		const refreshToken = req.cookies.get("refreshToken")?.value;
-
-		if (refreshToken) {
-			const returnTo = encodeURIComponent(nextUrl.pathname + nextUrl.search);
-
-			return Response.redirect(
-				new URL(`${SESSION_REFRESH_PATH}?returnTo=${returnTo}`, nextUrl)
-			);
-		}
-
-		return Response.redirect(new URL("/login", nextUrl));
-	}
-
-	if (isAdminRoute && isLoggedIn && req.auth?.user) {
-		const isAppAdmin = req.auth.user.isAppAdmin;
-		if (!isAppAdmin) {
-			return Response.redirect(new URL("/dashboard", nextUrl));
-		}
-	}
-
-	if (isOnboardingRoute && isLoggedIn && req.auth?.user) {
-		const user = req.auth.user;
-
-		if (user && user.hasCompletedOnboarding) {
-			return Response.redirect(new URL("/dashboard", nextUrl));
-		}
-	}
-
-	if (isOrganizationRoute && isLoggedIn && req.auth?.user) {
-		const user = req.auth.user;
-
-		if (user && !user.hasCompletedOnboarding) {
-			return Response.redirect(new URL("/onboarding", nextUrl));
-		}
-	}
-
-	return;
+	return decision.type === "redirect"
+		? NextResponse.redirect(new URL(decision.destination, nextUrl))
+		: NextResponse.next();
 });
 
 export const config = {
