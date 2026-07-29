@@ -12,6 +12,7 @@ import {
 import { checkOrganizationPermission } from "./queries";
 import type { OrganizationUpdateInput } from "./validation";
 import { setOrgTags } from "@/domain/tags/helpers";
+import { TRIAL_PLAN, TRIAL_DURATION_DAYS } from "@/constants";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -49,9 +50,22 @@ export async function createOrganizationAction(formData: FormData) {
         const industry = await prisma.industry.findUnique({ where: { id: industryId } });
         if (!industry) return { error: "Invalid industry selected." };
 
+        // Start the advertised 14-day trial. `subscriptionExpiresAt` doubles as the
+        // trial end date; the nightly sweep downgrades the org once it passes.
+        const trialEndsAt = new Date(Date.now() + TRIAL_DURATION_DAYS * 24 * 60 * 60 * 1000);
+
         const organization = await prisma.$transaction(async (tx) => {
             const org = await tx.organization.create({
-                data: { ...rest, logo, industryId, createdBy: session.user!.id!, meta: { create: {} } },
+                data: {
+                    ...rest,
+                    logo,
+                    industryId,
+                    createdBy: session.user!.id!,
+                    subscriptionPlan: TRIAL_PLAN,
+                    subscriptionStatus: "TRIALING",
+                    subscriptionExpiresAt: trialEndsAt,
+                    meta: { create: {} },
+                },
                 include: { industry: true },
             });
             await tx.organizationMember.create({

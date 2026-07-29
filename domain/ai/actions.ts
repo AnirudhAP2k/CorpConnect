@@ -35,7 +35,7 @@ interface AIFeatureInput {
     query?: string;
 }
 
-export async function useAIFeature({ orgId, feature, query }: AIFeatureInput) {
+export async function consumeAIFeature({ orgId, feature, query }: AIFeatureInput) {
     const session = await auth();
     if (!session?.user?.id) throw new Error("Unauthorized");
 

@@ -33,7 +33,17 @@ export function ConversationListSkeleton() {
     );
 }
 
-export function MessageBubbleSkeleton({ isOwn = false }: { isOwn?: boolean }) {
+export function MessageBubbleSkeleton({
+    isOwn = false,
+    width = 180,
+}: {
+    isOwn?: boolean;
+    /**
+     * Fixed pixel width. Widths are varied by the caller rather than randomised,
+     * so the server and client markup match on hydration.
+     */
+    width?: number;
+}) {
     return (
         <div className={cn("flex items-end gap-2 animate-pulse", isOwn ? "flex-row-reverse" : "flex-row")}>
             {!isOwn && <div className="w-8 h-8 rounded-lg bg-nx-surface-container-high shrink-0" />}
@@ -42,7 +52,7 @@ export function MessageBubbleSkeleton({ isOwn = false }: { isOwn?: boolean }) {
                     "rounded-2xl bg-nx-surface-container-high",
                     isOwn ? "rounded-br-sm" : "rounded-bl-sm"
                 )}
-                style={{ width: `${120 + Math.random() * 140}px`, height: "36px" }}
+                style={{ width: `${width}px`, height: "36px" }}
             />
         </div>
     );
@@ -51,13 +61,13 @@ export function MessageBubbleSkeleton({ isOwn = false }: { isOwn?: boolean }) {
 export function MessageListSkeleton() {
     return (
         <div className="flex-1 overflow-hidden px-4 py-4 flex flex-col gap-3">
-            <MessageBubbleSkeleton />
-            <MessageBubbleSkeleton isOwn />
-            <MessageBubbleSkeleton />
-            <MessageBubbleSkeleton />
-            <MessageBubbleSkeleton isOwn />
-            <MessageBubbleSkeleton isOwn />
-            <MessageBubbleSkeleton />
+            <MessageBubbleSkeleton width={212} />
+            <MessageBubbleSkeleton isOwn width={148} />
+            <MessageBubbleSkeleton width={176} />
+            <MessageBubbleSkeleton width={244} />
+            <MessageBubbleSkeleton isOwn width={196} />
+            <MessageBubbleSkeleton isOwn width={132} />
+            <MessageBubbleSkeleton width={228} />
         </div>
     );
 }

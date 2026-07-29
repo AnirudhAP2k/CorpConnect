@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getApiAuth } from "@/lib/api-auth";
+import { notifyOrgOwner } from "@/lib/jobs/org-verification";
 
 /**
  * PATCH /api/admin/organizations/[id]/verify
@@ -33,7 +34,16 @@ export const PATCH = async (
 
     const org = await prisma.organization.findUnique({
         where: { id },
-        select: { id: true, name: true, meta: { select: { verificationStatus: true } } },
+        select: {
+            id: true,
+            name: true,
+            meta: { select: { verificationStatus: true } },
+            members: {
+                where: { role: "OWNER" },
+                select: { user: { select: { email: true } } },
+                take: 1,
+            },
+        },
     });
 
     if (!org) return NextResponse.json({ error: "Organization not found" }, { status: 404 });
@@ -46,6 +56,8 @@ export const PATCH = async (
             { status: 409 }
         );
     }
+
+    const ownerEmail = org.members[0]?.user.email ?? "";
 
     if (action === "approve") {
         await prisma.$transaction([
@@ -62,6 +74,9 @@ export const PATCH = async (
                 data: { isVerified: true },
             }),
         ]);
+
+        await notifyOrgOwner(ownerEmail, org.name, id, "approved", note ?? null);
+
         return NextResponse.json({ ok: true, decision: "VERIFIED", orgId: id });
     } else {
         await prisma.organizationMeta.update({
@@ -71,6 +86,9 @@ export const PATCH = async (
                 verificationReviewNote: note ?? "Rejected by admin.",
             },
         });
+
+        await notifyOrgOwner(ownerEmail, org.name, id, "rejected", note ?? null);
+
         return NextResponse.json({ ok: true, decision: "REJECTED", orgId: id });
     }
 };

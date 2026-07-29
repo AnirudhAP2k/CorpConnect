@@ -10,12 +10,14 @@
 
 ### Phase 0 - Safe and truthful to sell
 
-- [ ] Fix the three P0 security issues: session-derived actor in `domain/pitches/actions.ts`, cross-tenant member check in the org members route, auth + validation on `actions/upload.actions.ts`
-- [ ] Implement the 14-day `TRIALING` flow (or remove the claim from the pricing page), and fix the broken `/sign-up`, `/onboarding`, and Contact Sales CTAs
-- [ ] Add a seed script for industries and event categories, document the `isAppAdmin` bootstrap, and add a KYB-pending notification email
-- [ ] Add `/api/health`, remove `ignoreBuildErrors` and `ignoreDuringBuilds` from `next.config.ts`, and fix the errors that surface
-- [ ] Fix the `EOVERRIDE` bug in `package.json`: pin `import-in-the-middle` to an exact `3.3.1` dependency spec so npm/npx work from the repo root, and either move the overrides block under `pnpm.overrides` or delete it as dead config since pnpm ignores it
-- [ ] `entrypoint.sh` runs `prisma db push --accept-data-loss` in dev, which drops the pgvector embedding columns on every `compose` build. `scripts/enable-pgvector.ts` restores the columns but not the embedding data, so every rebuild silently wipes embeddings against a shared DB. Needs a safer dev path.
+- [x] Fix the three P0 security issues: session-derived actor in `domain/pitches/actions.ts`, cross-tenant member check in the org members route, auth + validation on `actions/upload.actions.ts`
+- [x] Implement the 14-day `TRIALING` flow (or remove the claim from the pricing page), and fix the broken `/sign-up`, `/onboarding`, and Contact Sales CTAs
+- [x] Add a seed script for industries and event categories, document the `isAppAdmin` bootstrap, and add a KYB-pending notification email
+- [x] Add `/api/health`, remove `ignoreBuildErrors` and `ignoreDuringBuilds` from `next.config.ts`, and fix the errors that surface
+- [x] Fix the `EOVERRIDE` bug in `package.json`: pin `import-in-the-middle` to an exact `3.3.1` dependency spec so npm/npx work from the repo root, and either move the overrides block under `pnpm.overrides` or delete it as dead config since pnpm ignores it
+- [x] `entrypoint.sh` runs `prisma db push --accept-data-loss` in dev, which drops the pgvector embedding columns on every `compose` build. `scripts/enable-pgvector.ts` restores the columns but not the embedding data, so every rebuild silently wipes embeddings against a shared DB. Needs a safer dev path.
+- [ ] Follow-up from the lint cleanup: `@typescript-eslint/no-explicit-any` (~172), `react-hooks/error-boundaries` (~38), and `react/no-unescaped-entities` (~29) are downgraded to warnings in `eslint.config.mjs` so the build can enforce real errors. Clear them and restore the rules to `error`.
+- [ ] Follow-up from the trial work: add an email (not just an in-app notification) a few days before a trial lapses and when it downgrades.
 
 ### Phase 0.5 - Design consistency
 
@@ -94,6 +96,13 @@ Production hygiene:
 - **Fix the `overrides` conflict in [package.json](../../package.json).** `import-in-the-middle` is a direct dependency at `^3.3.1` (line 41) and also has an `overrides` entry pinned to `3.3.1` (line 97). npm rejects an override for a direct dependency unless the specs match exactly, so any `npm` or `npx` command run from the repo root fails with `EOVERRIDE`. Minimal fix: drop the caret so the dependency reads `"3.3.1"`. This is what was preventing the Stitch MCP server from starting, since Cursor launches it via `npx` with the workspace as its working directory.
 - **Decide whether that override is actually needed.** The project uses pnpm exclusively (`pnpm-lock.yaml`, and every CI job runs `pnpm install`), and pnpm reads `pnpm.overrides` rather than npm's top-level `overrides`. The lockfile records no overrides section, so the whole block is currently inert. If the pin was added to force Sentry's transitive copy of `import-in-the-middle` to a specific version, that is not happening today - move it under a `pnpm.overrides` key, or remove it as dead configuration.
 - **Stop the compose stack from wiping pgvector embeddings.** [entrypoint.sh](../../entrypoint.sh) branches on `NODE_ENV`: production runs `prisma migrate deploy` (safe), but the non-production path runs `prisma db push --accept-data-loss` and then `npx tsx scripts/enable-pgvector.ts` to restore the vector columns. Prisma cannot model the `vector` type, so `db push` drops those columns every time, and `--accept-data-loss` means the **embedding data is destroyed, not just the schema** - the restore script recreates empty columns and indexes. Every `compose` rebuild therefore silently invalidates all embeddings, which breaks recommendations and semantic search until they are regenerated. Options: gate the destructive path behind an explicit opt-in flag, use `prisma migrate dev` with the vector columns managed by a hand-written migration, or add an embedding-regeneration job that runs after the restore. Also note the README references `scripts/enable-pgvector.ts` while the repo currently has an untracked `scripts/enable-pgvector.js` - confirm which one `tsx` actually resolves.
+
+  **Resolved.** Two separate defects turned out to be involved, and the second was worse than the one described above:
+
+  1. *The restore script was itself the primary destroyer.* `enable-pgvector.ts` ran `DROP COLUMN IF EXISTS embedding` followed by `ADD COLUMN` unconditionally, so it wiped every embedding on each run regardless of what `db push` had done. It is now additive: it inspects `format_type()` from `pg_attribute` and leaves a correctly-typed column (and its data) untouched, only recreating on a genuine type mismatch and warning when it does.
+  2. *Production never had the columns at all.* The `enable-pgvector.ts` call sat inside the `else` branch, so it only ran in dev. Because no migration creates the `embedding` columns or the `vector` extension either, a fresh production deploy had **neither** — every pgvector query across 13 files would have failed on first boot. The ensure step now runs in both environments.
+
+  The columns are also declared in `schema.prisma` as `Unsupported("vector(384)")?`, which is what stops `db push` treating them as drift and dropping them, so `--accept-data-loss` is gone from the dev path. The extension is created before the schema sync (`--extension-only`), since Postgres cannot create a `vector` column before the extension exists.
 
 Scope note: leave event ticketing and platform commission alone for now. `paymentMode` is never set by the event form and Stripe Connect is a commented TODO, so ticket revenue is a bigger project. Sell **org subscriptions** first and market events as free-to-host.
 

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Menu } from "lucide-react";
 import Sidebar from "./Sidebar";
 import OrganizationSwitcher from "./OrganizationSwitcher";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 
@@ -19,10 +19,13 @@ export default function MobileSidebar({ userOrganizations, activeOrganizationId,
     const [open, setOpen] = useState(false);
     const pathname = usePathname();
 
-    // Close the sheet when the route changes
-    useEffect(() => {
+    // Close the sheet when the route changes. Adjusted during render rather than in
+    // an effect so the sheet is never painted open on the newly navigated page.
+    const [renderedPathname, setRenderedPathname] = useState(pathname);
+    if (renderedPathname !== pathname) {
+        setRenderedPathname(pathname);
         setOpen(false);
-    }, [pathname]);
+    }
 
     return (
         <Sheet open={open} onOpenChange={setOpen}>

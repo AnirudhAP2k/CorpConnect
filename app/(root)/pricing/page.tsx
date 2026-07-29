@@ -150,8 +150,8 @@ export default function PricingPage() {
             {/* ── FAQ / Trust Signals ── */}
             <section className="max-w-4xl mx-auto px-4 md:px-8 pb-28 text-center">
                 <p className="text-nx-on-surface-variant text-sm">
-                    All plans include a <strong className="text-nx-primary">14-day free trial</strong>. No credit card required.
-                    Cancel anytime. Questions?{" "}
+                    Every new organisation starts on a <strong className="text-nx-primary">14-day Pro trial</strong>. No credit card
+                    required — you drop to the Free plan automatically when it ends. Questions?{" "}
                     <Link href="mailto:hello@corpconnect.io" className="text-nx-on-tertiary-container underline underline-offset-2 hover:opacity-80">
                         hello@corpconnect.io
                     </Link>

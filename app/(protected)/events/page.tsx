@@ -69,7 +69,7 @@ const EventsPage = async ({ searchParams }: EventsPageProps) => {
                             <h3 className="font-bold text-lg mb-4">Filters</h3>
 
                             {/* Date Range Filter */}
-                            <DateRangeFilter clearRange={filterCleared} />
+                            <DateRangeFilter />
 
                             {/* Search */}
                             <div className="mb-6">

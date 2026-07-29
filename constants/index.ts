@@ -96,6 +96,21 @@ export const PLAN_API_LIMITS: Record<string, number> = {
 };
 
 /**
+ * Free trial granted to every new organization.
+ *
+ * The pricing page advertises "14-day free trial. No credit card required", so the
+ * trial is granted at organization creation rather than by the payment gateway.
+ * PRO is the trial tier because ENTERPRISE is a contact-sales plan and cannot be
+ * self-serve provisioned.
+ *
+ * On expiry the nightly sweep in lib/jobs/expire-trials.ts drops the org back to
+ * FREE/ACTIVE. Anything that changes here must stay consistent with the trial copy
+ * on app/(root)/pricing/page.tsx.
+ */
+export const TRIAL_PLAN = "PRO" as const;
+export const TRIAL_DURATION_DAYS = 14;
+
+/**
  * Monthly AI feature usage limits per subscription plan.
  * These govern tenant-facing AI calls made through the Next.js app
  * (recommendations, search, chat, content generation, etc.).

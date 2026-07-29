@@ -2,7 +2,7 @@ import GitHub from "next-auth/providers/github"
 import Google from "next-auth/providers/google";
 import CredentialsProvider from "next-auth/providers/credentials";
 import type { NextAuthConfig } from "next-auth"
-import { LoginSchema } from "@/lib/validation";
+import { LoginSchema } from "@/lib/auth-validation";
 import { mapTokenToSession } from "@/auth.session";
 import { JWT_MAX_AGE_SECONDS } from "@/constants";
 

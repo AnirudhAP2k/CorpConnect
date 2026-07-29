@@ -11,23 +11,25 @@ export const Social = () => {
     };
 
     return (
-        <div className="flex gap-x-2 w-full items-center">
+        <div className="flex items-center gap-3 w-full">
             <Button
                 size="lg"
-                className="w-full"
+                className="w-full h-11 rounded-xl bg-nx-surface-container-low border border-nx-outline-variant/40 hover:bg-nx-surface-container-high transition-colors font-body text-xs font-semibold text-nx-on-surface flex items-center justify-center gap-2"
                 variant="outline"
-                onClick={() => {onClick("google");}}
+                onClick={() => { onClick("google"); }}
             >
                 <FcGoogle className="h-5 w-5" />
+                <span>Google</span>
             </Button>
             <Button
                 size="lg"
-                className="w-full"
+                className="w-full h-11 rounded-xl bg-nx-surface-container-low border border-nx-outline-variant/40 hover:bg-nx-surface-container-high transition-colors font-body text-xs font-semibold text-nx-on-surface flex items-center justify-center gap-2"
                 variant="outline"
-                onClick={() => {onClick("github");}}
+                onClick={() => { onClick("github"); }}
             >
-                <FaGithub className="h-5 w-5" />
+                <FaGithub className="h-5 w-5 text-nx-primary" />
+                <span>GitHub</span>
             </Button>
         </div>
-    )
-}
+    );
+};

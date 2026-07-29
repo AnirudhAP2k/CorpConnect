@@ -16,7 +16,7 @@ const TopHeader = async () => {
 
     let userOrganizations: any[] = [];
     let activeOrganizationId: string | null = null;
-    let reminders: ReminderItem[] = [];
+    const reminders: ReminderItem[] = [];
     const isAdmin = session?.user?.isAppAdmin || false;
 
     if (session?.user?.id) {

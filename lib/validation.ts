@@ -1,13 +1,7 @@
 import { z } from 'zod'
-import { OrganizationSize, NetworkingIntent } from "@prisma/client";
+import { NetworkingIntent } from "@prisma/client";
 
-export const LoginSchema = z.object({
-    email: z.string().email(),
-    password: z.string().min(1, {
-        message: 'Password is required'
-    }),
-    code: z.string().optional(),
-})
+export { LoginSchema } from "@/lib/auth-validation";
 
 export const RegisterSchema = z.object({
     email: z.string().email(),

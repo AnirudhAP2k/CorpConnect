@@ -4,6 +4,7 @@ import {
 } from "@/lib/jobs/job-processor";
 import { cleanupOldJobs } from "@/lib/jobs/cleanup-old-jobs";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
+import { expireTrials } from "@/lib/jobs/expire-trials";
 
 let isInitialized = false;
 
@@ -27,6 +28,12 @@ export function initializeScheduler() {
         await cleanupOldJobs();
     });
 
+    // Downgrade lapsed free trials daily at 3 AM
+    cron.schedule("0 3 * * *", async () => {
+        console.log("[Scheduler] Running: Expire Trials");
+        await expireTrials();
+    });
+
     isInitialized = true;
     console.log("[Scheduler] ✓ All cron jobs initialized successfully");
 }
@@ -40,6 +47,11 @@ export async function triggerJobProcessing() {
 export async function triggerCleanup() {
     console.log("[Scheduler] Manual trigger: Cleanup Old Jobs");
     await cleanupOldJobs();
+}
+
+export async function triggerExpireTrials() {
+    console.log("[Scheduler] Manual trigger: Expire Trials");
+    return await expireTrials();
 }
 
 export async function triggerScheduleEventReport(

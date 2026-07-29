@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import Link from "next/link";
 import { Suspense } from "react";
 import OrgCard from "@/components/organizations/OrgCard";
 import OrgDiscoverFilters from "@/components/organizations/OrgDiscoverFilters";
@@ -183,9 +184,9 @@ export default async function OrgsDiscoverPage({ searchParams }: OrgsDiscoverPag
                         {hasFilters && (
                             <div className="flex items-center gap-2 mb-4 text-sm text-primary bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 w-fit">
                                 <span>Filters active</span>
-                                <a href="/organizations/discover" className="underline hover:no-underline ml-1">
+                                <Link href="/organizations/discover" className="underline hover:no-underline ml-1">
                                     Clear all
-                                </a>
+                                </Link>
                             </div>
                         )}
 

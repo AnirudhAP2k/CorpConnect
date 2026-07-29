@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
     triggerJobProcessing,
     triggerCleanup,
+    triggerExpireTrials,
 } from "@/lib/scheduler/cron-jobs";
 
 export const POST = async (req: NextRequest) => {
@@ -30,15 +31,26 @@ export const POST = async (req: NextRequest) => {
                     message: "Cleanup triggered successfully",
                 });
 
-            case "all":
+            case "trials": {
+                const result = await triggerExpireTrials();
+                return NextResponse.json({
+                    message: "Trial expiry sweep completed",
+                    ...result,
+                });
+            }
+
+            case "all": {
                 await triggerJobProcessing();
+                const result = await triggerExpireTrials();
                 return NextResponse.json({
                     message: "All jobs triggered successfully",
+                    trials: result,
                 });
+            }
 
             default:
                 return NextResponse.json(
-                    { error: "Invalid job type. Use: jobs, cleanup, or all" },
+                    { error: "Invalid job type. Use: jobs, cleanup, trials, or all" },
                     { status: 400 }
                 );
         }

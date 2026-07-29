@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useAIFeature } from "@/actions/ai.actions";
+import { consumeAIFeature } from "@/actions/ai.actions";
 
 interface OrgAIPanelProps {
     orgId: string;
@@ -44,7 +44,7 @@ export default function OrgAIPanel({ orgId, hasCredentials, usageCount, usageLim
         setResults(null);
 
         try {
-            const apiCall = await useAIFeature({ orgId, feature, query });
+            const apiCall = await consumeAIFeature({ orgId, feature, query });
 
             if (apiCall && !apiCall.success) {
                 toast.error(apiCall.error || "Failed to contact AI service.");

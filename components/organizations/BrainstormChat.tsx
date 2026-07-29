@@ -49,8 +49,6 @@ export function BrainstormChat({ userId, organizationId }: BrainstormChatProps) 
     const [isBriefLoading, setIsBriefLoading] = useState(false);
     const [brief, setBrief] = useState<AIEventBrief | null>(null);
     const [briefModalOpen, setBriefModalOpen] = useState(false);
-    const [canExtractBrief, setCanExtractBrief] = useState(false);
-
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -59,11 +57,9 @@ export function BrainstormChat({ userId, organizationId }: BrainstormChatProps) 
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages, isThinking]);
 
-    // Enable "Generate Brief" after at least 4 exchanges
-    useEffect(() => {
-        const userCount = messages.filter((m) => m.role === "user").length;
-        setCanExtractBrief(userCount >= 2);
-    }, [messages]);
+    // Enable "Generate Brief" once the user has sent at least four messages.
+    const canExtractBrief =
+        messages.filter((m) => m.role === "user").length >= 4;
 
     // ── Send message ─────────────────────────────────────────────────────────
     const handleSend = useCallback(async () => {
@@ -128,7 +124,6 @@ export function BrainstormChat({ userId, organizationId }: BrainstormChatProps) 
             timestamp: new Date(),
         }]);
         setSessionId("new");
-        setCanExtractBrief(false);
         setBrief(null);
     };
 

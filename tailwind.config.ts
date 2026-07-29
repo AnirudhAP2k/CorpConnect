@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 import { withUt } from 'uploadthing/tw';
+import tailwindcssAnimate from 'tailwindcss-animate';
 
 // Nexus Corporate Design System — sourced from Stitch (B2B Network Redesign)
 module.exports = withUt({
@@ -185,5 +186,5 @@ module.exports = withUt({
       },
     },
   },
-  plugins: [require('tailwindcss-animate')],
+  plugins: [tailwindcssAnimate],
 });

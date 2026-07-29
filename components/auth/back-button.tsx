@@ -13,10 +13,10 @@ export const BackButton = ({
     label,
 }: BackButtonProps) => {
     return (
-        <Button variant="link" className="font-normal w-full" size="sm" asChild>
+        <Button variant="link" className="font-body text-xs text-nx-on-tertiary-container hover:underline w-full" size="sm" asChild>
             <Link href={href}>
                 {label}
             </Link>
         </Button>
-    )
-}
+    );
+};

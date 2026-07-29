@@ -23,9 +23,17 @@ interface UseEventViewOptions {
  * The sessionId is stable for the lifetime of the component.
  */
 export function useEventView({ eventId, referrer = "direct", minSeconds = 3 }: UseEventViewOptions) {
-    const sessionId = useRef<string>(randomUUID());
-    const startTime = useRef<number>(Date.now());
+    const sessionId = useRef<string>("");
+    const startTime = useRef<number>(0);
     const recorded = useRef<boolean>(false);
+
+    // Seeded on mount rather than during render: uuid() and Date.now() are impure,
+    // and every render after the first would discard the value anyway. Runs before
+    // the effects below, which only read these refs asynchronously.
+    useEffect(() => {
+        sessionId.current = randomUUID();
+        startTime.current = Date.now();
+    }, []);
 
     // Record view start after minimum dwell time
     useEffect(() => {

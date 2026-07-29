@@ -20,7 +20,8 @@ export type NotificationTypeValue =
     | "INVITE"
     | "SYSTEM"
     | "MEETING"
-    | "PAYMENT";
+    | "PAYMENT"
+    | "BILLING";
 
 export interface CreateNotificationParams {
     userId: string;

@@ -135,7 +135,8 @@ export default async function BillingPage() {
                         {org.subscriptionExpiresAt && (
                             <span className="text-xs text-nx-on-surface-variant flex items-center gap-1">
                                 <Calendar className="w-3.5 h-3.5" />
-                                Renews {org.subscriptionExpiresAt.toLocaleDateString("en-IN")}
+                                {org.subscriptionStatus === "TRIALING" ? "Trial ends" : "Renews"}{" "}
+                                {org.subscriptionExpiresAt.toLocaleDateString("en-IN")}
                             </span>
                         )}
                     </div>
