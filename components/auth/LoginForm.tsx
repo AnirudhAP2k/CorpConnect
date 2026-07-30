@@ -110,7 +110,7 @@ const LoginForm = () => {
                                                         placeholder="alex.vance@company.com"
                                                         type="email"
                                                         disabled={isPending}
-                                                        className="h-11 pl-10 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container px-4 text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
+                                                        className="h-11 pl-10 pr-4 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
                                                     />
                                                 </div>
                                             </FormControl>
@@ -184,7 +184,7 @@ const LoginForm = () => {
                                                     {...field}
                                                     disabled={isPending}
                                                     placeholder="123456"
-                                                    className="h-11 pl-10 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container px-4 text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
+                                                    className="h-11 pl-10 pr-4 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
                                                 />
                                             </div>
                                         </FormControl>

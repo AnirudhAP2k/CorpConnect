@@ -25,13 +25,20 @@ import { User, Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, CheckCircle2 } 
 
 const calculatePasswordStrength = (pass: string) => {
     if (!pass) return { score: 0, label: "", color: "" };
-    let score = 0;
-    if (pass.length >= 8) score += 1;
-    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) score += 1;
-    if (/[0-9]/.test(pass) || /[^A-Za-z0-9]/.test(pass)) score += 1;
 
-    if (score === 1) return { score: 1, label: "Weak", color: "bg-red-500" };
-    if (score === 2) return { score: 2, label: "Good", color: "bg-amber-500" };
+    // Must meet minimum length to score at all
+    if (pass.length < 6) return { score: 1, label: "Too short", color: "bg-red-500" };
+
+    let criteria = 0;
+    if (pass.length >= 8) criteria += 1;
+    if (pass.length >= 12) criteria += 1;
+    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) criteria += 1;
+    if (/[0-9]/.test(pass)) criteria += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) criteria += 1;
+
+    // 0-2 criteria = Weak, 3 = Good, 4-5 = Strong
+    if (criteria <= 2) return { score: 1, label: "Weak", color: "bg-red-500" };
+    if (criteria <= 3) return { score: 2, label: "Good", color: "bg-amber-500" };
     return { score: 3, label: "Strong", color: "bg-emerald-500" };
 };
 
@@ -126,7 +133,7 @@ const RegisterForm = () => {
                                                 placeholder="Sarah Jenkins"
                                                 type="text"
                                                 disabled={isPending}
-                                                className="h-11 pl-10 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container px-4 text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
+                                                className="h-11 pl-10 pr-4 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
                                             />
                                         </div>
                                     </FormControl>
@@ -154,7 +161,7 @@ const RegisterForm = () => {
                                                 placeholder="sarah@company.com"
                                                 type="email"
                                                 disabled={isPending}
-                                                className="h-11 pl-10 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container px-4 text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
+                                                className="h-11 pl-10 pr-4 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all"
                                             />
                                         </div>
                                     </FormControl>
@@ -204,14 +211,12 @@ const RegisterForm = () => {
                                         </div>
                                     </FormControl>
                                     
-                                    {/* Password Strength Indicator Bar */}
-                                    {watchPassword && (
-                                        <div className="grid grid-cols-3 gap-1.5 pt-1">
-                                            <div className={`h-1 rounded-full ${passwordStrength.score >= 1 ? passwordStrength.color : 'bg-nx-outline-variant/30'}`} />
-                                            <div className={`h-1 rounded-full ${passwordStrength.score >= 2 ? passwordStrength.color : 'bg-nx-outline-variant/30'}`} />
-                                            <div className={`h-1 rounded-full ${passwordStrength.score >= 3 ? passwordStrength.color : 'bg-nx-outline-variant/30'}`} />
-                                        </div>
-                                    )}
+                                    {/* Password Strength Indicator Bar — always rendered to prevent layout shift */}
+                                    <div className="grid grid-cols-3 gap-1.5 pt-1">
+                                        <div className={`h-1 rounded-full transition-colors duration-300 ${watchPassword && passwordStrength.score >= 1 ? passwordStrength.color : 'bg-nx-outline-variant/20'}`} />
+                                        <div className={`h-1 rounded-full transition-colors duration-300 ${watchPassword && passwordStrength.score >= 2 ? passwordStrength.color : 'bg-nx-outline-variant/20'}`} />
+                                        <div className={`h-1 rounded-full transition-colors duration-300 ${watchPassword && passwordStrength.score >= 3 ? passwordStrength.color : 'bg-nx-outline-variant/20'}`} />
+                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}
