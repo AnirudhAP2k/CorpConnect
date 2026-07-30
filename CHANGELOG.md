@@ -1,3 +1,11 @@
+# [1.25.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.24.0...v1.25.0) (2026-07-30)
+
+
+### Features
+
+* **auth:** upgrade LoginForm with input icons, password visibility toggles, and executive CTA styling ([ce19c14](https://github.com/AnirudhAP2k/CorpConnect/commit/ce19c14abd21c543030dac9c53785ebd3b886f7a))
+* **auth:** upgrade RegisterForm with Stitch input icons, password strength indicator, and terms checkbox ([d7905c9](https://github.com/AnirudhAP2k/CorpConnect/commit/d7905c9c27f6bb49762fbf96fc99aa0f81fbabfb))
+
 # [1.24.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.23.0...v1.24.0) (2026-07-29)
 
 
