@@ -112,3 +112,22 @@ export function isUUID(value: string): boolean {
   const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
   return uuidRegex.test(value);
 }
+
+export const calculatePasswordStrength = (pass: string) => {
+    if (!pass) return { score: 0, label: "", color: "" };
+
+    // Must meet minimum length to score at all
+    if (pass.length < 6) return { score: 1, label: "Too short", color: "bg-red-500" };
+
+    let criteria = 0;
+    if (pass.length >= 8) criteria += 1;
+    if (pass.length >= 12) criteria += 1;
+    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) criteria += 1;
+    if (/[0-9]/.test(pass)) criteria += 1;
+    if (/[^A-Za-z0-9]/.test(pass)) criteria += 1;
+
+    // 0-2 criteria = Weak, 3 = Good, 4-5 = Strong
+    if (criteria <= 2) return { score: 1, label: "Weak", color: "bg-red-500" };
+    if (criteria <= 3) return { score: 2, label: "Good", color: "bg-amber-500" };
+    return { score: 3, label: "Strong", color: "bg-emerald-500" };
+};
