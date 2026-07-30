@@ -19,9 +19,20 @@ export type SetActiveOrganizationInput = z.infer<typeof setActiveOrganizationSch
 
 // ─── Profile update ───────────────────────────────────────────────────────────
 
+const defaultAvatarSchema = z.enum([
+    "/assets/avatars/avatar-blue.svg",
+    "/assets/avatars/avatar-violet.svg",
+    "/assets/avatars/avatar-amber.svg",
+    "/assets/avatars/avatar-emerald.svg",
+]);
+
 export const updateUserProfileSchema = z.object({
     name: z.string().min(1, "Name is required").max(100).optional(),
-    image: z.string().url("Invalid image URL").optional().or(z.literal("")),
+    image: z.union([
+        z.string().url("Invalid image URL"),
+        defaultAvatarSchema,
+        z.literal(""),
+    ]).optional(),
 });
 
 export type UpdateUserProfileInput = z.infer<typeof updateUserProfileSchema>;
