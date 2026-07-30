@@ -40,6 +40,7 @@ const MAX_FILE_SIZE = process.env.MAX_UPLOAD_SIZE
  *   - `file`     {File}   — the file to upload (required)
  *   - `folder`   {string} — destination folder in cloud (default: "uploads")
  *   - `publicId` {string} — optional custom public_id
+ *   - `imagePreset` {"avatar"} — optional enforced image optimization preset
  *
  * Called directly from client components (Next.js handles the server boundary)
  * and from server-side helpers like `uploadToCloudinary`. The `/api/file-upload`
@@ -60,6 +61,7 @@ export async function uploadFileAction(formData: FormData): Promise<UploadResult
     const file = formData.get("file") as File | null;
     const folder = (formData.get("folder") as string | null) ?? "uploads";
     const publicId = (formData.get("publicId") as string | null) ?? undefined;
+    const imagePreset = formData.get("imagePreset") as string | null;
 
     // ── Validate ──────────────────────────────────────────────────────────────
     if (!file || typeof file === "string") {
@@ -76,14 +78,36 @@ export async function uploadFileAction(formData: FormData): Promise<UploadResult
         };
     }
 
+    if (imagePreset && imagePreset !== "avatar") {
+        return { success: false, publicId: null, url: null, imageUrl: null, message: "Invalid image preset" };
+    }
+
     // ── Upload ────────────────────────────────────────────────────────────────
     try {
         const resourceType = resolveResourceType(file.type);
+        if (imagePreset === "avatar" && resourceType !== "image") {
+            return { success: false, publicId: null, url: null, imageUrl: null, message: "Profile photo must be an image" };
+        }
+
         const buffer = Buffer.from(await file.arrayBuffer());
 
         const raw = await new Promise<any>((resolve, reject) => {
             cloudinary.uploader.upload_stream(
-                { folder, resource_type: resourceType, public_id: publicId, use_filename: false },
+                {
+                    folder,
+                    resource_type: resourceType,
+                    public_id: publicId,
+                    use_filename: false,
+                    ...(imagePreset === "avatar" && {
+                        format: "webp",
+                        transformation: [{
+                            width: 512,
+                            height: 512,
+                            crop: "limit",
+                            quality: "auto:good",
+                        }],
+                    }),
+                },
                 (err: any, result: any) => {
                     if (err) reject(err);
                     else resolve(result);
