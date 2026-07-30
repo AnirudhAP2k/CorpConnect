@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.25.0...v1.25.1) (2026-07-30)
+
+
+### Bug Fixes
+
+* **auth:** resolve icon overlap, layout shift on password bar, and incorrect strength algorithm ([1b922a8](https://github.com/AnirudhAP2k/CorpConnect/commit/1b922a816c131d775023e72da6f1c05f469a8395))
+
 # [1.25.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.24.0...v1.25.0) (2026-07-30)
 
 
