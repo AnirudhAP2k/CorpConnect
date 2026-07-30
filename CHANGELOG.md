@@ -1,3 +1,17 @@
+# [1.26.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.25.1...v1.26.0) (2026-07-30)
+
+
+### Bug Fixes
+
+* **payment:** update Stripe API version compatibility string ([c9e36de](https://github.com/AnirudhAP2k/CorpConnect/commit/c9e36de30f7a581163b8113eabed8830a5a268fa))
+* **payment:** update Stripe API version to 2026-06-24 ([5843792](https://github.com/AnirudhAP2k/CorpConnect/commit/5843792b5344f2e6f493d7106e2982d7b43cb003))
+
+
+### Features
+
+* **auth:** extract calculatePasswordStrength into utils helper in RegisterForm ([b75a080](https://github.com/AnirudhAP2k/CorpConnect/commit/b75a0804265078ef9aa49a44aa1eec3fa8f1d958))
+* **utils:** add calculatePasswordStrength utility helper ([6a354c7](https://github.com/AnirudhAP2k/CorpConnect/commit/6a354c71fffce440892c7f887bcf596c9d3274d6))
+
 ## [1.25.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.25.0...v1.25.1) (2026-07-30)
 
 
