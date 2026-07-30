@@ -192,7 +192,7 @@ export default async function ProfilePage() {
 
             {/* Action buttons */}
             <div className="flex flex-wrap gap-3">
-              <Link href="/onboarding">
+              <Link href="/profile/edit">
                 <Button className="px-6 py-3 h-auto bg-nx-primary text-white rounded-xl font-headline font-semibold shadow-nx-primary hover:opacity-90 hover:scale-[1.02] transition-all flex items-center gap-2">
                   <UserPlus className="w-4 h-4" />
                   Edit Profile
