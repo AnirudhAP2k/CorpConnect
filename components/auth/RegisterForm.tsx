@@ -21,26 +21,8 @@ import { FormErrors } from "@/components/FormErrors";
 import { FormSuccess } from '@/components/FormSuccess';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { User, Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight, CheckCircle2 } from 'lucide-react';
-
-const calculatePasswordStrength = (pass: string) => {
-    if (!pass) return { score: 0, label: "", color: "" };
-
-    // Must meet minimum length to score at all
-    if (pass.length < 6) return { score: 1, label: "Too short", color: "bg-red-500" };
-
-    let criteria = 0;
-    if (pass.length >= 8) criteria += 1;
-    if (pass.length >= 12) criteria += 1;
-    if (/[A-Z]/.test(pass) && /[a-z]/.test(pass)) criteria += 1;
-    if (/[0-9]/.test(pass)) criteria += 1;
-    if (/[^A-Za-z0-9]/.test(pass)) criteria += 1;
-
-    // 0-2 criteria = Weak, 3 = Good, 4-5 = Strong
-    if (criteria <= 2) return { score: 1, label: "Weak", color: "bg-red-500" };
-    if (criteria <= 3) return { score: 2, label: "Good", color: "bg-amber-500" };
-    return { score: 3, label: "Strong", color: "bg-emerald-500" };
-};
+import { User, Mail, Lock, Eye, EyeOff, ShieldCheck, ArrowRight } from 'lucide-react';
+import { calculatePasswordStrength } from '@/lib/utils';
 
 const RegisterForm = () => {
     const [errors, setErrors] = useState("");
@@ -179,11 +161,10 @@ const RegisterForm = () => {
                                     <FormLabel className="text-xs font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant flex items-center justify-between">
                                         <span>Password</span>
                                         {passwordStrength.label && (
-                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${
-                                                passwordStrength.score === 1 ? 'text-red-600 bg-red-50' :
+                                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider ${passwordStrength.score === 1 ? 'text-red-600 bg-red-50' :
                                                 passwordStrength.score === 2 ? 'text-amber-600 bg-amber-50' :
-                                                'text-emerald-600 bg-emerald-50'
-                                            }`}>
+                                                    'text-emerald-600 bg-emerald-50'
+                                                }`}>
                                                 {passwordStrength.label}
                                             </span>
                                         )}
@@ -210,7 +191,7 @@ const RegisterForm = () => {
                                             </button>
                                         </div>
                                     </FormControl>
-                                    
+
                                     {/* Password Strength Indicator Bar — always rendered to prevent layout shift */}
                                     <div className="grid grid-cols-3 gap-1.5 pt-1">
                                         <div className={`h-1 rounded-full transition-colors duration-300 ${watchPassword && passwordStrength.score >= 1 ? passwordStrength.color : 'bg-nx-outline-variant/20'}`} />
