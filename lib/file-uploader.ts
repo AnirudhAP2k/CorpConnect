@@ -14,13 +14,17 @@ export type { UploadResult };
  */
 export const handleUpload = async (
     files: File[],
-    folder = "uploads"
+    folder = "uploads",
+    options: { imagePreset?: "avatar" } = {}
 ): Promise<UploadResult | null> => {
     if (files.length === 0) return null;
 
     const formData = new FormData();
     formData.append("file", files[0]);
     formData.append("folder", folder);
+    if (options.imagePreset) {
+        formData.append("imagePreset", options.imagePreset);
+    }
 
     try {
         const result = await uploadFileAction(formData);
