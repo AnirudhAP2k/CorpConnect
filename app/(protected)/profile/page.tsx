@@ -5,10 +5,8 @@ import Link from "next/link";
 import {
   Mail,
   MapPin,
-  Share2,
   CalendarDays,
   UserPlus,
-  MoreHorizontal,
   Briefcase,
   Building2,
   Star,
@@ -18,10 +16,17 @@ import {
   Handshake,
   CheckCircle,
   Clock,
+  Phone,
+  Globe,
+  Linkedin,
+  Twitter,
+  Mic,
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { getUserProfileData } from "@/domain/users";
+import { ProfileActionsMenu, ShareProfileButton } from "@/components/profile/ProfileActionsMenu";
+import { encodeProfileToken, getPublicProfileUrl } from "@/lib/profile-link";
 import { format } from "date-fns";
 import type { Metadata } from "next";
 
@@ -60,6 +65,20 @@ function ContactRow({ icon, value }: { icon: React.ReactNode; value: string }) {
   );
 }
 
+function ContactLinkRow({ icon, label, href }: { icon: React.ReactNode; label: string; href: string }) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="flex items-center gap-4 p-3 bg-nx-surface-container-low rounded-xl hover:bg-nx-surface-container transition-colors"
+    >
+      <span className="text-nx-on-tertiary-container shrink-0">{icon}</span>
+      <span className="text-sm font-body text-nx-on-surface truncate">{label}</span>
+    </a>
+  );
+}
+
 function EmptyState({ icon: Icon, text, linkText, linkHref }: {
   icon: React.ComponentType<{ className?: string }>;
   text: string;
@@ -95,14 +114,19 @@ export default async function ProfilePage() {
     connectionsCount,
     recentParticipations,
     orgMembers,
+    eventsHosted,
+    hostedEvents,
   } = profileData;
+
+  const publicProfilePath = `/u/${encodeProfileToken(user.id)}`;
+  const publicProfileUrl = getPublicProfileUrl(user.id);
 
   const fullName = user.name || "Anonymous User";
   const initials = fullName.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
   const primaryOrg = user.organization;
-  const jobTitle = primaryOrg ? `Member · ${primaryOrg.name}` : "Professional Member";
+  const jobTitle = user.headline || (primaryOrg ? `Member · ${primaryOrg.name}` : "Professional Member");
   const industry = primaryOrg?.industry?.label ?? "Business Professional";
-  const location = primaryOrg?.location ?? "Global";
+  const location = user.location ?? primaryOrg?.location ?? "Global";
 
   const primaryMembership = user.organizationMemberships.find(
     (m) => m.organizationId === user.organizationId
@@ -113,6 +137,7 @@ export default async function ProfilePage() {
   const stats = [
     { label: "Events Registered", value: eventsRegistered },
     { label: "Events Attended", value: eventsAttended },
+    { label: "Events Hosted", value: eventsHosted },
     { label: "Connections", value: connectionsCount },
     { label: "Member Since", value: format(new Date(user.createdAt), "MMM yyyy") },
   ];
@@ -180,6 +205,12 @@ export default async function ProfilePage() {
               )}
             </p>
 
+            {user.bio && (
+              <p className="text-base font-body text-nx-on-surface mb-6 max-w-2xl leading-relaxed whitespace-pre-line">
+                {user.bio}
+              </p>
+            )}
+
             {/* Stats row */}
             <div className="flex flex-wrap gap-6 mb-8">
               {stats.map((stat) => (
@@ -204,9 +235,10 @@ export default async function ProfilePage() {
                   Browse Events
                 </Button>
               </Link>
-              <Button variant="ghost" className="p-3 h-auto bg-nx-surface-container-low text-nx-on-surface-variant rounded-xl hover:text-nx-primary transition-colors">
-                <MoreHorizontal className="w-5 h-5" />
-              </Button>
+              <ProfileActionsMenu
+                publicProfileUrl={publicProfileUrl}
+                publicProfilePath={publicProfilePath}
+              />
             </div>
           </div>
         </section>
@@ -220,41 +252,106 @@ export default async function ProfilePage() {
           <div className="lg:col-span-8 space-y-8">
 
             {/* Organization Affiliations */}
-            {primaryOrg && (
+            {user.organizationMemberships.length > 0 && (
               <section className="bg-white rounded-3xl p-8 shadow-nx-card">
                 <h2 className="text-xl font-headline font-semibold text-nx-primary mb-7">
                   Organization Affiliations
                 </h2>
                 <div className="space-y-8">
-                  <div className="flex gap-5">
-                    <div className="flex-none w-12 h-12 bg-nx-surface-container-low rounded-xl flex items-center justify-center shrink-0">
-                      {primaryOrg.logo ? (
-                        <Image src={primaryOrg.logo} alt={primaryOrg.name} width={32} height={32} className="rounded-lg object-cover" />
-                      ) : (
-                        <Briefcase className="w-5 h-5 text-nx-primary" />
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
-                        <h3 className="text-base font-headline font-semibold text-nx-primary">
-                          {primaryRole.replace("_", " ") || "Member"}
-                        </h3>
-                        <span className="text-[11px] font-label font-medium text-nx-on-surface-variant uppercase tracking-widest shrink-0">
-                          {format(new Date(user.createdAt), "yyyy")} — Present
-                        </span>
+                  {user.organizationMemberships.map((membership) => {
+                    const org = membership.organization;
+                    const isPrimary = org.id === user.organizationId;
+
+                    return (
+                      <div key={membership.id} className="flex gap-5">
+                        <div className="flex-none w-12 h-12 bg-nx-surface-container-low rounded-xl flex items-center justify-center shrink-0">
+                          {org.logo ? (
+                            <Image src={org.logo} alt={org.name} width={32} height={32} className="rounded-lg object-cover" />
+                          ) : (
+                            <Briefcase className="w-5 h-5 text-nx-primary" />
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex flex-wrap justify-between items-start gap-2 mb-1">
+                            <h3 className="text-base font-headline font-semibold text-nx-primary">
+                              {membership.role.replace("_", " ") || "Member"}
+                              {isPrimary && (
+                                <Badge className="ml-2 bg-nx-tertiary-container/20 text-nx-on-tertiary-container border-0 text-[10px]">
+                                  Primary
+                                </Badge>
+                              )}
+                            </h3>
+                            <span className="text-[11px] font-label font-medium text-nx-on-surface-variant uppercase tracking-widest shrink-0">
+                              {format(new Date(membership.createdAt), "yyyy")} — Present
+                            </span>
+                          </div>
+                          <Link href={`/organizations/${org.id}`} className="text-sm font-medium text-nx-on-tertiary-container hover:underline underline-offset-2">
+                            {org.name}
+                          </Link>
+                          <div className="flex items-center gap-4 mt-2 text-xs text-nx-on-surface-variant">
+                            {org.location && (
+                              <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{org.location}</span>
+                            )}
+                            {org.isVerified && (
+                              <span className="flex items-center gap-1 text-green-700"><CheckCircle className="w-3 h-3" />Verified</span>
+                            )}
+                            {isPrimary && primaryOrg && (
+                              <>
+                                <span className="flex items-center gap-1"><Users className="w-3 h-3" />{primaryOrg._count.members} members</span>
+                                <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{primaryOrg._count.events} events</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
                       </div>
-                      <Link href={`/organizations/${primaryOrg.id}`} className="text-sm font-medium text-nx-on-tertiary-container hover:underline underline-offset-2">
-                        {primaryOrg.name}
-                      </Link>
-                      <div className="flex items-center gap-4 mt-2 text-xs text-nx-on-surface-variant">
-                        {primaryOrg.location && (
-                          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{primaryOrg.location}</span>
-                        )}
-                        <span className="flex items-center gap-1"><Users className="w-3 h-3" />{primaryOrg._count.members} members</span>
-                        <span className="flex items-center gap-1"><Calendar className="w-3 h-3" />{primaryOrg._count.events} events</span>
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+
+            {/* Events you're hosting */}
+            {hostedEvents.length > 0 && (
+              <section className="bg-white rounded-3xl p-8 shadow-nx-card">
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-xl font-headline font-semibold text-nx-primary flex items-center">
+                    <SectionAccent />
+                    You&apos;re Hosting
+                  </h2>
+                  <Link href="/events/create" className="text-xs font-label font-semibold text-nx-on-tertiary-container hover:underline flex items-center gap-1">
+                    Create event <ArrowRight className="w-3 h-3" />
+                  </Link>
+                </div>
+                <div className="space-y-4">
+                  {hostedEvents.map((event) => (
+                    <Link
+                      key={event.id}
+                      href={`/events/${event.id}`}
+                      className="flex items-center gap-4 p-3 rounded-xl hover:bg-nx-surface-container-low transition-colors group"
+                    >
+                      <div className="w-12 h-12 rounded-xl bg-nx-tertiary-container/20 flex items-center justify-center flex-shrink-0">
+                        <Mic className="w-5 h-5 text-nx-on-tertiary-container" />
                       </div>
-                    </div>
-                  </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-headline font-semibold text-nx-primary truncate group-hover:underline">
+                          {event.title}
+                        </p>
+                        <div className="flex items-center gap-3 text-xs text-nx-on-surface-variant mt-0.5">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3 h-3" />
+                            {format(new Date(event.startDateTime), "MMM d, yyyy · h:mm a")}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Users className="w-3 h-3" />
+                            {event.attendeeCount} registered
+                          </span>
+                        </div>
+                      </div>
+                      <Badge variant="outline" className="text-[10px] shrink-0">
+                        {event.visibility}
+                      </Badge>
+                    </Link>
+                  ))}
                 </div>
               </section>
             )}
@@ -369,8 +466,23 @@ export default async function ProfilePage() {
               </p>
               <div className="space-y-3">
                 <ContactRow icon={<Mail className="w-4 h-4" />} value={user.email || "Not Verified"} />
-                {primaryOrg?.location && (
-                  <ContactRow icon={<MapPin className="w-4 h-4" />} value={primaryOrg.location} />
+                {user.phone && (
+                  <ContactRow icon={<Phone className="w-4 h-4" />} value={user.phone} />
+                )}
+                {(user.location || primaryOrg?.location) && (
+                  <ContactRow
+                    icon={<MapPin className="w-4 h-4" />}
+                    value={user.location ?? primaryOrg!.location!}
+                  />
+                )}
+                {user.linkedinUrl && (
+                  <ContactLinkRow icon={<Linkedin className="w-4 h-4" />} label="LinkedIn" href={user.linkedinUrl} />
+                )}
+                {user.websiteUrl && (
+                  <ContactLinkRow icon={<Globe className="w-4 h-4" />} label={user.websiteUrl} href={user.websiteUrl} />
+                )}
+                {user.twitterUrl && (
+                  <ContactLinkRow icon={<Twitter className="w-4 h-4" />} label="X / Twitter" href={user.twitterUrl} />
                 )}
                 {primaryOrg?.website && (
                   <ContactRow icon={<Building2 className="w-4 h-4" />} value={(primaryOrg as any).website} />
@@ -378,10 +490,29 @@ export default async function ProfilePage() {
               </div>
 
               <div className="flex gap-3 mt-6 justify-center">
-                <button className="w-9 h-9 rounded-full bg-nx-primary flex items-center justify-center text-white hover:scale-110 transition-transform shadow-nx-primary">
-                  <Share2 className="w-4 h-4" />
-                </button>
+                <ShareProfileButton publicProfileUrl={publicProfileUrl} />
               </div>
+            </section>
+
+            {/* Public profile link */}
+            <section className="bg-white rounded-3xl p-6 shadow-nx-card">
+              <p className="text-[10px] font-label font-bold text-nx-on-surface-variant uppercase tracking-[0.1em] mb-3">
+                Public Profile
+              </p>
+              <p className="text-xs font-body text-nx-on-surface-variant leading-relaxed mb-4">
+                Anyone with this link can view your name, headline, bio, organizations
+                and public events. Your email and phone stay private.
+              </p>
+              <p className="rounded-xl bg-nx-surface-container-low px-3 py-2 text-[11px] font-mono text-nx-on-surface-variant break-all">
+                {publicProfileUrl}
+              </p>
+              <Link
+                href={publicProfilePath}
+                target="_blank"
+                className="mt-4 inline-flex items-center gap-1 text-xs font-label font-semibold text-nx-on-tertiary-container hover:underline"
+              >
+                View as visitor <ArrowRight className="w-3 h-3" />
+              </Link>
             </section>
 
             {/* Domains / Expertise — derived from org data */}
