@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { ApiTier } from "@prisma/client";
+import { ApiTier, EventVisibility } from "@prisma/client";
 import type { PublicUser, UserWithOrgs, UserWithRole } from "@/domain/users/types";
 import type { OrganizationRole, User } from "@prisma/client";
 
@@ -47,8 +47,180 @@ export async function getPublicUserById(id: string): Promise<PublicUser | null> 
             organizationId: true,
             activeOrganizationId: true,
             hasCompletedOnboarding: true,
+            headline: true,
+            bio: true,
+            location: true,
+            phone: true,
+            linkedinUrl: true,
+            websiteUrl: true,
+            twitterUrl: true,
         },
     }) as Promise<PublicUser | null>;
+}
+
+/**
+ * Data for the publicly shareable profile page. Contact details the user did
+ * not choose to publish (email, phone) are deliberately excluded.
+ */
+export async function getSharedProfile(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            name: true,
+            image: true,
+            headline: true,
+            bio: true,
+            location: true,
+            linkedinUrl: true,
+            websiteUrl: true,
+            twitterUrl: true,
+            createdAt: true,
+            organization: {
+                select: {
+                    id: true,
+                    name: true,
+                    logo: true,
+                    location: true,
+                    website: true,
+                    description: true,
+                    isVerified: true,
+                    services: true,
+                    technologies: true,
+                    partnershipInterests: true,
+                    industry: { select: { label: true } },
+                    _count: { select: { members: true, events: true } },
+                },
+            },
+            organizationMemberships: {
+                select: {
+                    id: true,
+                    role: true,
+                    createdAt: true,
+                    organization: {
+                        select: {
+                            id: true,
+                            name: true,
+                            logo: true,
+                            location: true,
+                            isVerified: true,
+                            industry: { select: { label: true } },
+                        },
+                    },
+                },
+                orderBy: { createdAt: "asc" },
+            },
+        },
+    });
+
+    if (!user) return null;
+
+    // Only PUBLIC events are exposed here — private events would leak the
+    // user's whereabouts to anyone holding the link.
+    const publicEvent = { visibility: EventVisibility.PUBLIC } as const;
+
+    const [eventsAttended, eventsHosted, hostedEvents, recentPublicEvents, groupsCreated] =
+        await Promise.all([
+            prisma.eventParticipation.count({
+                where: { userId, status: "ATTENDED", event: publicEvent },
+            }),
+
+            prisma.events.count({ where: { userId, ...publicEvent } }),
+
+            prisma.events.findMany({
+                where: { userId, ...publicEvent, startDateTime: { gte: new Date() } },
+                select: {
+                    id: true,
+                    title: true,
+                    startDateTime: true,
+                    location: true,
+                    eventType: true,
+                    organization: { select: { id: true, name: true } },
+                },
+                orderBy: { startDateTime: "asc" },
+                take: 3,
+            }),
+
+            prisma.eventParticipation.findMany({
+                where: { userId, status: "ATTENDED", event: publicEvent },
+                select: {
+                    id: true,
+                    event: {
+                        select: {
+                            id: true,
+                            title: true,
+                            startDateTime: true,
+                            organization: { select: { id: true, name: true } },
+                        },
+                    },
+                },
+                orderBy: { event: { startDateTime: "desc" } },
+                take: 3,
+            }),
+
+            prisma.industryGroup.findMany({
+                where: { createdById: userId },
+                select: {
+                    id: true,
+                    name: true,
+                    logo: true,
+                    industry: { select: { label: true } },
+                    _count: { select: { members: true } },
+                },
+                take: 4,
+            }),
+        ]);
+
+    return {
+        ...user,
+        eventsAttended,
+        eventsHosted,
+        hostedEvents,
+        recentPublicEvents,
+        groupsCreated,
+    };
+}
+
+/**
+ * Get everything the profile edit screen needs: the editable profile fields,
+ * whether the account can use two-factor auth (credentials sign-in only),
+ * and the organizations the user may switch between.
+ */
+export async function getProfileEditData(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            name: true,
+            image: true,
+            isTwoFactorEnabled: true,
+            activeOrganizationId: true,
+            headline: true,
+            bio: true,
+            location: true,
+            phone: true,
+            linkedinUrl: true,
+            websiteUrl: true,
+            twitterUrl: true,
+            password: true,
+            organizationMemberships: {
+                select: {
+                    organization: { select: { id: true, name: true, logo: true } },
+                },
+                orderBy: { createdAt: "asc" },
+            },
+        },
+    });
+
+    if (!user) return null;
+
+    const { password, organizationMemberships, ...profile } = user;
+
+    return {
+        ...profile,
+        canUseTwoFactor: Boolean(password),
+        organizations: organizationMemberships.map((m) => m.organization),
+    };
 }
 
 /**
@@ -67,6 +239,13 @@ export async function getUserWithOrgs(userId: string): Promise<UserWithOrgs | nu
             organizationId: true,
             activeOrganizationId: true,
             hasCompletedOnboarding: true,
+            headline: true,
+            bio: true,
+            location: true,
+            phone: true,
+            linkedinUrl: true,
+            websiteUrl: true,
+            twitterUrl: true,
             organizationMemberships: {
                 include: {
                     organization: {
@@ -198,6 +377,8 @@ export async function getUserProfileData(userId: string) {
         connectionsCount,
         recentParticipations,
         orgMembers,
+        eventsHosted,
+        hostedEvents,
     ] = await Promise.all([
         // Events actually attended
         prisma.eventParticipation.count({
@@ -267,6 +448,24 @@ export async function getUserProfileData(userId: string) {
                 orderBy: { createdAt: "asc" },
             })
             : [],
+
+        // Events the user created
+        prisma.events.count({ where: { userId } }),
+
+        // Next events the user is hosting
+        prisma.events.findMany({
+            where: { userId, startDateTime: { gte: new Date() } },
+            select: {
+                id: true,
+                title: true,
+                startDateTime: true,
+                location: true,
+                visibility: true,
+                attendeeCount: true,
+            },
+            orderBy: { startDateTime: "asc" },
+            take: 3,
+        }),
     ]);
 
     return {
@@ -277,5 +476,61 @@ export async function getUserProfileData(userId: string) {
         connectionsCount,
         recentParticipations,
         orgMembers,
+        eventsHosted,
+        hostedEvents,
     };
+}
+
+/**
+ * The user's primary organization, or null when they belong to none.
+ */
+export async function getUserPrimaryOrganization(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            organizationId: true,
+            organization: { select: { id: true, name: true, logo: true, isVerified: true } },
+        },
+    });
+
+    if (!user?.organizationId || !user.organization) return null;
+
+    return user.organization;
+}
+
+/**
+ * Identity and industry context the dashboard header and recommendations need.
+ */
+export async function getDashboardUser(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            name: true,
+            isAppAdmin: true,
+            activeOrganizationId: true,
+            organization: { select: { industryId: true } },
+        },
+    });
+
+    if (!user) return null;
+
+    return {
+        name: user.name,
+        isAppAdmin: user.isAppAdmin,
+        activeOrganizationId: user.activeOrganizationId,
+        industryId: user.organization?.industryId,
+    };
+}
+
+/**
+ * Fetches the user's image by ID.
+ * Returns null if the user does not exist.
+ */
+export async function getUserImage(userId: string) {
+    const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { image: true },
+    });
+
+    return user?.image ?? null;
 }
