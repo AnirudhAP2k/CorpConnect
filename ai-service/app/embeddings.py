@@ -28,10 +28,10 @@ logger = logging.getLogger(__name__)
 # ─── Constants ────────────────────────────────────────────────────────────────
 
 _HF_API_URL = (
-    "https://router.huggingface.co/hf-inference/models/"
-    "sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
+    settings.HUGGINGFACE_API_BASE_URL
+    + settings.HUGGINGFACE_API_MODEL_NAME
 )
-_EXPECTED_DIM = 384
+_EXPECTED_DIM = settings.HUGGINGFACE_API_EXPECTED_DIM
 # httpx timeout: connect=5s, read=30s (HF cold-starts can be slow)
 _TIMEOUT = httpx.Timeout(connect=5.0, read=30.0, write=10.0, pool=5.0)
 
