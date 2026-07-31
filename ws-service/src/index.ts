@@ -18,8 +18,15 @@ async function main(): Promise<void> {
     const httpServer = createServer((req, res) => {
         // Basic health check endpoint for Docker / load balancer
         if (req.url === "/health") {
-            res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ status: "ok", service: "corpconnect-ws" }));
+            res.writeHead(200, {
+                "Content-Type": "application/json",
+                "Cache-Control": "no-store",
+            });
+            res.end(JSON.stringify({
+                status: "ok",
+                service: "corpconnect-ws",
+                uptimeSeconds: Math.round(process.uptime()),
+            }));
         } else {
             res.writeHead(404);
             res.end();
