@@ -17,6 +17,9 @@ class Settings(BaseSettings):
     # ─── HuggingFace Serverless Inference API (Embeddings) ────────────────────
     # Free API for sentence-transformers/all-MiniLM-L6-v2 (384 dims, no local model)
     HUGGINGFACE_API_KEY: str = ""
+    HUGGINGFACE_API_BASE_URL: str = "https://router.huggingface.co/hf-inference/models/"
+    HUGGINGFACE_API_MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2/pipeline/feature-extraction"
+    HUGGINGFACE_API_EXPECTED_DIM: int = 384
 
     # Shown in /health endpoint
     MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2 (HF API)"
