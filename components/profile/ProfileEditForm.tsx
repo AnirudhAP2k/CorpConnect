@@ -6,10 +6,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ImagePlus, Loader2, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
-import { updateUserProfileAction } from "@/domain/users";
+import { setActiveOrganizationAction, updateUserProfileAction } from "@/domain/users";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select";
 import { handleUpload } from "@/lib/file-uploader";
 import { optimizeProfileImage } from "@/lib/optimize-profile-image";
 
@@ -28,17 +37,50 @@ const ACCEPTED_IMAGE_TYPES = new Set([
 ]);
 const MAX_SOURCE_SIZE = 10 * 1024 * 1024;
 
+const MAX_BIO_LENGTH = 600;
+
 interface ProfileEditFormProps {
     initialName: string;
     initialImage: string;
+    initialHeadline: string;
+    initialBio: string;
+    initialLocation: string;
+    initialPhone: string;
+    initialLinkedinUrl: string;
+    initialWebsiteUrl: string;
+    initialTwitterUrl: string;
+    initialTwoFactorEnabled: boolean;
+    canUseTwoFactor: boolean;
+    organizations: { id: string; name: string; logo: string | null }[];
+    activeOrganizationId: string | null;
 }
 
 export function ProfileEditForm({
     initialName,
     initialImage,
+    initialHeadline,
+    initialBio,
+    initialLocation,
+    initialPhone,
+    initialLinkedinUrl,
+    initialWebsiteUrl,
+    initialTwitterUrl,
+    initialTwoFactorEnabled,
+    canUseTwoFactor,
+    organizations,
+    activeOrganizationId,
 }: ProfileEditFormProps) {
     const router = useRouter();
     const [name, setName] = useState(initialName);
+    const [headline, setHeadline] = useState(initialHeadline);
+    const [bio, setBio] = useState(initialBio);
+    const [location, setLocation] = useState(initialLocation);
+    const [phone, setPhone] = useState(initialPhone);
+    const [linkedinUrl, setLinkedinUrl] = useState(initialLinkedinUrl);
+    const [websiteUrl, setWebsiteUrl] = useState(initialWebsiteUrl);
+    const [twitterUrl, setTwitterUrl] = useState(initialTwitterUrl);
+    const [twoFactorEnabled, setTwoFactorEnabled] = useState(initialTwoFactorEnabled);
+    const [organizationId, setOrganizationId] = useState(activeOrganizationId ?? "");
     const [image, setImage] = useState(initialImage);
     const [imageFile, setImageFile] = useState<File | null>(null);
     const [imagePreview, setImagePreview] = useState("");
@@ -110,11 +152,27 @@ export function ProfileEditForm({
                 const result = await updateUserProfileAction({
                     name: name.trim(),
                     image: imageUrl,
+                    headline,
+                    bio,
+                    location,
+                    phone,
+                    linkedinUrl,
+                    websiteUrl,
+                    twitterUrl,
+                    isTwoFactorEnabled: canUseTwoFactor ? twoFactorEnabled : undefined,
                 });
 
                 if ("error" in result) {
-                    setError(result.error);
+                    setError(result.error ?? "Failed to update profile. Please try again.");
                     return;
+                }
+
+                if (organizationId && organizationId !== activeOrganizationId) {
+                    const orgResult = await setActiveOrganizationAction(organizationId);
+                    if ("error" in orgResult && orgResult.error) {
+                        setError(orgResult.error);
+                        return;
+                    }
                 }
 
                 toast.success("Profile updated successfully.");
@@ -146,6 +204,112 @@ export function ProfileEditForm({
                     required
                 />
             </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="profile-headline">Headline</Label>
+                <Input
+                    id="profile-headline"
+                    name="headline"
+                    value={headline}
+                    onChange={(event) => setHeadline(event.target.value)}
+                    placeholder="Head of Partnerships"
+                    maxLength={120}
+                    disabled={isPending}
+                />
+                <p className="text-xs text-nx-on-surface-variant">
+                    Shown under your name instead of your organization role.
+                </p>
+            </div>
+
+            <div className="space-y-2">
+                <Label htmlFor="profile-bio">About</Label>
+                <Textarea
+                    id="profile-bio"
+                    name="bio"
+                    value={bio}
+                    onChange={(event) => setBio(event.target.value)}
+                    placeholder="A short introduction for people you meet at events."
+                    maxLength={MAX_BIO_LENGTH}
+                    rows={4}
+                    disabled={isPending}
+                />
+                <p className="text-xs text-nx-on-surface-variant">
+                    {bio.length}/{MAX_BIO_LENGTH} characters
+                </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+                <div className="space-y-2">
+                    <Label htmlFor="profile-location">Location</Label>
+                    <Input
+                        id="profile-location"
+                        name="location"
+                        value={location}
+                        onChange={(event) => setLocation(event.target.value)}
+                        placeholder="Bengaluru, India"
+                        maxLength={120}
+                        disabled={isPending}
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="profile-phone">Phone</Label>
+                    <Input
+                        id="profile-phone"
+                        name="phone"
+                        type="tel"
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="+91 98765 43210"
+                        autoComplete="tel"
+                        maxLength={30}
+                        disabled={isPending}
+                    />
+                </div>
+            </div>
+
+            <fieldset className="space-y-4" disabled={isPending}>
+                <legend className="text-sm font-medium">Links</legend>
+
+                <div className="space-y-2">
+                    <Label htmlFor="profile-linkedin">LinkedIn</Label>
+                    <Input
+                        id="profile-linkedin"
+                        name="linkedinUrl"
+                        type="url"
+                        value={linkedinUrl}
+                        onChange={(event) => setLinkedinUrl(event.target.value)}
+                        placeholder="https://www.linkedin.com/in/username"
+                        inputMode="url"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="profile-website">Personal website</Label>
+                    <Input
+                        id="profile-website"
+                        name="websiteUrl"
+                        type="url"
+                        value={websiteUrl}
+                        onChange={(event) => setWebsiteUrl(event.target.value)}
+                        placeholder="https://example.com"
+                        inputMode="url"
+                    />
+                </div>
+
+                <div className="space-y-2">
+                    <Label htmlFor="profile-twitter">X / Twitter</Label>
+                    <Input
+                        id="profile-twitter"
+                        name="twitterUrl"
+                        type="url"
+                        value={twitterUrl}
+                        onChange={(event) => setTwitterUrl(event.target.value)}
+                        placeholder="https://x.com/username"
+                        inputMode="url"
+                    />
+                </div>
+            </fieldset>
 
             <fieldset className="space-y-4" disabled={isPending}>
                 <legend className="text-sm font-medium">Profile image</legend>
@@ -227,6 +391,55 @@ export function ProfileEditForm({
                 </div>
             </fieldset>
 
+            <fieldset className="space-y-4" disabled={isPending}>
+                <legend className="text-sm font-medium">Preferences</legend>
+
+                {organizations.length > 0 && (
+                    <div className="space-y-2">
+                        <Label htmlFor="profile-active-org">Active organization</Label>
+                        <Select
+                            value={organizationId}
+                            onValueChange={setOrganizationId}
+                            disabled={isPending}
+                        >
+                            <SelectTrigger id="profile-active-org">
+                                <SelectValue placeholder="Select an organization" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {organizations.map((organization) => (
+                                    <SelectItem key={organization.id} value={organization.id}>
+                                        {organization.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                        <p className="text-xs text-nx-on-surface-variant">
+                            Determines which organization&apos;s events and members you see.
+                        </p>
+                    </div>
+                )}
+
+                {canUseTwoFactor && (
+                    <div className="flex items-start gap-3 rounded-xl bg-nx-surface-container-low px-4 py-3">
+                        <Checkbox
+                            id="profile-two-factor"
+                            checked={twoFactorEnabled}
+                            onCheckedChange={(checked) => setTwoFactorEnabled(checked === true)}
+                            disabled={isPending}
+                            className="mt-0.5"
+                        />
+                        <div className="space-y-1">
+                            <Label htmlFor="profile-two-factor">
+                                Two-factor authentication
+                            </Label>
+                            <p className="text-xs text-nx-on-surface-variant">
+                                Email a one-time code every time you sign in with your password.
+                            </p>
+                        </div>
+                    </div>
+                )}
+            </fieldset>
+
             {error && (
                 <p role="alert" className="text-sm font-medium text-destructive">
                     {error}
@@ -238,10 +451,8 @@ export function ProfileEditForm({
                     <Link href="/profile">Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={isPending}>
-                    {isPending ? (
+                    {isPending && (
                         <Loader2 className="animate-spin" />
-                    ) : (
-                        <Save />
                     )}
                     {isPending ? "Saving…" : "Save changes"}
                 </Button>
