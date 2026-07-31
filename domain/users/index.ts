@@ -16,7 +16,21 @@ export {
 } from "./validation";
 
 // Queries (safe for Server Components)
-export { getUserById, getUserByEmail, getPublicUserById, getUserWithOrgs, getUserTier, getUserActiveOrgRole, getFreshSessionUser, getUserProfileData } from "./queries";
+export {
+    getUserById,
+    getUserByEmail,
+    getPublicUserById,
+    getUserWithOrgs,
+    getUserTier,
+    getUserActiveOrgRole,
+    getFreshSessionUser,
+    getUserProfileData,
+    getUserImage,
+    getDashboardUser,
+    getUserPrimaryOrganization,
+    getProfileEditData,
+    getSharedProfile,
+} from "./queries";
 
 // Server Actions (authenticated mutations)
 export { setActiveOrganizationAction, updateUserProfileAction } from "./actions";
