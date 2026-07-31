@@ -11,6 +11,8 @@ import { logout } from '@/actions/logout.actions'
 import { TopNavLinks } from '@/components/shared/TopNavLinks'
 import { NotificationBell, ReminderItem } from '@/components/shared/NotificationBell'
 import { UnreadBadge } from '@/components/messaging/UnreadBadge'
+import { getUserImage } from '@/domain/users'
+
 const TopHeader = async () => {
     const session = await auth();
 
@@ -18,8 +20,11 @@ const TopHeader = async () => {
     let activeOrganizationId: string | null = null;
     const reminders: ReminderItem[] = [];
     const isAdmin = session?.user?.isAppAdmin || false;
+    let userImage: string | null = null;
 
     if (session?.user?.id) {
+        userImage = await getUserImage(session.user.id);
+
         const memberships = await prisma.organizationMember.findMany({
             where: { userId: session.user.id },
             include: {
@@ -144,7 +149,7 @@ const TopHeader = async () => {
                                 </form>
                                 <Link href={`/profile`}>
                                     <Image
-                                        src={session?.user?.image || "/assets/images/placeholder.svg"}
+                                        src={userImage || "/assets/avatars/avatar-blue.svg"}
                                         alt={session?.user?.name || "User Avatar"}
                                         width={36}
                                         height={36}
