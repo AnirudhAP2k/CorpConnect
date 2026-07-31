@@ -7,6 +7,7 @@ Auth modes:
   - Tenant key (X-Tenant-ID + X-API-Key)         → external org calls, tier-gated
 """
 
+import time
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,6 +33,8 @@ from app.cache import init_cache
 from app.llm import is_llm_configured
 from app.routers import embed, recommend, search, ingest, generate, chat, analyse, brainstorm
 from app.logging_config import setup_logging
+
+SERVICE_STARTED_AT = time.monotonic()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -82,13 +85,15 @@ app.include_router(analyse.router,    prefix="/analyse",   tags=["Sentiment Anal
 
 @app.get("/health", tags=["Health"])
 async def health():
-    """Health check — returns model name, LLM readiness, and service version."""
+    """Health check — returns service readiness, version, and process uptime."""
     llm_ready = is_llm_configured()
     return {
         "status":       "ok",
+        "service":      "corpconnect-ai",
         "model":        settings.MODEL_NAME,
         "llm_provider": settings.LLM_PROVIDER if llm_ready else "not configured",
         "llm_model":    settings.LLM_MODEL_NAME if llm_ready else None,
         "llm_ready":    llm_ready,
         "version":      settings.SERVICE_VERSION,
+        "uptimeSeconds": round(time.monotonic() - SERVICE_STARTED_AT),
     }
