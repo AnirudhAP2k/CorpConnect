@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getGroups } from "@/data/groups";
-import { prisma } from "@/lib/db";
+import { checkOrganizationPermission, getAllIndustries } from "@/domain/organizations";
 import GroupCard from "@/components/groups/GroupCard";
 import CreateGroupButton from "@/components/groups/CreateGroupButton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -43,14 +43,12 @@ export default async function GroupsPage({
     const { myGroups, discoverGroups } = await getGroups(orgId, industryId);
 
     // Get industries for the filter/dropdown
-    const [allIndustries, myOrg] = await Promise.all([
-        prisma.industry.findMany({ orderBy: { label: 'asc' } }),
-        prisma.organizationMember.findUnique({
-            where: { userId_organizationId: { userId, organizationId: orgId } }
-        })
+    const [allIndustries, membership] = await Promise.all([
+        getAllIndustries(),
+        checkOrganizationPermission(userId, orgId, "ADMIN"),
     ]);
 
-    const isAdmin = myOrg?.role === "OWNER" || myOrg?.role === "ADMIN";
+    const isAdmin = membership.hasPermission;
 
     return (
         <div className="container mx-auto max-w-7xl py-8 space-y-8">
