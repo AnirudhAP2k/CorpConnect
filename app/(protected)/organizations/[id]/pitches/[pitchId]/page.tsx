@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { requireEnterprise } from "@/lib/enterprise";
+import { checkOrganizationPermission } from "@/domain/organizations";
 import { getPitchById } from "@/domain/pitches";
 import { PitchDetailView } from "@/components/organizations/PitchDetailView";
 import type { Metadata } from "next";
@@ -30,10 +30,8 @@ export default async function PitchDetailPage({
     const userId = session.user.id;
 
     // Verify membership
-    const membership = await prisma.organizationMember.findFirst({
-        where: { userId, organizationId },
-    });
-    if (!membership) redirect(`/organizations/${organizationId}`);
+    const { role } = await checkOrganizationPermission(userId, organizationId);
+    if (!role) redirect(`/organizations/${organizationId}`);
 
     // Enterprise gate
     await requireEnterprise(organizationId, { redirectTo: `/organizations/${organizationId}` });
@@ -43,7 +41,7 @@ export default async function PitchDetailPage({
     if (!pitch || pitch.organizationId !== organizationId) notFound();
 
     const isAuthor = pitch.proposedById === userId;
-    const isAdmin = ["OWNER", "ADMIN"].includes(membership.role);
+    const isAdmin = ["OWNER", "ADMIN"].includes(role);
 
     return (
         <PitchDetailView
