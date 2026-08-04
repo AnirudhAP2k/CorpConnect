@@ -1,6 +1,6 @@
 import { auth } from '@/auth';
 import EventsForm from '@/components/shared/EventsForm'
-import { prisma } from '@/lib/db';
+import { getUserPrimaryOrganization } from '@/domain/users';
 import { redirect } from 'next/navigation';
 import React from 'react'
 
@@ -14,14 +14,9 @@ const page = async () => {
   }
 
   // Fetch user's organization
-  const user = await prisma.user.findUnique({
-    where: { id: userId },
-    include: {
-      organization: true,
-    },
-  });
+  const organization = await getUserPrimaryOrganization(userId);
 
-  if (!user?.organizationId || !user.organization) {
+  if (!organization) {
     return (
       <>
         <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
@@ -58,8 +53,8 @@ const page = async () => {
         <EventsForm
           userId={userId}
           type="Create"
-          organizationId={user.organizationId}
-          organizationName={user.organization.name}
+          organizationId={organization.id}
+          organizationName={organization.name}
         />
       </div>
     </>
