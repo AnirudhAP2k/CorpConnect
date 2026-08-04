@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { requireEnterprise } from "@/lib/enterprise";
+import { getUserOrgMembership } from "@/domain/organizations";
 import { getPitchesByOrg, getPitchesByMember } from "@/domain/pitches";
 import { MemberPitchCard } from "@/components/dashboard/MemberPitchCard";
 import { AdminPitchReview } from "@/components/dashboard/AdminPitchReview";
@@ -27,12 +27,7 @@ export default async function OrganizationPitchesPage({
     const userId = session.user.id;
 
     // Verify membership
-    const membership = await prisma.organizationMember.findFirst({
-        where: { userId, organizationId },
-        include: {
-            organization: { select: { id: true, name: true } },
-        },
-    });
+    const membership = await getUserOrgMembership(userId, organizationId);
 
     if (!membership) redirect(`/organizations/${organizationId}`);
 
