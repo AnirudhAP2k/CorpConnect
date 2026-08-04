@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { getOrganizationWithViewerMembership } from "@/domain/organizations";
 import { notFound } from "next/navigation";
 import EventCard from "@/components/shared/EventCard";
 import { Button } from "@/components/ui/button";
@@ -26,14 +26,7 @@ const OrganizationEventsPage = async ({ params, searchParams }: OrganizationEven
     const { id } = data;
 
     // Fetch organization
-    const organization = await prisma.organization.findUnique({
-        where: { id: id },
-        include: {
-            members: userId ? {
-                where: { userId },
-            } : false,
-        },
-    });
+    const organization = await getOrganizationWithViewerMembership(id, userId);
 
     if (!organization) {
         notFound();
