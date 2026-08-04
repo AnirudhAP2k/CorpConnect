@@ -125,6 +125,33 @@ export async function getPitchById(pitchId: string): Promise<SerializedEventPitc
 }
 
 /**
+ * A pitch with its operational tasklist, scoped to the owning organization so
+ * a pitch ID from another org cannot be read.
+ */
+export async function getPitchWithTasks(pitchId: string, organizationId: string) {
+    return prisma.eventPitch.findUnique({
+        where: { id: pitchId, organizationId },
+        select: {
+            id: true,
+            title: true,
+            status: true,
+            tasks: {
+                select: {
+                    id: true,
+                    title: true,
+                    description: true,
+                    dueDayOffset: true,
+                    priority: true,
+                    assignedRole: true,
+                    isCompleted: true,
+                },
+                orderBy: { dueDayOffset: "asc" },
+            },
+        },
+    });
+}
+
+/**
  * Count pending pitches for an org (for dashboard notification badge).
  */
 export async function countPendingPitches(organizationId: string): Promise<number> {
