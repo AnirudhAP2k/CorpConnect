@@ -1,6 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { getEventTitle, getVirtualRoomJoinContext } from "@/domain/events";
 import { VirtualRoom } from "@/components/virtual/VirtualRoom";
 
 interface JoinRoomPageProps {
@@ -17,22 +17,7 @@ export default async function JoinRoomPage({ params }: JoinRoomPageProps) {
     const { id: eventId, roomId } = await params;
 
     // Fetch event and room in parallel
-    const [event, room] = await Promise.all([
-        prisma.events.findUnique({
-            where: { id: eventId },
-            select: {
-                id: true,
-                title: true,
-                eventType: true,
-                startDateTime: true,
-                endDateTime: true,
-            },
-        }),
-        prisma.virtualRoom.findUnique({
-            where: { id: roomId },
-            select: { id: true, isActive: true, eventId: true },
-        }),
-    ]);
+    const { event, room } = await getVirtualRoomJoinContext(eventId, roomId);
 
     if (!event) notFound();
 
@@ -56,11 +41,8 @@ export default async function JoinRoomPage({ params }: JoinRoomPageProps) {
 
 export async function generateMetadata({ params }: JoinRoomPageProps) {
     const { id } = await params;
-    const event = await prisma.events.findUnique({
-        where: { id },
-        select: { title: true },
-    });
+    const title = await getEventTitle(id);
     return {
-        title: event ? `Join: ${event.title} | CorpConnect` : "Join Virtual Session",
+        title: title ? `Join: ${title} | CorpConnect` : "Join Virtual Session",
     };
 }
