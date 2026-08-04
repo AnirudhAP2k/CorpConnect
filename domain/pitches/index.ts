@@ -18,6 +18,7 @@ export {
     getPitchesByOrg,
     getPitchesByMember,
     getPitchById,
+    getPitchWithTasks,
     countPendingPitches,
 } from "./queries";
 
