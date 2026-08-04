@@ -21,7 +21,14 @@ app.use(express.json());
 
 // ── Health check (no auth required) ─────────────────────────────────────────
 app.get("/health", (_req: Request, res: Response) => {
-    res.json({ status: "ok", service: "corpconnect-lv", port: PORT });
+    res
+        .set("Cache-Control", "no-store")
+        .json({
+            status: "ok",
+            service: "corpconnect-lv",
+            port: PORT,
+            uptimeSeconds: Math.round(process.uptime()),
+        });
 });
 
 // ── Auth middleware (all routes below require a valid internal JWT) ───────────

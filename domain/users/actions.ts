@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
+import { revalidatePath } from "next/cache";
 import { setActiveOrganizationSchema, updateUserProfileSchema } from "./validation";
 
 // ─── Active organization switch ───────────────────────────────────────────────
@@ -69,6 +70,7 @@ export async function updateUserProfileAction(data: { name?: string; image?: str
             select: { id: true, name: true, email: true, image: true },
         });
 
+        revalidatePath("/profile");
         return { success: true, user };
     } catch (error) {
         console.error("[updateUserProfileAction]", error);
