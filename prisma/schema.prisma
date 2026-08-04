@@ -15,6 +15,13 @@ model User {
   emailVerified            DateTime?
   isTwoFactorEnabled       Boolean                @default(false)
   image                    String?
+  headline                 String?
+  bio                      String?
+  location                 String?
+  phone                    String?
+  linkedinUrl              String?
+  websiteUrl               String?
+  twitterUrl               String?
   createdAt                DateTime               @default(now())
   updatedAt                DateTime               @updatedAt
   hasCompletedOnboarding   Boolean                @default(false)

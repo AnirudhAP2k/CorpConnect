@@ -26,6 +26,7 @@ export const publicRoutes = [
 export const publicRoutePrefixes = [
     '/events/invite/',
     '/invite/',
+    '/u/',
 ];
 
 export const organizationRoutePrefix = '/organizations';

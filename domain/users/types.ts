@@ -9,7 +9,8 @@ export type UserTier = ApiTier;
 export type PublicUser = Pick<
     User,
     "id" | "name" | "email" | "image" | "emailVerified" | "isTwoFactorEnabled" |
-    "organizationId" | "activeOrganizationId" | "hasCompletedOnboarding"
+    "organizationId" | "activeOrganizationId" | "hasCompletedOnboarding" |
+    "headline" | "bio" | "location" | "phone" | "linkedinUrl" | "websiteUrl" | "twitterUrl"
 >;
 
 /**

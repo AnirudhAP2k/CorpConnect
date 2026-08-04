@@ -11,7 +11,7 @@ import {
     CardHeader,
     CardTitle,
 } from "@/components/ui/card";
-import { getPublicUserById } from "@/domain/users";
+import { getProfileEditData } from "@/domain/users";
 
 export const metadata: Metadata = {
     title: "Edit Profile | CorpConnect",
@@ -22,7 +22,7 @@ export default async function EditProfilePage() {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
-    const user = await getPublicUserById(session.user.id);
+    const user = await getProfileEditData(session.user.id);
     if (!user) redirect("/login");
 
     return (
@@ -53,6 +53,17 @@ export default async function EditProfilePage() {
                         <ProfileEditForm
                             initialName={user.name ?? ""}
                             initialImage={user.image ?? ""}
+                            initialHeadline={user.headline ?? ""}
+                            initialBio={user.bio ?? ""}
+                            initialLocation={user.location ?? ""}
+                            initialPhone={user.phone ?? ""}
+                            initialLinkedinUrl={user.linkedinUrl ?? ""}
+                            initialWebsiteUrl={user.websiteUrl ?? ""}
+                            initialTwitterUrl={user.twitterUrl ?? ""}
+                            initialTwoFactorEnabled={user.isTwoFactorEnabled}
+                            canUseTwoFactor={user.canUseTwoFactor}
+                            organizations={user.organizations}
+                            activeOrganizationId={user.activeOrganizationId}
                         />
                     </CardContent>
                 </Card>
