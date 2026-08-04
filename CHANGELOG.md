@@ -1,3 +1,42 @@
+# [1.27.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.26.0...v1.27.0) (2026-08-04)
+
+
+### Bug Fixes
+
+* **header:** fixed the TopHeader to display the user image or avatar as a placeholder ([f97a711](https://github.com/AnirudhAP2k/CorpConnect/commit/f97a711d906896a1e6e67842b5a69c5f9b0238c9))
+
+
+### Features
+
+* **ai-service:** add HuggingFace model configuration settings ([fbdb73a](https://github.com/AnirudhAP2k/CorpConnect/commit/fbdb73a07e8b69ff9c664a5e3ff6c4ddb8733836))
+* **ai-service:** add uptime tracking to AI service health check endpoint ([23f3f9c](https://github.com/AnirudhAP2k/CorpConnect/commit/23f3f9c6221b36290988d6ea0277e4d1f792c952))
+* **ai-service:** reference HuggingFace settings in embeddings generator ([47d02a3](https://github.com/AnirudhAP2k/CorpConnect/commit/47d02a342bd2d8038e0d09654ca5a5c2a85688e0))
+* **db:** add migration SQL for user profile fields ([bff1c4d](https://github.com/AnirudhAP2k/CorpConnect/commit/bff1c4d8c1a3f62e369ee0b2fd6fb0e283a88c3a))
+* **db:** add user profile fields to Prisma schema ([8d84746](https://github.com/AnirudhAP2k/CorpConnect/commit/8d8474679b8b293978f121cd267b00142749a49a))
+* **lv-service:** add uptime tracking to LiveKit service health check endpoint ([14256cf](https://github.com/AnirudhAP2k/CorpConnect/commit/14256cfbf3cc11c4cd6e23c8da158d3cfdb32f41))
+* **profile:** add avatar assets ([bbfe13e](https://github.com/AnirudhAP2k/CorpConnect/commit/bbfe13e2c20eb5cfc257a1388bebdea9550dc964))
+* **profile:** add profile edit page ([411b52f](https://github.com/AnirudhAP2k/CorpConnect/commit/411b52f613977e457e7c4a8527ddb413e9bee609))
+* **profile:** add profile image optimization utility ([9361542](https://github.com/AnirudhAP2k/CorpConnect/commit/93615422cf39aa89aa85f191b1db8275890cc536))
+* **profile:** add profile UI components ([c52e02e](https://github.com/AnirudhAP2k/CorpConnect/commit/c52e02ee7ff591bda4eb569f5fb57fc745902f93))
+* **profile:** add profile URL formatting helper ([f0e68b0](https://github.com/AnirudhAP2k/CorpConnect/commit/f0e68b0c204fdf11cb8062f1e86a3cb7d70ada8f))
+* **profile:** add ProfileActionsMenu component for profile options ([077b164](https://github.com/AnirudhAP2k/CorpConnect/commit/077b164a3eb5663184c7bb60e54a3914f7d773ff))
+* **profile:** add public member profile page route with SEO metadata and share actions ([2a60d8d](https://github.com/AnirudhAP2k/CorpConnect/commit/2a60d8df0abf033b82e6a1a2ac5e19a0240a2f47))
+* **profile:** added public profile page for public route prefix ([fcb62a7](https://github.com/AnirudhAP2k/CorpConnect/commit/fcb62a7321d7012f7e964bafbb40c0b199fe4d5f))
+* **profile:** update profile edit page data fetching with Server Actions ([d903e0c](https://github.com/AnirudhAP2k/CorpConnect/commit/d903e0cdebd67a410f902f6ad6bbf177a4abdc7b))
+* **profile:** update profile page layout ([1a4fbd3](https://github.com/AnirudhAP2k/CorpConnect/commit/1a4fbd34686aa5c981d29f3c5b9fd06a9bd126be))
+* **profile:** update ProfileEditForm with bio location social links and avatar selector ([e3258c9](https://github.com/AnirudhAP2k/CorpConnect/commit/e3258c9725df2548fdb5d03458597706df373e8c))
+* **profile:** update protected profile page with headline bio and activity widgets ([117a88a](https://github.com/AnirudhAP2k/CorpConnect/commit/117a88a83664b34ac82e4e9d38c0365b77d87619))
+* **upload:** add file uploader module ([8f8708e](https://github.com/AnirudhAP2k/CorpConnect/commit/8f8708eedde0075771a190c49eda5c0e21e03629))
+* **upload:** add upload server actions ([265e629](https://github.com/AnirudhAP2k/CorpConnect/commit/265e629769f9120060381d676fc17ed1212eb251))
+* **users:** add headline bio location and social URL types to PublicUser ([910dac5](https://github.com/AnirudhAP2k/CorpConnect/commit/910dac56ea730bcdbd9e5ba8efc4d2e3ab5ec58a))
+* **users:** add public profile and edit profile query functions ([8554074](https://github.com/AnirudhAP2k/CorpConnect/commit/8554074c3f80e2debbeed43a27a1b2ee5452c21c))
+* **users:** add updateUserProfile Server Action for bio location and social links ([5c23d30](https://github.com/AnirudhAP2k/CorpConnect/commit/5c23d30a93f5eb81b971265bc0a716206992cf4d))
+* **users:** add user profile schema validation for headline bio location and social links ([5c08183](https://github.com/AnirudhAP2k/CorpConnect/commit/5c081832a408ae927618ecacbaae12b64e0b1a68))
+* **users:** export public profile query and edit profile functions ([044c846](https://github.com/AnirudhAP2k/CorpConnect/commit/044c84672b0b29a1b0c4881075108ba5c178d24a))
+* **users:** update user actions for profile updates ([60e54f9](https://github.com/AnirudhAP2k/CorpConnect/commit/60e54f968a7587dfb91309fcfe3217d436b31cea))
+* **users:** update user validation schemas ([921c988](https://github.com/AnirudhAP2k/CorpConnect/commit/921c988ba89f4e689b32682c8e19dfaeae33df7d))
+* **ws-service:** add uptime tracking to WebSocket service health check endpoint ([1cd2ade](https://github.com/AnirudhAP2k/CorpConnect/commit/1cd2adeaa10f06cc0508cbbb543ff885b388283b))
+
 # [1.26.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.25.1...v1.26.0) (2026-07-30)
 
 
