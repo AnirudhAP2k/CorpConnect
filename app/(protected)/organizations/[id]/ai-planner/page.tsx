@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { requireEnterprise } from "@/lib/enterprise";
+import { getUserOrgMembership } from "@/domain/organizations";
 import { Sparkles, Bot } from "lucide-react";
 import { BrainstormChat } from "@/components/organizations/BrainstormChat";
 import type { Metadata } from "next";
@@ -26,12 +26,7 @@ export default async function AIPlannerPage({
     const { id: organizationId } = await params;
 
     // Verify the user is a member of this org
-    const membership = await prisma.organizationMember.findFirst({
-        where: { userId: session.user.id, organizationId },
-        include: {
-            organization: { select: { id: true, name: true } },
-        },
-    });
+    const membership = await getUserOrgMembership(session.user.id, organizationId);
 
     if (!membership) redirect(`/organizations/${organizationId}`);
 
