@@ -10,6 +10,17 @@ export async function getTagSuggestions(query: string, take = 10): Promise<Pick<
     });
 }
 
+/**
+ * Tags applied to the most organizations — used as filter chips on discovery.
+ */
+export async function getPopularOrgTags(take = 30): Promise<Pick<Tag, 'id' | 'label'>[]> {
+    return prisma.tag.findMany({
+        orderBy: { orgTags: { _count: "desc" } },
+        take,
+        select: { id: true, label: true },
+    });
+}
+
 export async function getEventTags(eventId: string): Promise<Tag[]> {
     const rows = await prisma.eventTag.findMany({
         where: { eventId },
