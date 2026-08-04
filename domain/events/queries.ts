@@ -334,6 +334,93 @@ async function _getMatchingOrgsSQL(
         .slice(0, 5);
 }
 
+// ─── Post-event report ────────────────────────────────────────────────────────
+
+/**
+ * Just the event title — for page titles and metadata.
+ */
+export async function getEventTitle(eventId: string): Promise<string | null> {
+    const event = await prisma.events.findUnique({
+        where: { id: eventId },
+        select: { title: true },
+    });
+
+    return event?.title ?? null;
+}
+
+/**
+ * Minimal event details for confirmation screens.
+ */
+export async function getEventSummary(eventId: string) {
+    return prisma.events.findUnique({
+        where: { id: eventId },
+        select: {
+            title: true,
+            startDateTime: true,
+            location: true,
+            image: true,
+            organization: { select: { name: true } },
+        },
+    });
+}
+
+/**
+ * An event with its hosting organization and generated analytics report.
+ */
+export async function getEventWithReport(eventId: string) {
+    return prisma.events.findUnique({
+        where: { id: eventId },
+        include: {
+            organization: { select: { id: true, name: true } },
+            report: true,
+        },
+    });
+}
+
+// ─── Virtual rooms ────────────────────────────────────────────────────────────
+
+/**
+ * Active virtual rooms for an event, oldest first.
+ */
+export async function getActiveVirtualRooms(eventId: string) {
+    return prisma.virtualRoom.findMany({
+        where: { eventId, isActive: true },
+        select: {
+            id: true,
+            name: true,
+            livekitRoom: true,
+            isActive: true,
+            maxParticipants: true,
+            createdAt: true,
+        },
+        orderBy: { createdAt: "asc" },
+    });
+}
+
+/**
+ * The event and room a join screen needs, fetched together.
+ */
+export async function getVirtualRoomJoinContext(eventId: string, roomId: string) {
+    const [event, room] = await Promise.all([
+        prisma.events.findUnique({
+            where: { id: eventId },
+            select: {
+                id: true,
+                title: true,
+                eventType: true,
+                startDateTime: true,
+                endDateTime: true,
+            },
+        }),
+        prisma.virtualRoom.findUnique({
+            where: { id: roomId },
+            select: { id: true, isActive: true, eventId: true },
+        }),
+    ]);
+
+    return { event, room };
+}
+
 // ─── Event invites ────────────────────────────────────────────────────────────
 
 /**
