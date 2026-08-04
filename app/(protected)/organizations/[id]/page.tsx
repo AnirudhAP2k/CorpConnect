@@ -1,5 +1,6 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { getConnectionBetweenOrgs, getOrganizationProfile } from "@/domain/organizations";
+import { getPublicUserById } from "@/domain/users";
 import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -63,26 +64,7 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
     if (!userId) redirect("/login");
 
     // Fetch org directly from DB — no unnecessary HTTP round-trip
-    const organization = await prisma.organization.findUnique({
-        where: { id },
-        include: {
-            industry: true,
-            orgTags: { include: { tag: { select: { id: true, label: true } } } },
-            members: {
-                include: {
-                    user: { select: { id: true, name: true, email: true, image: true } },
-                },
-                orderBy: { createdAt: "asc" },
-            },
-            events: {
-                take: 6,
-                orderBy: { startDateTime: "desc" },
-                include: { category: true },
-            },
-            meta: true,
-            _count: { select: { members: true, events: true } },
-        },
-    });
+    const organization = await getOrganizationProfile(id);
 
     if (!organization) notFound();
 
@@ -108,23 +90,11 @@ const OrganizationProfilePage = async ({ params }: OrganizationProfilePageProps)
     let activeOrgIdForButton: string | null = null;
 
     if (!isMember) {
-        const user = await prisma.user.findUnique({
-            where: { id: userId },
-            select: { activeOrganizationId: true },
-        });
+        const user = await getPublicUserById(userId);
         activeOrgIdForButton = user?.activeOrganizationId ?? null;
 
         if (activeOrgIdForButton) {
-            // (prisma as any) — Prisma client types are stale; resolves after dev server restart
-            const conn = await (prisma as any).orgConnection.findFirst({
-                where: {
-                    OR: [
-                        { sourceOrgId: activeOrgIdForButton, targetOrgId: id },
-                        { sourceOrgId: id, targetOrgId: activeOrgIdForButton },
-                    ],
-                },
-                select: { id: true, status: true, sourceOrgId: true },
-            });
+            const conn = await getConnectionBetweenOrgs(activeOrgIdForButton, id);
 
             if (!conn) {
                 connectionStatus = "NONE";
