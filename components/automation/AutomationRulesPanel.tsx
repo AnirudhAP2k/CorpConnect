@@ -16,6 +16,7 @@ import { TRIGGER_LABELS } from "@/constants";
 import { AddRuleSheet } from "@/components/automation/AddRuleSheet";
 import { formatDistanceToNow } from "date-fns";
 import { AutomationTriggerType } from "@/lib/types";
+import { toast } from "sonner";
 
 const TRIGGER_COLORS: Record<AutomationTriggerType, string> = {
     EVENT_REGISTRATION: "bg-blue-100 text-blue-700",
@@ -111,14 +112,8 @@ function RuleRow({ rule, onToggle, onDelete, onTest }: {
 export function AutomationRulesPanel({ orgId }: { orgId: string }) {
     const [rules, setRules] = useState<AutomationRuleData[]>([]);
     const [error, setError] = useState<string | null>(null);
-    const [toast, setToast] = useState<string | null>(null);
     const [addOpen, setAddOpen] = useState(false);
     const [isPending, startTransition] = useTransition();
-
-    const showToast = (msg: string) => {
-        setToast(msg);
-        setTimeout(() => setToast(null), 3000);
-    };
 
     const load = () => {
         startTransition(async () => {
@@ -135,9 +130,9 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
             const res = await toggleAutomationRule(ruleId);
             if (res.success) {
                 setRules(prev => prev.map(r => r.id === ruleId ? { ...r, status: res.status } : r));
-                showToast(`Rule ${res.status === "ACTIVE" ? "activated" : "paused"}.`);
+                toast.success(`Rule ${res.status === "ACTIVE" ? "activated" : "paused"}.`);
             } else {
-                showToast(res.error);
+                toast.error(res.error);
             }
         });
     };
@@ -147,9 +142,9 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
             const res = await deleteAutomationRule(ruleId);
             if (res.success) {
                 setRules(prev => prev.filter(r => r.id !== ruleId));
-                showToast("Rule deleted.");
+                toast.warning("Rule deleted.");
             } else {
-                showToast(res.error);
+                toast.error(res.error);
             }
         });
     };
@@ -157,14 +152,14 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
     const handleTest = (ruleId: string) => {
         startTransition(async () => {
             const res = await testAutomationRule(ruleId);
-            if (res.success) showToast(`Test job enqueued (job ${res.jobId.slice(0, 8)}…). It will fire within ~1 min.`);
-            else showToast(res.error);
+            if (res.success) toast.success(`Test job enqueued (job ${res.jobId.slice(0, 8)}…). It will fire within ~1 min.`);
+            else toast.error(res.error);
         });
     };
 
     const handleRuleCreated = (rule: AutomationRuleData) => {
         setRules(prev => [rule, ...prev]);
-        showToast(`Rule "${rule.name}" created.`);
+        toast.success(`Rule "${rule.name}" created.`);
     };
 
     return (
@@ -250,13 +245,6 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
                     )}
                 </CardContent>
             </Card>
-
-            {/* Toast */}
-            {toast && (
-                <div className="fixed bottom-6 right-6 z-50 bg-foreground text-background text-sm px-4 py-2.5 rounded-lg shadow-lg animate-in slide-in-from-bottom-2">
-                    {toast}
-                </div>
-            )}
 
             <AddRuleSheet
                 orgId={orgId}
