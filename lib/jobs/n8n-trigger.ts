@@ -23,10 +23,15 @@ const WEBHOOK_TIMEOUT_MS = 10_000; // 10 s
 
 // ─── HMAC signing ─────────────────────────────────────────────────────────────
 
-function buildSignature(ruleId: string, trigger: string, orgId: string, timestamp: number): string {
+const buildSignature = (
+    ruleId: string,
+    trigger: string,
+    orgId: string,
+    timestamp: number
+): string => {
     const message = `${ruleId}:${trigger}:${orgId}:${timestamp}`;
     return "sha256=" + hashMessage(message, N8N_SHARED_SECRET);
-}
+};
 
 // ─── Job handler ──────────────────────────────────────────────────────────────
 
