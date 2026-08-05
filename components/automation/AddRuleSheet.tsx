@@ -21,6 +21,7 @@ import {
 import type { AutomationRuleData, AutomationTemplateOption } from "@/actions/automation.actions";
 import { TRIGGER_LABELS } from "@/constants";
 import { AutomationTriggerType } from "@/lib/types";
+import { toast } from "sonner";
 
 interface AddRuleSheetProps {
     orgId: string;
@@ -123,8 +124,10 @@ export function AddRuleSheet({ orgId, open, onOpenChange, onRuleCreated }: AddRu
                 onRuleCreated(res.data);
                 reset();
                 onOpenChange(false);
+                toast.success("Rule created successfully!");
             } else {
                 setError(res.error);
+                toast.error(res.error || "Failed to create rule");
             }
         });
     };
