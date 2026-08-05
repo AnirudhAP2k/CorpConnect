@@ -41,6 +41,8 @@ function RuleRow({ rule, onToggle, onDelete, onTest }: {
     const isActive = rule.status === "ACTIVE";
 
     const webhookHost = (() => {
+        if (rule.templateName) return rule.templateName;
+        if (!rule.webhookUrl) return "No webhook";
         try { return new URL(rule.webhookUrl).hostname; }
         catch { return rule.webhookUrl; }
     })();
@@ -56,6 +58,11 @@ function RuleRow({ rule, onToggle, onDelete, onTest }: {
                         {TRIGGER_LABELS[rule.trigger]}
                     </Badge>
                 </div>
+                {rule.promptTemplate && (
+                    <p className="text-xs text-muted-foreground mt-0.5 italic truncate max-w-sm" title={rule.promptTemplate}>
+                        🤖 {rule.promptTemplate.length > 80 ? rule.promptTemplate.slice(0, 80) + "…" : rule.promptTemplate}
+                    </p>
+                )}
                 <p className="text-xs text-muted-foreground mt-0.5 truncate">
                     {webhookHost} · {rule.runCount} run{rule.runCount !== 1 ? "s" : ""}
                     {rule.lastRunAt && (
@@ -169,7 +176,7 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
                             <Zap className="h-5 w-5 text-primary" />
                             Automation Rules
                         </CardTitle>
-                        <CardDescription>Trigger n8n workflows on platform events</CardDescription>
+                        <CardDescription>Pick a platform workflow; CorpConnect fires it on org events</CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
                         <Button
@@ -209,7 +216,7 @@ export function AutomationRulesPanel({ orgId }: { orgId: string }) {
                             <Zap className="h-10 w-10 text-muted-foreground/30" />
                             <p className="font-medium text-sm">No automation rules yet</p>
                             <p className="text-xs text-muted-foreground max-w-xs">
-                                Create a rule to automatically trigger n8n workflows when events happen in your organization — like new registrations, accepted connections, or member joins.
+                                Create a rule to automatically run a platform workflow when events happen — like new registrations, accepted connections, or member joins.
                             </p>
                             <Button
                                 size="sm"
