@@ -205,3 +205,69 @@ export async function sendCustomNotificationAction({
         return { success: false, error: error?.message || "Something went wrong." };
     }
 }
+
+// ─── Automation workflow templates (platform catalog) ─────────────────────────
+
+export async function listAutomationWorkflowTemplatesAction() {
+    try {
+        await requireAdmin();
+        const templates = await prisma.automationWorkflowTemplate.findMany({
+            orderBy: [{ trigger: "asc" }, { name: "asc" }],
+        });
+        return {
+            success: true as const,
+            data: templates.map(t => ({
+                ...t,
+                createdAt: t.createdAt.toISOString(),
+                updatedAt: t.updatedAt.toISOString(),
+            })),
+        };
+    } catch (error: any) {
+        return { success: false as const, error: error?.message || "Something went wrong." };
+    }
+}
+
+export async function updateAutomationWorkflowTemplateAction(input: {
+    id: string;
+    webhookUrl?: string;
+    name?: string;
+    description?: string | null;
+    defaultPromptTemplate?: string | null;
+    isActive?: boolean;
+}) {
+    try {
+        await requireAdmin();
+
+        if (input.webhookUrl !== undefined) {
+            if (!input.webhookUrl.startsWith("https://")) {
+                return { success: false as const, error: "Webhook URL must start with https://" };
+            }
+        }
+
+        const updated = await prisma.automationWorkflowTemplate.update({
+            where: { id: input.id },
+            data: {
+                ...(input.webhookUrl !== undefined ? { webhookUrl: input.webhookUrl } : {}),
+                ...(input.name !== undefined ? { name: input.name } : {}),
+                ...(input.description !== undefined ? { description: input.description } : {}),
+                ...(input.defaultPromptTemplate !== undefined
+                    ? { defaultPromptTemplate: input.defaultPromptTemplate }
+                    : {}),
+                ...(input.isActive !== undefined ? { isActive: input.isActive } : {}),
+            },
+        });
+
+        revalidatePath("/admin/automations");
+        return {
+            success: true as const,
+            data: {
+                ...updated,
+                createdAt: updated.createdAt.toISOString(),
+                updatedAt: updated.updatedAt.toISOString(),
+            },
+        };
+    } catch (error: any) {
+        console.error("[updateAutomationWorkflowTemplateAction] Error:", error);
+        return { success: false as const, error: error?.message || "Something went wrong." };
+    }
+}
