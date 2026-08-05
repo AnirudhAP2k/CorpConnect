@@ -24,10 +24,19 @@ from pydantic import BaseModel, Field
 
 from app.config import settings
 from app.llm import generate, is_llm_configured
+from app.prompts.loader import load_prompt
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# ─── Task-to-Template Mapping ──────────────────────────────────────────────────
+
+TASK_TEMPLATE_MAP: dict[str, str] = {
+    "generate_email": "n8n_generate_email",
+    "evaluate_condition": "n8n_evaluate_condition",
+    "freeform": "n8n_freeform",
+}
 
 
 # ─── Models ───────────────────────────────────────────────────────────────────
@@ -62,28 +71,6 @@ def _verify_n8n_hmac(raw_body: bytes, signature: str) -> bool:
     return hmac.compare_digest(expected, signature)
 
 
-# ─── Task-specific system prompts ─────────────────────────────────────────────
-
-_SYSTEM_PROMPTS: dict[str, str] = {
-    "generate_email": (
-        "You are an email composition assistant for an event management platform. "
-        "Given the context and instruction, draft a professional, concise email. "
-        "Return only the email body text — no subject line, no metadata."
-    ),
-    "evaluate_condition": (
-        "You are a decision evaluator for an automation workflow. "
-        "Given the context data and a condition to evaluate, respond with a JSON object: "
-        '{"result": true/false, "reasoning": "brief explanation"}. '
-        "Be precise and deterministic."
-    ),
-    "freeform": (
-        "You are an AI assistant integrated into an event management automation workflow. "
-        "Follow the user's instruction using the provided context data. "
-        "Be concise and actionable."
-    ),
-}
-
-
 # ─── Endpoint ─────────────────────────────────────────────────────────────────
 
 @router.post("/n8n", response_model=N8nInferenceResponse)
@@ -114,10 +101,20 @@ async def n8n_inference(request: Request):
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"Invalid request body: {e}")
 
-    # 5. Select system prompt based on task
-    system_prompt = _SYSTEM_PROMPTS.get(
-        body.task, _SYSTEM_PROMPTS["freeform"]
-    )
+    # 5. Load prompt template based on task
+    template_name = TASK_TEMPLATE_MAP.get(body.task, "n8n_freeform")
+    try:
+        template = load_prompt(template_name)
+        system_prompt = template.system_prompt or ""
+        temperature = template.temperature if template.temperature is not None else 0.3
+    except Exception as e:
+        logger.warning("[webhooks/n8n] Failed to load prompt template '%s': %s", template_name, e)
+        system_prompt = (
+            "You are an AI assistant integrated into an event management automation workflow. "
+            "Follow the user's instruction using the provided context data. "
+            "Be concise and actionable."
+        )
+        temperature = 0.3
 
     # 6. Build user message with context
     context_str = ""
@@ -130,7 +127,7 @@ async def n8n_inference(request: Request):
         output = await generate(
             system_prompt=system_prompt,
             user_message=user_message,
-            temperature=0.3,
+            temperature=temperature,
         )
         logger.info(
             "[webhooks/n8n] task=%s prompt_len=%d output_len=%d",
