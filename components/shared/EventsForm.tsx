@@ -113,7 +113,7 @@ const EventsForm = ({ userId, type, organizationId, organizationName, eventId, i
         // Upload new image or use existing
         let imageUrl = initialData?.image || "";
         if (files.length > 0) {
-            const uploadResult = await handleUpload(files);
+            const uploadResult = await handleUpload(files, "EVENT_IMAGE");
             if (!uploadResult?.imageUrl) {
                 setErrors("Image upload failed");
                 return;
