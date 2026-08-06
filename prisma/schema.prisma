@@ -55,6 +55,7 @@ model User {
   sentGroupMessages        GroupMessage[]         @relation("GroupMessageUser")
   eventPitches             EventPitch[]           @relation("UserEventPitches")
   eventInvitesSent         EventInvite[]          @relation("InviterUser")
+  uploadAssets             UploadAsset[]
 }
 
 model Account {
@@ -220,8 +221,6 @@ model Organization {
   subscriptionExpiresAt   DateTime?
   paymentWebhookUrl       String?
   preferredCurrency       String                       @default("INR")
-  /// pgvector column, managed by scripts/enable-pgvector.ts and queried via $queryRaw.
-  /// Declared here so `prisma db push` preserves it instead of dropping it as drift.
   embedding               Unsupported("vector(384)")?
   apiCredentials          ApiCredential[]
   participations          EventParticipation[]
@@ -256,6 +255,7 @@ model Organization {
   receivedGroupInvites    GroupInvite[]                @relation("GroupInviteeOrg")
   sentGroupMessages       GroupMessage[]               @relation("GroupMessageOrg")
   eventPitches            EventPitch[]                 @relation("OrgEventPitches")
+  uploadAssets            UploadAsset[]
 
   @@index([industryId])
   @@index([createdBy])
@@ -298,10 +298,9 @@ model OrgDocument {
   taxRefNumber   String?
   createdAt      DateTime                     @default(now())
   updatedAt      DateTime                     @updatedAt
-  /// pgvector column, managed by scripts/enable-pgvector.ts and queried via $queryRaw.
-  /// Declared here so `prisma db push` preserves it instead of dropping it as drift.
   embedding      Unsupported("vector(384)")?
   organization   Organization?                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  uploadAsset    UploadAsset?
 
   @@index([organizationId])
   @@index([docType])
@@ -670,7 +669,7 @@ model AutomationWorkflowTemplate {
   name                  String
   description           String?
   trigger               AutomationTrigger
-  webhookUrl            String
+  webhookUrl            String?
   defaultPromptTemplate String?           @db.Text
   isActive              Boolean           @default(true)
   createdAt             DateTime          @default(now())
@@ -972,6 +971,30 @@ model EventInvite {
   @@index([status, createdAt])
 }
 
+model UploadAsset {
+  id                 String             @id @default(uuid()) @db.Uuid
+  userId             String             @db.Uuid
+  organizationId     String?            @db.Uuid
+  purpose            UploadPurposeEnum
+  scanStatus         UploadScanStatus   @default(PENDING)
+  detectedMime       String
+  sizeBytes          Int
+  cloudinaryPublicId String
+  secureUrl          String?
+  scanEngine         String?
+  scanVerdict        String?
+  scannedAt          DateTime?
+  createdAt          DateTime           @default(now())
+  orgDocumentId      String?            @unique @db.Uuid
+
+  user         User          @relation(fields: [userId], references: [id])
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  orgDocument  OrgDocument?  @relation(fields: [orgDocumentId], references: [id], onDelete: SetNull)
+
+  @@index([scanStatus, createdAt])
+  @@index([userId, createdAt])
+}
+
 enum OrganizationRole {
   OWNER
   ADMIN
@@ -1079,6 +1102,7 @@ enum JobType {
   PROCESS_REFUND
   SEND_EVENT_INVITE_EMAIL
   VIRTUAL_ROOM_OPENED
+  SCAN_UPLOAD
 }
 
 enum OrgDocumentType {
@@ -1189,4 +1213,18 @@ enum CredentialStatus {
   ACTIVE
   INACTIVE
   REVOKED
+}
+
+enum UploadScanStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SCAN_FAILED
+}
+
+enum UploadPurposeEnum {
+  PROFILE_AVATAR
+  EVENT_IMAGE
+  ORG_LOGO
+  ORG_KYB_DOCUMENT
 }
