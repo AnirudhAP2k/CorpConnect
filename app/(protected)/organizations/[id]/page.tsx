@@ -38,10 +38,10 @@ const INTENT_BADGES: Record<string, { label: string; color: string }> = {
 };
 
 // ─── Small chip array component ────────────────────────────────────────────────
-function ChipList({ items, colorClass = "bg-primary/8 text-primary border-primary/20" }: {
+const ChipList = ({ items, colorClass = "bg-primary/8 text-primary border-primary/20" }: {
     items: string[];
     colorClass?: string;
-}) {
+}) => {
     if (!items || items.length === 0) return <p className="text-sm text-gray-400 italic">None listed</p>;
     return (
         <div className="flex flex-wrap gap-2">

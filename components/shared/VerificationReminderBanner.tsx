@@ -22,7 +22,16 @@ const CONFIG = {
         body: "Your organization passed initial safety checks! Upload required KYB documents to host events and use matchmaking.",
         cta: "Complete Verification",
     },
-    PENDING: null, // Don't show banner while background L1 job is running
+    PENDING: {
+        bg: "bg-slate-50 border-slate-200",
+        icon: "text-slate-500",
+        text: "text-slate-900",
+        sub: "text-slate-700",
+        badge: "bg-slate-100 text-slate-800",
+        title: (name: string) => `Complete verification for ${name}`,
+        body: "Your organization is pending verification. Please wait for our system to review the first phase of verification. We will notify you once it is completed.",
+        cta: "Check Status",
+    },
     IN_REVIEW: {
         bg: "bg-blue-50 border-blue-200",
         icon: "text-blue-500",
