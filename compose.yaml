@@ -68,6 +68,8 @@ services:
       AI_SERVICE_URL: http://ai-service:8000
       LV_SERVICE_URL: http://lv-service:5000
       WS_SERVICE_URL: http://ws-service:4000
+      CLAMAV_HOST: clamav
+      CLAMAV_PORT: 3310
       # To use local Compose DB, set DATABASE_URL in your .env:
       DATABASE_URL: ${LOCAL_DATABASE_URL}
     depends_on:
@@ -77,6 +79,17 @@ services:
         condition: service_healthy
       db-migrate:
         condition: service_completed_successfully
+
+  # ── ClamAV Antivirus Daemon ──
+  clamav:
+    image: clamav/clamav:latest
+    container_name: corpconnect-clamav
+    restart: always
+    ports:
+      - "3310:3310"
+    volumes:
+      - clamav_data:/var/lib/clamav
+
 
   # ── WebSocket Service ──
   ws-service:
@@ -199,5 +212,6 @@ volumes:
   postgres_data:
   redis_data:
   n8n_data:
+  clamav_data:
   # prometheus_data:
   # grafana_data:
