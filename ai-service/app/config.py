@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Auth
-    MASTER_KEY: str                    # Shared secret for master JWT
+    MASTER_KEY: str = ""   # Shared secret for master JWT
 
     # Embedding model (all-MiniLM-L6-v2 — stays unchanged)
     # MODEL_NAME: str = "all-MiniLM-L6-v2"
@@ -27,6 +27,8 @@ class Settings(BaseSettings):
     # Redis (optional — cache is disabled if REDIS_URL is not set)
     REDIS_URL: str = ""
 
+    MAIN_APP_BASE_URL: str = "http://localhost:3000"
+
     # CORS
     ALLOWED_ORIGINS: List[str] = ["http://localhost:3000", "http://server:3000"]
 
@@ -41,6 +43,14 @@ class Settings(BaseSettings):
     LLM_API_KEY: str = ""
     LLM_MODEL_NAME: str = "llama-3.1-8b-instant"
     LLM_MAX_TOKENS: int = 800
+
+    # ─── Agent LLM (Groq llama-3.3-70b-versatile for budget-friendly agentic flow) ─────
+    LLM_AGENT_PROVIDER: str = "groq"
+    LLM_AGENT_API_KEY: str = ""
+    LLM_AGENT_API_BASE_URL: str = "https://api.groq.com/openai/v1"
+    LLM_AGENT_MODEL_NAME: str = "llama-3.3-70b-versatile"
+    LLM_AGENT_MAX_TOKENS: int = 1200
+    LLM_AGENT_MAX_ITERATIONS: int = 5
 
     # ─── n8n (Agentic Automation) ────────────────────────────────────────────
     # HMAC secret used to sign/verify webhook payloads between CorpConnect and n8n
