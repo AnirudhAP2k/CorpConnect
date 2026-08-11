@@ -3,6 +3,7 @@ import Sidebar from "@/components/shared/Sidebar";
 import { SessionProvider } from 'next-auth/react';
 import { auth } from "@/auth";
 import Footer from "@/components/shared/Footer";
+import { AgentCopilot } from "@/components/ai";
 
 export default async function RootLayout({
   children,
@@ -26,6 +27,7 @@ export default async function RootLayout({
             <Footer />
           </main>
         </div>
+        {session?.user && <AgentCopilot />}
       </SessionProvider>
     </div>
   );
