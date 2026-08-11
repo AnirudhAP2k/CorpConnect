@@ -42,6 +42,7 @@ export const publicApiRoutes = [
 
 export const publicApiPrefixes = [
     "/api/webhooks/",
+    "/api/internal/agent/",
 ];
 
 export const onboardingRoutes = [
