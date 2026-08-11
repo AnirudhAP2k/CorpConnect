@@ -64,8 +64,8 @@ export type {
     AIEventBrief
 };
 
-const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
-const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
+const AI_SERVICE_URL = process.env.AI_SERVICE_URL;
+const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY;
 
 /** Generate a short-lived master JWT for internal service-to-service calls. */
 export async function getMasterJwt(): Promise<string> {
@@ -384,4 +384,54 @@ export const aiService = {
             return null;
         }
     },
+
+    // ─── Phase: AI Agent Copilot ──────────────────────────────────────────────
+
+    /**
+     * Execute a user prompt through the AI Agent loop.
+     * The agent uses tool-calling (function calling) to perform real platform
+     * actions (create events, fetch data, etc.) on behalf of the user.
+     *
+     * @param payload.message      — The user's natural language instruction
+     * @param payload.userId       — UUID of the requesting user
+     * @param payload.orgId        — UUID of the user's active organization
+     * @param payload.sessionId    — Agent session UUID or "new" to start fresh
+     * @param payload.capabilities — List of tool names the user is authorised to call
+     * @param payload.userName     — Display name for the agent system prompt
+     * @param payload.orgName      — Organization name for context
+     * @param payload.orgPlan      — Subscription plan (FREE/PRO/ENTERPRISE)
+     * @param payload.userRole     — User's role in the org (OWNER/ADMIN/MEMBER)
+     */
+    async executeAgentPrompt(payload: {
+        message: string;
+        userId: string;
+        orgId: string;
+        sessionId: string;
+        capabilities: string[];
+        userName: string;
+        orgName: string;
+        orgPlan: string;
+        userRole: string;
+    }): Promise<{
+        sessionId: string;
+        reply: string;
+        toolCalls: Array<{
+            toolName: string;
+            status: string;
+            result?: unknown;
+            error?: string;
+        }>;
+    } | null> {
+        try {
+            const res = await axios.post(
+                `${AI_SERVICE_URL}/agent/execute`,
+                payload,
+                { headers: await authHeaders(), timeout: 60_000 },
+            );
+            return res.data;
+        } catch {
+            return null;
+        }
+    },
 };
+
