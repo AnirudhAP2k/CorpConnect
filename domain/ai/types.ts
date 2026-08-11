@@ -35,7 +35,8 @@ export type AiFeatureType =
     | "chat"
     | "chatHistory"
     | "chatBrainstorm"
-    | "chatBrainstormBrief";
+    | "chatBrainstormBrief"
+    | "agent";
 
 // ─── Plan hierarchy ───────────────────────────────────────────────────────────
 
