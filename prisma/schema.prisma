@@ -1055,6 +1055,7 @@ enum InviteStatus {
 enum ChatContextType {
   EVENT
   ORGANIZATION
+  AGENT
 }
 
 enum ChatRole {
