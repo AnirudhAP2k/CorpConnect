@@ -6,6 +6,7 @@ import type { UploadResult } from "@/lib/types";
 import type { UploadPurpose, UploadSecureInput, UploadSecureResult, ScanUploadPayload } from "./types";
 import { UPLOAD_POLICIES, isValidUploadPurpose, validateUpload } from "./validation";
 import { checkUploadRateLimit } from "./rate-limit";
+import { auth } from "@/auth";
 
 /**
  * Core domain service for uploading files securely after performing magic-byte content validation,
@@ -193,7 +194,6 @@ export async function uploadFileSecure(input: UploadSecureInput): Promise<Upload
  * Server Action boundary for client file uploads.
  */
 export async function uploadFileAction(formData: FormData): Promise<UploadResult> {
-    const { auth } = await import("@/auth");
     const session = await auth();
     if (!session?.user?.id) {
         return { success: false, publicId: null, url: null, imageUrl: null, message: "Unauthorized" };
