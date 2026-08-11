@@ -49,6 +49,7 @@ def setup_logging():
         "app.routers.recommend": "recommend.log",
         "app.routers.embed":     "embed.log",
         "app.llm":               "llm.log",
+        "app.routers.agent":     "agent.log",
     }
 
     for logger_name, log_file in log_mapping.items():
