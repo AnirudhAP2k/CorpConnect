@@ -27,6 +27,12 @@ from pydantic import BaseModel, Field
 
 import httpx
 
+from app.agent_guards import (
+    CONFIRMATION_REQUIRED_TOOLS,
+    is_meta_capabilities_question,
+    soft_fail_error_from_body,
+    write_action_allowed,
+)
 from app.config import settings
 from app.llm import is_llm_configured, get_llm_client
 from app.middleware.auth import require_master_jwt
@@ -197,10 +203,13 @@ async def _execute_tool(
     user_id: str,
     org_id: str,
     capabilities: list[str],
+    *,
+    user_message: str = "",
+    writes_already_executed: int = 0,
 ) -> ToolCallResult:
     """
     Execute a tool by calling the Next.js internal agent API.
-    Validates capability before making the call.
+    Validates capability and write-confirmation before making the call.
     """
     logger.info(
         "[_execute_tool] tool=%s user=%s org=%s args=%s",
@@ -223,6 +232,24 @@ async def _execute_tool(
             toolName=tool_name,
             status="error",
             error=f"Unknown tool '{tool_name}'.",
+        )
+
+    # 1b. Write confirmation gate (prompt-only confirmation is not enough)
+    allowed, denial = write_action_allowed(
+        tool_name,
+        user_message=user_message,
+        tool_args=tool_args,
+        writes_already_executed=writes_already_executed,
+    )
+    if not allowed:
+        logger.warning(
+            "[_execute_tool] Write confirmation denied: tool=%s user=%s",
+            tool_name, user_id[:8],
+        )
+        return ToolCallResult(
+            toolName=tool_name,
+            status="denied",
+            error=denial,
         )
 
     # 2. Forward to Next.js internal API
@@ -256,6 +283,17 @@ async def _execute_tool(
 
         if resp.status_code == 200:
             data = resp.json()
+            soft_error = soft_fail_error_from_body(data)
+            if soft_error is not None:
+                logger.warning(
+                    "[_execute_tool] Tool '%s' soft-failed: %s",
+                    tool_name, soft_error,
+                )
+                return ToolCallResult(
+                    toolName=tool_name,
+                    status="error",
+                    error=soft_error,
+                )
             logger.info("[_execute_tool] Tool '%s' executed successfully (HTTP 200)", tool_name)
             return ToolCallResult(
                 toolName=tool_name,
@@ -311,7 +349,7 @@ async def agent_execute(body: AgentExecuteRequest):
 
     logger.info(
         "[agent_execute] session=%s user=%s org=%s role=%s plan=%s prompt='%s' capabilities=%s",
-        session_id[:8], body.userId[:8], body.orgId[:8], body.userRole, body.orgPlan, body.message[:60], body.capabilities,
+        session_id[:8], body.userId[:8], body.orgId[:8], body.userRole, body.orgPlan, body.message, body.capabilities,
     )
 
     # ── 2. Load conversation history ──────────────────────────────────────
@@ -330,7 +368,18 @@ async def agent_execute(body: AgentExecuteRequest):
     )
 
     # ── 4. Get tools for the user's capabilities ─────────────────────────
-    tools = get_tools_for_capabilities(body.capabilities)
+    # Meta capability questions must be answered from the prompt — disable tools.
+    meta_capabilities = is_meta_capabilities_question(body.message)
+    tools = (
+        []
+        if meta_capabilities
+        else get_tools_for_capabilities(body.capabilities)
+    )
+    if meta_capabilities:
+        logger.info(
+            "[agent_execute] meta capabilities question — tools disabled session=%s",
+            session_id[:8],
+        )
 
     # ── 5. Build messages array ───────────────────────────────────────────
     messages = [
@@ -344,6 +393,7 @@ async def agent_execute(body: AgentExecuteRequest):
     model = _get_agent_model()
     max_iterations = settings.LLM_AGENT_MAX_ITERATIONS
     all_tool_results: list[ToolCallResult] = []
+    writes_executed = 0
 
     for iteration in range(max_iterations):
         logger.info(
@@ -385,9 +435,20 @@ async def agent_execute(body: AgentExecuteRequest):
 
             # Execute the tool
             result = await _execute_tool(
-                fn_name, fn_args, body.userId, body.orgId, body.capabilities
+                fn_name,
+                fn_args,
+                body.userId,
+                body.orgId,
+                body.capabilities,
+                user_message=body.message,
+                writes_already_executed=writes_executed,
             )
             all_tool_results.append(result)
+            if (
+                result.status == "success"
+                and fn_name in CONFIRMATION_REQUIRED_TOOLS
+            ):
+                writes_executed += 1
 
             # Build the tool response message for the LLM
             if result.status == "success":
@@ -465,7 +526,17 @@ async def agent_stream(body: AgentExecuteRequest):
         available_tools=available_tool_names,
     )
 
-    tools = get_tools_for_capabilities(body.capabilities)
+    meta_capabilities = is_meta_capabilities_question(body.message)
+    tools = (
+        []
+        if meta_capabilities
+        else get_tools_for_capabilities(body.capabilities)
+    )
+    if meta_capabilities:
+        logger.info(
+            "[agent_stream] meta capabilities question — tools disabled session=%s",
+            session_id[:8],
+        )
     messages = [
         {"role": "system", "content": system_prompt},
         *history,
@@ -477,6 +548,7 @@ async def agent_stream(body: AgentExecuteRequest):
         model = _get_agent_model()
         max_iterations = settings.LLM_AGENT_MAX_ITERATIONS
         full_reply_parts = []
+        writes_executed = 0
 
         yield f"data: {json.dumps({'type': 'session', 'sessionId': session_id})}\n\n"
 
@@ -491,7 +563,6 @@ async def agent_stream(body: AgentExecuteRequest):
             )
 
             tool_calls_dict = {}
-            current_role = None
 
             async for chunk in stream:
                 if not chunk.choices:
@@ -536,7 +607,20 @@ async def agent_stream(body: AgentExecuteRequest):
 
                 yield f"data: {json.dumps({'type': 'tool_start', 'toolName': fn_name})}\n\n"
 
-                result = await _execute_tool(fn_name, fn_args, body.userId, body.orgId, body.capabilities)
+                result = await _execute_tool(
+                    fn_name,
+                    fn_args,
+                    body.userId,
+                    body.orgId,
+                    body.capabilities,
+                    user_message=body.message,
+                    writes_already_executed=writes_executed,
+                )
+                if (
+                    result.status == "success"
+                    and fn_name in CONFIRMATION_REQUIRED_TOOLS
+                ):
+                    writes_executed += 1
 
                 yield f"data: {json.dumps({'type': 'tool_end', 'toolName': fn_name, 'status': result.status, 'result': result.result, 'error': result.error})}\n\n"
 
