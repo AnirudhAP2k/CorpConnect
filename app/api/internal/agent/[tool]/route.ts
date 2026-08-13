@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { prisma } from "@/lib/db";
 import { executeAgentTool } from "@/domain/ai/tools";
+import { AGENT_MIN_PLAN, getAgentCapabilities, isToolAuthorised } from "@/domain/ai/agent-capability";
 
 const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY;
 
@@ -11,6 +12,7 @@ const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY;
  * Domain-Driven Design (DDD) Thin HTTP Wrapper:
  *   - Auth: Master JWT verification (service-to-service)
  *   - Tenant Membership: OrganizationMember role lookup
+ *   - Capability: re-compute from DB plan + role (do not trust ai-service)
  *   - Domain Execution: Delegates to executeAgentTool() in domain/ai/tools
  */
 export async function POST(
@@ -18,6 +20,14 @@ export async function POST(
     { params }: { params: Promise<{ tool: string }> }
 ) {
     // ── 1. Master JWT Verification ──────────────────────────────────────────
+    if (!AI_SERVICE_MASTER_KEY) {
+        console.error("AI_SERVICE_MASTER_KEY is not configured");
+        return NextResponse.json(
+            { error: "Agent tool API is misconfigured" },
+            { status: 503 }
+        );
+    }
+
     const token = req.headers.get("x-agent-token");
 
     if (!token) {
@@ -50,17 +60,40 @@ export async function POST(
         return NextResponse.json({ error: "Missing userId or orgId in request body" }, { status: 400 });
     }
 
-    // ── 3. Org Membership Check ──────────────────────────────────────────────
-    const member = await prisma.organizationMember.findUnique({
-        where: { userId_organizationId: { userId, organizationId: orgId } },
-        select: { role: true },
-    });
+    // ── 3. Org Membership + Plan Check ───────────────────────────────────────
+    const [member, org] = await Promise.all([
+        prisma.organizationMember.findUnique({
+            where: { userId_organizationId: { userId, organizationId: orgId } },
+            select: { role: true },
+        }),
+        prisma.organization.findUnique({
+            where: { id: orgId },
+            select: { subscriptionPlan: true },
+        }),
+    ]);
 
-    if (!member) {
-        return NextResponse.json({ error: "User is not a member of the active organization" }, { status: 403 });
+    if (!member || !org) {
+        return NextResponse.json(
+            { error: "User is not a member of the active organization" },
+            { status: 403 }
+        );
     }
 
-    // ── 4. Delegate to Domain Tool Execution ─────────────────────────────────
+    // ── 4. Server-side capability enforcement (ignore caller-supplied caps) ──
+    const capabilities = getAgentCapabilities(member.role, org.subscriptionPlan);
+    if (!isToolAuthorised(tool, capabilities)) {
+        return NextResponse.json(
+            {
+                error:
+                    `Forbidden: tool '${tool}' is not authorised for role=${member.role} ` +
+                    `plan=${org.subscriptionPlan}.` +
+                    ` Upgrade to at least ${AGENT_MIN_PLAN} plan to access AI agent features.`,
+            },
+            { status: 403 }
+        );
+    }
+
+    // ── 5. Delegate to Domain Tool Execution ─────────────────────────────────
     try {
         const result = await executeAgentTool(tool, {
             userId,
