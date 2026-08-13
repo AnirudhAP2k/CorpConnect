@@ -95,6 +95,7 @@ async def health():
         "model":        settings.MODEL_NAME,
         "llm_provider": settings.LLM_PROVIDER if llm_ready else "not configured",
         "llm_model":    settings.LLM_MODEL_NAME if llm_ready else None,
+        "agent_model":  settings.LLM_AGENT_MODEL_NAME,
         "llm_ready":    llm_ready,
         "version":      settings.SERVICE_VERSION,
         "uptimeSeconds": round(time.monotonic() - SERVICE_STARTED_AT),
