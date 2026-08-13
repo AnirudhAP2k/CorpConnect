@@ -16,7 +16,7 @@ export type { Tag } from "@prisma/client";
 export { tagSchema, createTagSchema } from "./validation";
 
 // Read-only queries (safe to call in Server Components)
-export { getTagSuggestions, getEventTags, getOrgTags } from "./queries";
+export { getTagSuggestions, getAllTags, getEventTags, getOrgTags } from "./queries";
 
 // Public Server Actions (authenticated mutations)
 export { createTag } from "./actions";
