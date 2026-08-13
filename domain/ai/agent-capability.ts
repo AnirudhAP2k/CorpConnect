@@ -9,6 +9,7 @@
  */
 
 import type { SubscriptionPlan } from "@prisma/client";
+import { PLAN_RANK } from "./types";
 
 type OrgRole = "OWNER" | "ADMIN" | "MEMBER";
 
@@ -24,6 +25,14 @@ const READ_TOOLS = [
     "get_org_details",
     "get_ai_usage_stats",
     "list_notifications",
+    "discover_organizations",
+    "list_org_connections",
+    "list_attending_events",
+    "get_meeting_requests",
+    "get_org_dashboard_stats",
+    "list_org_members",
+    "list_pending_invites",
+    "get_billing_status",
 ] as const;
 
 /** Write tools — available to MEMBER+ with PRO+ plan */
@@ -31,12 +40,12 @@ const WRITE_TOOLS = [
     "create_event",
     "update_event",
     "generate_event_description",
-    "send_event_invites",
 ] as const;
 
 /** Admin-only tools — requires ADMIN or OWNER role */
 const ADMIN_TOOLS = [
     "delete_event",
+    "send_event_invites",
 ] as const;
 
 export type AgentToolName =
@@ -44,13 +53,18 @@ export type AgentToolName =
     | (typeof WRITE_TOOLS)[number]
     | (typeof ADMIN_TOOLS)[number];
 
+/**
+ * Returns the minimum plan required to use the agent.
+ */
+export const AGENT_MIN_PLAN: SubscriptionPlan = "PRO";
+
 // ─── Capability Resolution ────────────────────────────────────────────────────
 
 /**
  * Return the list of agent tool names a user is authorised to use.
  *
  * Rules:
- *   - FREE plan users cannot use the agent at all (returns empty array)
+ *   - Minimum plan for agent access is AGENT_MIN_PLAN (else return empty array)
  *   - PRO+ users get all READ tools
  *   - PRO+ users get WRITE tools (all members can create/update)
  *   - ADMIN/OWNER users additionally get ADMIN tools
@@ -59,8 +73,8 @@ export function getAgentCapabilities(
     role: OrgRole | string,
     plan: SubscriptionPlan,
 ): string[] {
-    // FREE plan users have no agent access
-    if (plan === "FREE") {
+    // plan validation to use the agent
+    if (PLAN_RANK[plan] < PLAN_RANK[AGENT_MIN_PLAN]) {
         return [];
     }
 
@@ -86,8 +100,3 @@ export function isToolAuthorised(
 ): boolean {
     return capabilities.includes(toolName);
 }
-
-/**
- * Returns the minimum plan required to use the agent.
- */
-export const AGENT_MIN_PLAN: SubscriptionPlan = "PRO";
