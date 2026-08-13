@@ -71,6 +71,34 @@ const EVENT_CATEGORIES = [
     "Workshop",
 ];
 
+const DEFAULT_TAGS = [
+    "Artificial Intelligence",
+    "Machine Learning",
+    "SaaS",
+    "Cloud Infrastructure",
+    "Cybersecurity",
+    "DevOps & CI/CD",
+    "FinTech & Payments",
+    "HealthTech & Biotech",
+    "E-commerce & Retail",
+    "Blockchain & Web3",
+    "Mobile App Development",
+    "Data Analytics & Big Data",
+    "Web Development",
+    "UI/UX Design",
+    "Enterprise Software",
+    "IoT & Smart Devices",
+    "EdTech & E-Learning",
+    "CleanTech & Sustainability",
+    "AR/VR & Spatial Computing",
+    "Robotics & Automation",
+    "Digital Marketing & SEO",
+    "LegalTech",
+    "PropTech & Real Estate",
+    "HRTech & Talent",
+    "AgriTech",
+];
+
 function n8nWebhookBase(): string {
     const raw = process.env.N8N_WEBHOOK_BASE_URL || "https://n8n.example.com";
     // Outbound CorpConnect triggers require https://
@@ -85,26 +113,26 @@ const AUTOMATION_TEMPLATES: Array<{
     webhookPath: string;
     defaultPromptTemplate: string;
 }> = [
-    {
-        slug: "registration-ops-agent",
-        name: "Registration Ops Agent",
-        description:
-            "Agentic n8n workflow for new event registrations. Uses promptTemplate + contextData to decide follow-ups (e.g. dietary notices).",
-        trigger: "EVENT_REGISTRATION",
-        webhookPath: "/webhook/registration-ops-agent",
-        defaultPromptTemplate:
-            "If dietary restrictions are present in the registration context, email the caterer and thank the attendee. Otherwise take no action.",
-    },
-    {
-        slug: "new-member-welcome",
-        name: "New Member Welcome",
-        description: "Fires when a member accepts an org invite — suitable for welcome Slack/email sequences.",
-        trigger: "NEW_MEMBER_JOINED",
-        webhookPath: "/webhook/new-member-welcome",
-        defaultPromptTemplate:
-            "Send a short welcome message to the new member and notify the org admins channel.",
-    },
-];
+        {
+            slug: "registration-ops-agent",
+            name: "Registration Ops Agent",
+            description:
+                "Agentic n8n workflow for new event registrations. Uses promptTemplate + contextData to decide follow-ups (e.g. dietary notices).",
+            trigger: "EVENT_REGISTRATION",
+            webhookPath: "/webhook/registration-ops-agent",
+            defaultPromptTemplate:
+                "If dietary restrictions are present in the registration context, email the caterer and thank the attendee. Otherwise take no action.",
+        },
+        {
+            slug: "new-member-welcome",
+            name: "New Member Welcome",
+            description: "Fires when a member accepts an org invite — suitable for welcome Slack/email sequences.",
+            trigger: "NEW_MEMBER_JOINED",
+            webhookPath: "/webhook/new-member-welcome",
+            defaultPromptTemplate:
+                "Send a short welcome message to the new member and notify the org admins channel.",
+        },
+    ];
 
 async function main() {
     console.log("Seeding reference data…");
@@ -123,6 +151,14 @@ async function main() {
     });
     console.log(
         `  Event categories: ${categories.count} inserted, ${EVENT_CATEGORIES.length - categories.count} already present`,
+    );
+
+    const tags = await prisma.tag.createMany({
+        data: DEFAULT_TAGS.map((label) => ({ label })),
+        skipDuplicates: true,
+    });
+    console.log(
+        `  Tags:             ${tags.count} inserted, ${DEFAULT_TAGS.length - tags.count} already present`,
     );
 
     const base = n8nWebhookBase();
