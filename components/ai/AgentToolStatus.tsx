@@ -21,6 +21,14 @@ const FRIENDLY_NAMES: Record<string, string> = {
     generate_event_description: "Generating AI description",
     list_notifications: "Fetching notifications",
     send_event_invites: "Sending invitations",
+    discover_organizations: "Finding matching organizations",
+    list_org_connections: "Loading org connections",
+    list_attending_events: "Fetching attending events",
+    get_meeting_requests: "Loading meeting requests",
+    get_org_dashboard_stats: "Loading dashboard stats",
+    list_org_members: "Listing org members",
+    list_pending_invites: "Checking invitations",
+    get_billing_status: "Checking billing status",
 };
 
 export function AgentToolStatus({ toolCalls }: AgentToolStatusProps) {
