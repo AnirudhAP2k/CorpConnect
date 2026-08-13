@@ -2,7 +2,7 @@ import {
     detectMimeFromBuffer,
     isDangerousFilename,
     validateUpload,
-} from "@/domain/file-uploads";
+} from "@/domain/file-uploads/validation";
 
 describe("Upload Security Validation", () => {
     // ── Buffer Samples ──────────────────────────────────────────────────────────
