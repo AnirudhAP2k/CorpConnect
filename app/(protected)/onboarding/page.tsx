@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import OrganizationForm from "@/components/shared/OrganizationForm";
 import { getAllIndustries } from "@/data/organization";
+import { getAllTags } from "@/domain/tags";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 const OnboardingPage = async () => {
@@ -15,7 +16,10 @@ const OnboardingPage = async () => {
         redirect("/dashboard");
     }
 
-    const industries = await getAllIndustries();
+    const [industries, tags] = await Promise.all([
+        getAllIndustries(),
+        getAllTags(),
+    ]);
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-primary-50 flex items-center justify-center p-4">
@@ -32,6 +36,7 @@ const OnboardingPage = async () => {
                         userId={session.user.id}
                         type="Create"
                         industries={industries}
+                        tags={tags}
                     />
                 </CardContent>
             </Card>
