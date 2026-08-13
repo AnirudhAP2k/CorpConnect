@@ -6,8 +6,9 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { getAgentSessionId, type AgentToolCallResult } from "@/domain/ai";
-import { AgentToolStatus } from "./AgentToolStatus";
+import { loadAgentConversation, type AgentToolCallResult } from "@/domain/ai/agent-actions";
+import { AgentToolStatus } from "@/components/ai/AgentToolStatus";
+import { FormattedMarkdown } from "@/components/shared/FormattedMarkdown";
 
 interface Message {
     id: string;
@@ -18,10 +19,12 @@ interface Message {
 }
 
 const QUICK_SUGGESTIONS = [
-    "📅 What events am I hosting?",
-    "⚡ Check AI usage quota",
-    "🔍 Search upcoming tech conferences",
-    "✍️ Help me write an event description",
+    "What events am I hosting?",
+    "Check AI usage quota",
+    "Find organizations that match us",
+    "Show my organization connections",
+    "What meeting requests do I have?",
+    "Help me write an event description",
 ];
 
 export function AgentCopilot() {
@@ -31,8 +34,10 @@ export function AgentCopilot() {
     const [input, setInput] = useState("");
     const [isLoading, setIsLoading] = useState(false);
     const [isCooldown, setIsCooldown] = useState(false);
+    const [isInitialising, setIsInitialising] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const historyLoadedRef = useRef(false);
 
     // Keyboard shortcut (Cmd+K or Ctrl+K)
     useEffect(() => {
@@ -53,16 +58,40 @@ export function AgentCopilot() {
         }
     }, [messages, isLoading, isOpen]);
 
-    // On open: fetch existing session ID if available
+    // On open: resume existing agent session and load persisted messages from DB
     useEffect(() => {
-        if (!isOpen || sessionId !== "new") return;
+        if (!isOpen || historyLoadedRef.current) return;
 
         const initSession = async () => {
-            const existingId = await getAgentSessionId();
-            if (existingId) setSessionId(existingId);
+            setIsInitialising(true);
+            try {
+                const result = await loadAgentConversation();
+                if (!result.success) {
+                    console.error("[AgentCopilot] Failed to load conversation:", result.error);
+                    return;
+                }
+                if (result.sessionId) {
+                    setSessionId(result.sessionId);
+                }
+                if (result.messages.length > 0) {
+                    setMessages(
+                        result.messages.map((m) => ({
+                            id: m.id,
+                            role: m.role,
+                            content: m.content,
+                        }))
+                    );
+                }
+            } catch (err) {
+                console.error("[AgentCopilot] Unexpected error loading conversation:", err);
+            } finally {
+                historyLoadedRef.current = true;
+                setIsInitialising(false);
+            }
         };
-        initSession();
-    }, [isOpen, sessionId]);
+
+        void initSession();
+    }, [isOpen]);
 
     // Focus input on open
     useEffect(() => {
@@ -147,15 +176,15 @@ export function AgentCopilot() {
                                 prev.map(m =>
                                     m.id === assistantMsgId
                                         ? {
-                                              ...m,
-                                              toolCalls: [
-                                                  ...(m.toolCalls || []),
-                                                  {
-                                                      toolName: payload.toolName,
-                                                      status: "executing",
-                                                  },
-                                              ],
-                                          }
+                                            ...m,
+                                            toolCalls: [
+                                                ...(m.toolCalls || []),
+                                                {
+                                                    toolName: payload.toolName,
+                                                    status: "executing",
+                                                },
+                                            ],
+                                        }
                                         : m
                                 )
                             );
@@ -164,18 +193,18 @@ export function AgentCopilot() {
                                 prev.map(m =>
                                     m.id === assistantMsgId
                                         ? {
-                                              ...m,
-                                              toolCalls: (m.toolCalls || []).map(tc =>
-                                                  tc.toolName === payload.toolName
-                                                      ? {
-                                                            ...tc,
-                                                            status: payload.status,
-                                                            result: payload.result,
-                                                            error: payload.error,
-                                                        }
-                                                      : tc
-                                              ),
-                                          }
+                                            ...m,
+                                            toolCalls: (m.toolCalls || []).map(tc =>
+                                                tc.toolName === payload.toolName
+                                                    ? {
+                                                        ...tc,
+                                                        status: payload.status,
+                                                        result: payload.result,
+                                                        error: payload.error,
+                                                    }
+                                                    : tc
+                                            ),
+                                        }
                                         : m
                                 )
                             );
@@ -262,7 +291,12 @@ export function AgentCopilot() {
 
                 {/* Messages Body */}
                 <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4 bg-slate-50/50">
-                    {messages.length === 0 ? (
+                    {isInitialising ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-2 text-xs text-gray-500">
+                            <Loader2 className="h-5 w-5 animate-spin text-violet-600" />
+                            <span>Loading conversation…</span>
+                        </div>
+                    ) : messages.length === 0 ? (
                         /* Empty State */
                         <div className="flex flex-col items-center justify-center h-full gap-4 text-center px-2 py-6">
                             <div className="h-14 w-14 rounded-2xl bg-violet-100 flex items-center justify-center border border-violet-200 shadow-inner">
@@ -283,7 +317,7 @@ export function AgentCopilot() {
                                 {QUICK_SUGGESTIONS.map((chip, i) => (
                                     <button
                                         key={i}
-                                        onClick={() => handleSend(chip.replace(/^[^\s]+\s/, ""))}
+                                        onClick={() => handleSend(chip)}
                                         className="w-full text-left text-xs bg-white hover:bg-violet-50 text-gray-700 hover:text-violet-700 px-3 py-2 rounded-xl border border-gray-200 hover:border-violet-300 transition-all shadow-xs flex items-center justify-between"
                                     >
                                         <span>{chip}</span>
@@ -307,12 +341,15 @@ export function AgentCopilot() {
                                             <div className="mt-0.5 h-6 w-6 shrink-0 rounded-lg bg-violet-100 flex items-center justify-center border border-violet-200">
                                                 <Bot className="h-3.5 w-3.5 text-violet-600" />
                                             </div>
-                                            <div className={`max-w-[86%] rounded-2xl rounded-tl-xs px-4 py-2.5 text-xs shadow-xs leading-relaxed whitespace-pre-wrap ${
-                                                m.isError
-                                                    ? "bg-red-50 border border-red-200 text-red-700"
-                                                    : "bg-white border border-gray-200/80 text-gray-800"
-                                            }`}>
-                                                {m.content || (isLoading && !m.toolCalls?.length ? "..." : "")}
+                                            <div className={`max-w-[86%] rounded-2xl rounded-tl-xs px-4 py-2.5 text-xs shadow-xs leading-relaxed ${m.isError
+                                                ? "bg-red-50 border border-red-200 text-red-700"
+                                                : "bg-white border border-gray-200/80 text-gray-800"
+                                                }`}>
+                                                {m.content ? (
+                                                    <FormattedMarkdown content={m.content} />
+                                                ) : isLoading && !m.toolCalls?.length ? (
+                                                    "..."
+                                                ) : null}
                                             </div>
                                         </div>
 
