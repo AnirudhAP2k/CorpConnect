@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { getHostEvents, getEventById } from "@/domain/events";
+import { getHostEvents } from "@/domain/events";
 import { revalidateTag } from "next/cache";
 import type { ToolContext } from "./types";
 
@@ -9,12 +9,65 @@ export async function listMyEventsHandler({ orgId, toolArgs }: ToolContext) {
     return events.slice(0, limit);
 }
 
-export async function getEventDetailsHandler({ toolArgs }: ToolContext) {
+/**
+ * Event detail for the agent — enforces the same visibility rules as the event page.
+ * Returns a redacted payload (no full org member lists / attendee PII dumps).
+ */
+export async function getEventDetailsHandler({ userId, orgId, toolArgs }: ToolContext) {
     const eventId = String(toolArgs.eventId || "");
     if (!eventId) throw new Error("eventId is required");
 
-    const event = await getEventById(eventId);
+    const event = await prisma.events.findUnique({
+        where: { id: eventId },
+        select: {
+            id: true,
+            title: true,
+            description: true,
+            location: true,
+            startDateTime: true,
+            endDateTime: true,
+            visibility: true,
+            isFree: true,
+            price: true,
+            eventType: true,
+            maxAttendees: true,
+            attendeeCount: true,
+            organizationId: true,
+            category: { select: { id: true, label: true } },
+            organization: { select: { id: true, name: true } },
+        },
+    });
+
     if (!event) throw new Error("Event not found");
+
+    const hostOrgId = event.organizationId;
+    const isHostOrg = hostOrgId === orgId;
+
+    let isHostOrgMember = isHostOrg;
+    if (hostOrgId && !isHostOrgMember) {
+        const membership = await prisma.organizationMember.findUnique({
+            where: {
+                userId_organizationId: { userId, organizationId: hostOrgId },
+            },
+            select: { userId: true },
+        });
+        isHostOrgMember = !!membership;
+    }
+
+    if (event.visibility === "PRIVATE" && !isHostOrgMember) {
+        throw new Error("Forbidden: This is a private event");
+    }
+
+    if (event.visibility === "INVITE_ONLY" && !isHostOrgMember) {
+        const participation = await prisma.eventParticipation.findFirst({
+            where: { eventId, userId },
+            select: { id: true },
+        });
+        if (!participation) {
+            throw new Error("Forbidden: This event is invite-only");
+        }
+    }
+
     return event;
 }
 
