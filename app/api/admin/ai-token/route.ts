@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMasterJwt } from "@/lib/ai-service";
 import { getApiAuth } from "@/lib/api-auth";
+import { getUserById } from "@/domain/users";
 
 /**
  * GET /api/admin/ai-token
@@ -17,7 +18,8 @@ export const GET = async (req: NextRequest) => {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!user.isAppAdmin) {
+    const userData = await getUserById(user.id);
+    if (!userData?.isAppAdmin) {
         return NextResponse.json({ error: "Forbidden — app admins only" }, { status: 403 });
     }
 
