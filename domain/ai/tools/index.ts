@@ -18,6 +18,16 @@ import {
     listNotificationsHandler,
     sendEventInvitesHandler,
 } from "./user.tools";
+import {
+    discoverOrganizationsHandler,
+    listOrgConnectionsHandler,
+    listAttendingEventsHandler,
+    getMeetingRequestsHandler,
+    getOrgDashboardStatsHandler,
+    listOrgMembersHandler,
+    listPendingInvitesHandler,
+    getBillingStatusHandler,
+} from "./networking.tools";
 
 /**
  * Command Pattern / Tool Handler Registry Map inside Domain Layer.
@@ -42,6 +52,15 @@ export const TOOL_REGISTRY: Record<string, ToolHandler> = {
     get_org_details: getOrgDetailsHandler,
     list_notifications: listNotificationsHandler,
     send_event_invites: sendEventInvitesHandler,
+
+    discover_organizations: discoverOrganizationsHandler,
+    list_org_connections: listOrgConnectionsHandler,
+    list_attending_events: listAttendingEventsHandler,
+    get_meeting_requests: getMeetingRequestsHandler,
+    get_org_dashboard_stats: getOrgDashboardStatsHandler,
+    list_org_members: listOrgMembersHandler,
+    list_pending_invites: listPendingInvitesHandler,
+    get_billing_status: getBillingStatusHandler,
 };
 
 export async function executeAgentTool(toolName: string, ctx: ToolContext): Promise<unknown> {
