@@ -10,6 +10,13 @@ export async function getTagSuggestions(query: string, take = 10): Promise<Pick<
     });
 }
 
+export async function getAllTags(): Promise<Pick<Tag, 'id' | 'label'>[]> {
+    return prisma.tag.findMany({
+        orderBy: { label: "asc" },
+        select: { id: true, label: true },
+    });
+}
+
 export async function getEventTags(eventId: string): Promise<Tag[]> {
     const rows = await prisma.eventTag.findMany({
         where: { eventId },
