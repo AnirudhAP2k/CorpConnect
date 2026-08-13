@@ -47,6 +47,7 @@ TIER_GATES: dict[str, ApiTier] = {
     "/chat":               ApiTier.PRO,          # RAG chat — PRO+
     "/analyse":            ApiTier.PRO,          # Sentiment — PRO+
     "/webhooks":           ApiTier.FREE,         # HMAC-authed by the router itself
+    "/agent":              ApiTier.PRO,          # Agent endpoints - PRO+
 }
 
 TIER_ORDER = [ApiTier.FREE, ApiTier.PRO, ApiTier.ENTERPRISE]
