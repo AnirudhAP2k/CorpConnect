@@ -35,6 +35,7 @@ export type { AgentToolName } from "./agent-capability";
 export {
     executeAgentPrompt,
     getAgentSessionId,
+    loadAgentConversation,
 } from "./agent-actions";
-export type { AgentResponse, AgentToolCallResult } from "./agent-actions";
+export type { AgentResponse, AgentToolCallResult, AgentHistoryMessage } from "./agent-actions";
 
