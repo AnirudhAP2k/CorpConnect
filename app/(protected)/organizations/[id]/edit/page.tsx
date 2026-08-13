@@ -2,6 +2,7 @@ import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
 import OrganizationForm from "@/components/shared/OrganizationForm";
 import { getOrganizationById, getAllIndustries } from "@/domain/organizations";
+import { getAllTags } from "@/domain/tags";
 
 interface EditOrganizationPageProps {
     params: Promise<{
@@ -19,10 +20,11 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
 
     const { id } = await params;
 
-    // Fetch org and industries in parallel — no HTTP round-trip
-    const [organization, industries] = await Promise.all([
+    // Fetch org, industries, and tags in parallel — no HTTP round-trip
+    const [organization, industries, tags] = await Promise.all([
         getOrganizationById(id),
         getAllIndustries(),
+        getAllTags(),
     ]);
 
     if (!organization) {
@@ -70,6 +72,7 @@ const EditOrganizationPage = async ({ params }: EditOrganizationPageProps) => {
                     userId={userId}
                     type="Update"
                     industries={industries}
+                    tags={tags}
                     initialData={initialData}
                     organizationId={id}
                 />
