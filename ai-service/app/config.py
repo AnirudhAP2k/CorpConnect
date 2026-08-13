@@ -9,10 +9,7 @@ class Settings(BaseSettings):
     DATABASE_URL: str
 
     # Auth
-    MASTER_KEY: str = ""   # Shared secret for master JWT
-
-    # Embedding model (all-MiniLM-L6-v2 — stays unchanged)
-    # MODEL_NAME: str = "all-MiniLM-L6-v2"
+    MASTER_KEY: str = ""   # Shared secret for master JWT — required outside development
 
     # ─── HuggingFace Serverless Inference API (Embeddings) ────────────────────
     # Free API for sentence-transformers/all-MiniLM-L6-v2 (384 dims, no local model)
