@@ -32,11 +32,13 @@ import { FormErrors } from "@/components/FormErrors";
 import { FormSuccess } from "@/components/FormSuccess";
 import TagArrayInput from "@/components/shared/TagArrayInput";
 import Dropdown from "@/components/shared/Dropdown";
+import TagSelectDropdown, { TagOption } from "@/components/shared/TagSelectDropdown";
 
 interface OrganizationFormProps {
   userId: string;
   type: "Create" | "Update";
   industries: { id: string; label: string }[];
+  tags?: TagOption[];
   initialData?: any;
   organizationId?: string;
 }
@@ -45,6 +47,7 @@ const OrganizationForm = ({
   userId,
   type,
   industries,
+  tags = [],
   initialData,
   organizationId,
 }: OrganizationFormProps) => {
@@ -430,12 +433,13 @@ const OrganizationForm = ({
           name="tags"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Tags <span className="text-gray-400 font-normal text-xs">(up to 10)</span></FormLabel>
+              <FormLabel>Organization Tags <span className="text-gray-400 font-normal text-xs">(select from list, up to 10)</span></FormLabel>
               <FormControl>
-                <TagArrayInput
+                <TagSelectDropdown
                   value={field.value ?? []}
                   onChange={field.onChange}
-                  placeholder="e.g. AI, Fintech, Cloud Infrastructure..."
+                  availableTags={tags}
+                  placeholder="Select pre-seeded tags from dropdown…"
                   maxItems={10}
                   disabled={isPending}
                 />
