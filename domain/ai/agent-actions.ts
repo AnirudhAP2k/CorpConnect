@@ -156,6 +156,13 @@ export async function executeAgentPrompt(
     }
 }
 
+export interface AgentHistoryMessage {
+    id: string;
+    role: "user" | "assistant";
+    content: string;
+    createdAt: string;
+}
+
 /**
  * Get the existing agent session ID for the current user (if any).
  * Used by the frontend to resume conversations.
@@ -164,15 +171,72 @@ export async function getAgentSessionId(): Promise<string | null> {
     const session = await auth();
     if (!session?.user?.id || !session.user.activeOrganizationId) return null;
 
-    const chatSession = await prisma.chatSession.findFirst({
+    const chatSession = await prisma.chatSession.findUnique({
         where: {
-            userId: session.user.id,
-            contextId: session.user.activeOrganizationId,
-            contextType: "AGENT",
+            userId_contextId_contextType: {
+                userId: session.user.id,
+                contextId: session.user.activeOrganizationId,
+                contextType: "AGENT",
+            },
         },
         select: { id: true },
-        orderBy: { updatedAt: "desc" },
     });
 
     return chatSession?.id ?? null;
+}
+
+/**
+ * Load the current user's AGENT conversation for their active org.
+ * Reads ChatMessage directly from Prisma (does not depend on the AI service).
+ */
+export async function loadAgentConversation(): Promise<
+    | { success: true; sessionId: string | null; messages: AgentHistoryMessage[] }
+    | { success: false; error: string }
+> {
+    const session = await auth();
+    if (!session?.user?.id) {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    const orgId = session.user.activeOrganizationId;
+    if (!orgId) {
+        return { success: true, sessionId: null, messages: [] };
+    }
+
+    const chatSession = await prisma.chatSession.findUnique({
+        where: {
+            userId_contextId_contextType: {
+                userId: session.user.id,
+                contextId: orgId,
+                contextType: "AGENT",
+            },
+        },
+        select: {
+            id: true,
+            messages: {
+                orderBy: { createdAt: "asc" },
+                select: {
+                    id: true,
+                    role: true,
+                    content: true,
+                    createdAt: true,
+                },
+            },
+        },
+    });
+
+    if (!chatSession) {
+        return { success: true, sessionId: null, messages: [] };
+    }
+
+    return {
+        success: true,
+        sessionId: chatSession.id,
+        messages: chatSession.messages.map((m) => ({
+            id: m.id,
+            role: m.role === "ASSISTANT" ? "assistant" : "user",
+            content: m.content,
+            createdAt: m.createdAt.toISOString(),
+        })),
+    };
 }
