@@ -272,9 +272,132 @@ LIST_NOTIFICATIONS = _tool(
     parameters={"properties": {}, "required": []},
 )
 
+DISCOVER_ORGANIZATIONS = _tool(
+    name="discover_organizations",
+    description=(
+        "Find the best-matching partner organizations for the user's active org "
+        "using AI matchmaking (embedding similarity + shared activity). "
+        "Use this when the user asks for recommended orgs, potential partners, "
+        "or who they should connect with — not for keyword directory search."
+    ),
+    parameters={
+        "properties": {
+            "limit": {
+                "type": "integer",
+                "description": "Max matched organizations to return. Defaults to 10 (max 20).",
+            },
+        },
+        "required": [],
+    },
+)
+
+LIST_ORG_CONNECTIONS = _tool(
+    name="list_org_connections",
+    description=(
+        "List pending and accepted organization connections for the user's active org. "
+        "Shows who they connected with and whether each request was sent or received."
+    ),
+    parameters={
+        "properties": {
+            "status": {
+                "type": "string",
+                "enum": ["PENDING", "ACCEPTED"],
+                "description": "Optional filter by connection status.",
+            },
+        },
+        "required": [],
+    },
+)
+
+LIST_ATTENDING_EVENTS = _tool(
+    name="list_attending_events",
+    description=(
+        "List upcoming events that the user's organization is attending "
+        "(as a participant), not events they are hosting."
+    ),
+    parameters={
+        "properties": {
+            "limit": {
+                "type": "integer",
+                "description": "Max events to return. Defaults to 10.",
+            },
+        },
+        "required": [],
+    },
+)
+
+GET_MEETING_REQUESTS = _tool(
+    name="get_meeting_requests",
+    description=(
+        "List B2B meeting requests for the user's organization. "
+        "Optionally filter to a specific event. Returns sent and received requests."
+    ),
+    parameters={
+        "properties": {
+            "eventId": {
+                "type": "string",
+                "description": "Optional event UUID to scope meeting requests.",
+            },
+            "limit": {
+                "type": "integer",
+                "description": "Max requests to return. Defaults to 15.",
+            },
+        },
+        "required": [],
+    },
+)
+
+GET_ORG_DASHBOARD_STATS = _tool(
+    name="get_org_dashboard_stats",
+    description=(
+        "Get high-level dashboard statistics for the user's active organization: "
+        "events hosted, members, attendees, events attending, and revenue."
+    ),
+    parameters={"properties": {}, "required": []},
+)
+
+LIST_ORG_MEMBERS = _tool(
+    name="list_org_members",
+    description=(
+        "List members of the user's active organization with roles. "
+        "Email addresses are only included for ADMIN and OWNER callers."
+    ),
+    parameters={
+        "properties": {
+            "limit": {
+                "type": "integer",
+                "description": "Max members to return. Defaults to 50.",
+            },
+        },
+        "required": [],
+    },
+)
+
+LIST_PENDING_INVITES = _tool(
+    name="list_pending_invites",
+    description=(
+        "List pending organization invitations addressed to the current user. "
+        "Useful when the user asks about invites they need to accept or decline."
+    ),
+    parameters={"properties": {}, "required": []},
+)
+
+GET_BILLING_STATUS = _tool(
+    name="get_billing_status",
+    description=(
+        "Get the subscription plan and billing status for the user's active organization. "
+        "Does not create checkouts or open payment portals — direct the user to /billing for that."
+    ),
+    parameters={"properties": {}, "required": []},
+)
+
 SEND_EVENT_INVITES = _tool(
     name="send_event_invites",
-    description="Send email invitations for an event to a list of target email addresses.",
+    description=(
+        "Send email invitations for an event hosted by the user's organization. "
+        "Only organization ADMINs and OWNERs can use this. "
+        "IMPORTANT: Always confirm the recipient list with the user before sending."
+    ),
     parameters={
         "properties": {
             "eventId": {"type": "string", "description": "The UUID of the event."},
@@ -300,17 +423,25 @@ READ_TOOLS = [
     GET_ORG_DETAILS,
     GET_AI_USAGE_STATS,
     LIST_NOTIFICATIONS,
+    DISCOVER_ORGANIZATIONS,
+    LIST_ORG_CONNECTIONS,
+    LIST_ATTENDING_EVENTS,
+    GET_MEETING_REQUESTS,
+    GET_ORG_DASHBOARD_STATS,
+    LIST_ORG_MEMBERS,
+    LIST_PENDING_INVITES,
+    GET_BILLING_STATUS,
 ]
 
 WRITE_TOOLS = [
     CREATE_EVENT,
     UPDATE_EVENT,
     GENERATE_EVENT_DESCRIPTION,
-    SEND_EVENT_INVITES,
 ]
 
 ADMIN_TOOLS = [
     DELETE_EVENT,
+    SEND_EVENT_INVITES,
 ]
 
 # Lookup from tool name → the internal tool schema
