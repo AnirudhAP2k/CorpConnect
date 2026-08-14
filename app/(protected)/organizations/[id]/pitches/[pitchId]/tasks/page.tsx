@@ -6,7 +6,8 @@
 
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { checkOrganizationPermission } from "@/domain/organizations";
+import { getPitchWithTasks } from "@/domain/pitches";
 import { CheckCircle2, Circle, Clock, Users, AlertTriangle, Sparkles, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -65,32 +66,10 @@ export default async function PitchTasksPage({
     const { id: organizationId, pitchId } = await params;
 
     // Verify caller is a member of this org
-    const membership = await prisma.organizationMember.findFirst({
-        where: { userId: session.user.id, organizationId },
-        select: { role: true },
-    });
-    if (!membership) redirect(`/organizations/${organizationId}`);
+    const { role } = await checkOrganizationPermission(session.user.id, organizationId);
+    if (!role) redirect(`/organizations/${organizationId}`);
 
-    const pitch = await prisma.eventPitch.findUnique({
-        where: { id: pitchId, organizationId },
-        select: {
-            id: true,
-            title: true,
-            status: true,
-            tasks: {
-                select: {
-                    id: true,
-                    title: true,
-                    description: true,
-                    dueDayOffset: true,
-                    priority: true,
-                    assignedRole: true,
-                    isCompleted: true,
-                },
-                orderBy: { dueDayOffset: "asc" },
-            },
-        },
-    });
+    const pitch = await getPitchWithTasks(pitchId, organizationId);
 
     if (!pitch) notFound();
 

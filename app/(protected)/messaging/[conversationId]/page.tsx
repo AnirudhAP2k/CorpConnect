@@ -1,6 +1,10 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
+import {
+    getDirectConversationForOrg,
+    getDirectMessages,
+    markConversationReadAction,
+} from "@/domain/messaging";
 import { ChatWindow } from "@/components/messaging/ChatWindow";
 import type { DirectMessage } from "@/hooks/useConversation";
 
@@ -18,16 +22,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
     if (!activeOrgId) redirect("/dashboard");
 
     // Verify the caller is a participant in this conversation
-    const conversation = await prisma.directConversation.findFirst({
-        where: {
-            id: conversationId,
-            OR: [{ orgAId: activeOrgId }, { orgBId: activeOrgId }],
-        },
-        include: {
-            orgA: { select: { id: true, name: true, logo: true, isVerified: true } },
-            orgB: { select: { id: true, name: true, logo: true, isVerified: true } },
-        },
-    });
+    const conversation = await getDirectConversationForOrg(conversationId, activeOrgId);
 
     if (!conversation) notFound();
 
@@ -36,29 +31,12 @@ export default async function ChatPage({ params }: ChatPageProps) {
         conversation.orgAId === activeOrgId ? conversation.orgB : conversation.orgA;
 
     // SSR: load last 30 messages (oldest-first for display)
-    const rawMessages = await prisma.directMessage.findMany({
-        where: { conversationId },
-        include: {
-            senderOrg: { select: { id: true, name: true, logo: true } },
-            senderUser: { select: { id: true, name: true, image: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 30,
-    });
+    const rawMessages = await getDirectMessages(conversationId);
 
     // Mark unread messages from the other org as READ on open
-    await prisma.directMessage.updateMany({
-        where: {
-            conversationId,
-            senderOrgId: { not: activeOrgId },
-            status: { not: "READ" },
-        },
-        data: { status: "READ", readAt: new Date() },
-    });
+    await markConversationReadAction(conversationId);
 
-    // Serialize dates and reverse so oldest is first
     const initialMessages: DirectMessage[] = rawMessages
-        .reverse()
         .map((m) => ({
             id: m.id,
             conversationId: m.conversationId,

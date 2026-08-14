@@ -33,6 +33,16 @@ export {
     discoverOrganizations,
     getAllIndustries,
     checkOrganizationPermission,
+    getUserOrgMembership,
+    getOrganizationName,
+    getOrganizationProfile,
+    getOrganizationWithViewerMembership,
+    getConnectionBetweenOrgs,
+    getOrganizationVerification,
+    getUnverifiedOrgsForAdmin,
+    getPendingInvitesForEmail,
+    getInviteByToken,
+    hasAnyOrganizationMembership,
 } from "./queries";
 
 // Server Actions (authenticated mutations)
@@ -43,4 +53,5 @@ export {
     addOrganizationMemberAction,
     removeOrganizationMemberAction,
     transferOrganizationOwnershipAction,
+    acceptOrganizationInvite,
 } from "./actions";

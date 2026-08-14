@@ -13,7 +13,8 @@
 
 import { redirect } from "next/navigation";
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { confirmPaidParticipation } from "@/domain/billing";
+import { getEventSummary } from "@/domain/events";
 import { getStripe } from "@/lib/payment/stripe";
 import Link from "next/link";
 import { CheckCircle2, Calendar, ArrowRight, Home } from "lucide-react";
@@ -53,42 +54,21 @@ export default async function PaymentSuccessPage({ params, searchParams }: Props
 
     // ── 2. Optimistic DB confirmation (webhook may arrive later) ───────────────
     if (participationId && userId === session.user.id) {
-        await prisma.$transaction(async (tx) => {
-            await tx.eventParticipation.updateMany({
-                where: {
-                    id: participationId,
-                    status: "PENDING_PAYMENT", // only update if still pending
-                },
-                data: { isPaid: true, status: "REGISTERED" },
-            });
+        const pi = stripeSession.payment_intent;
+        const receiptUrl =
+            typeof pi === "object"
+                ? (pi as any)?.charges?.data?.[0]?.receipt_url ?? null
+                : null;
 
-            const pi = stripeSession.payment_intent;
-            const piId = typeof pi === "string" ? pi : pi?.id;
-            const receiptUrl =
-                typeof pi === "object"
-                    ? (pi as any)?.charges?.data?.[0]?.receipt_url ?? null
-                    : null;
-
-            if (piId) {
-                await tx.eventPayment.updateMany({
-                    where: { participationId },
-                    data: { status: "SUCCEEDED", receiptUrl },
-                });
-            }
+        await confirmPaidParticipation({
+            participationId,
+            paymentIntentId: typeof pi === "string" ? pi : pi?.id ?? null,
+            receiptUrl,
         });
     }
 
     // ── 3. Load event details for the success screen ──────────────────────────
-    const event = await prisma.events.findUnique({
-        where: { id: eventId },
-        select: {
-            title: true,
-            startDateTime: true,
-            location: true,
-            image: true,
-            organization: { select: { name: true } },
-        },
-    });
+    const event = await getEventSummary(eventId);
 
     if (!event) redirect("/events");
 

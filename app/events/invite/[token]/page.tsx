@@ -1,5 +1,4 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,7 +6,7 @@ import { CheckCircle2, XCircle, Clock, Calendar, MapPin, Building2 } from "lucid
 import Link from "next/link";
 import Image from "next/image";
 import { format } from "date-fns";
-import { getEventInviteByToken } from "@/domain/events";
+import { acceptEventInvite, getEventInviteByToken } from "@/domain/events";
 import type { Metadata } from "next";
 
 // ─── Props ────────────────────────────────────────────────────────────────────
@@ -106,41 +105,10 @@ export default async function EventInvitePage({ params }: EventInvitePageProps) 
 
     // ─── User is authenticated — process the invitation atomically ────────
     try {
-        // Check if user is already participating in this event
-        const existingParticipation = await prisma.eventParticipation.findUnique({
-            where: {
-                eventId_userId: {
-                    eventId: invite.eventId,
-                    userId,
-                },
-            },
-        });
-
-        await prisma.$transaction(async (tx) => {
-            // 1. Mark invite as accepted
-            await tx.eventInvite.update({
-                where: { id: invite.id },
-                data: { status: "ACCEPTED" },
-            });
-
-            // 2. Only create participation if not already registered
-            if (!existingParticipation) {
-                await tx.eventParticipation.create({
-                    data: {
-                        eventId: invite.eventId,
-                        userId,
-                        status: "REGISTERED",
-                    },
-                });
-
-                // 3. Increment attendee count
-                await tx.events.update({
-                    where: { id: invite.eventId },
-                    data: {
-                        attendeeCount: { increment: 1 },
-                    },
-                });
-            }
+        await acceptEventInvite({
+            inviteId: invite.id,
+            eventId: invite.eventId,
+            userId,
         });
 
         // Success! Show a confirmation before redirecting

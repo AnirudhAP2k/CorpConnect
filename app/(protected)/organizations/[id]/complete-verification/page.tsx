@@ -1,6 +1,10 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
 import { notFound, redirect } from "next/navigation";
+import {
+    checkOrganizationPermission,
+    getOrganizationName,
+    getOrganizationVerification,
+} from "@/domain/organizations";
 import Link from "next/link";
 import {
     ArrowLeft, ShieldCheck, Clock, AlertTriangle,
@@ -19,8 +23,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props) {
     const { id } = await params;
-    const org = await prisma.organization.findUnique({ where: { id }, select: { name: true } });
-    return { title: `Complete Verification — ${org?.name ?? "Organization"}` };
+    const name = await getOrganizationName(id);
+    return { title: `Complete Verification — ${name ?? "Organization"}` };
 }
 
 export default async function CompleteVerificationPage({ params }: Props) {
@@ -30,37 +34,10 @@ export default async function CompleteVerificationPage({ params }: Props) {
     if (!userId) redirect("/login");
 
     // Verify the user is an OWNER/ADMIN of this org
-    const member = await prisma.organizationMember.findFirst({
-        where: { organizationId: orgId, userId },
-        select: { role: true },
-    });
-    if (!member || !["OWNER", "ADMIN"].includes(member.role)) {
-        redirect(`/organizations/${orgId}`);
-    }
+    const { hasPermission } = await checkOrganizationPermission(userId, orgId, "ADMIN");
+    if (!hasPermission) redirect(`/organizations/${orgId}`);
 
-    const org = await prisma.organization.findUnique({
-        where: { id: orgId },
-        select: {
-            id: true, name: true, logo: true,
-            isVerified: true,
-            meta: {
-                select: {
-                    verificationStatus: true,
-                    verificationScore: true,
-                    registrationNumber: true,
-                    jurisdiction: true,
-                    taxId: true,
-                    incorporationDate: true,
-                    registeredAddress: true,
-                },
-            },
-            orgDocuments: {
-                where: { docType: { in: ["INCORPORATION_CERT", "TAX_CERTIFICATE", "ADDRESS_PROOF", "OTHER_KYB", "LEGAL_COMPLIANCE"] as any[] } },
-                select: { id: true, docType: true, title: true, taxRefNumber: true, createdAt: true },
-                orderBy: { createdAt: "asc" },
-            },
-        },
-    });
+    const org = await getOrganizationVerification(orgId);
     if (!org) notFound();
 
     const status = org.meta?.verificationStatus ?? "PENDING";

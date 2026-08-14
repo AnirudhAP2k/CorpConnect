@@ -214,6 +214,42 @@ export async function rejectGroupInviteAction(inviteId: string) {
     }
 }
 
+// ─── Direct Messages ──────────────────────────────────────────────────────────
+
+/**
+ * Marks messages the other participant sent as READ. Called when the caller
+ * opens the conversation.
+ */
+export async function markConversationReadAction(conversationId: string) {
+    const session = await auth();
+    if (!session?.user?.id) return { error: "Unauthorized." };
+
+    const orgId = session.user.activeOrganizationId;
+    if (!orgId) return { error: "No active organization selected." };
+
+    const conversation = await prisma.directConversation.findFirst({
+        where: { id: conversationId, OR: [{ orgAId: orgId }, { orgBId: orgId }] },
+        select: { id: true },
+    });
+    if (!conversation) return { error: "Conversation not found." };
+
+    try {
+        await prisma.directMessage.updateMany({
+            where: {
+                conversationId,
+                senderOrgId: { not: orgId },
+                status: { not: "READ" },
+            },
+            data: { status: "READ", readAt: new Date() },
+        });
+
+        return { success: true };
+    } catch (err) {
+        console.error("[markConversationReadAction]", err);
+        return { error: "Failed to update messages. Please try again." };
+    }
+}
+
 // ─── Leave Group ──────────────────────────────────────────────────────────────
 
 /**

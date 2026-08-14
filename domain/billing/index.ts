@@ -19,11 +19,16 @@ export type {
     PortalSession,
 } from "./gateway/types";
 
+// Queries (safe for Server Components)
+export { getBillingAccess, getBillingOverview } from "./queries";
+export type { BillingAccess } from "./queries";
+
 // Business services
 export {
     createBillingCheckout,
     createBillingPortal,
     getBillingStatus,
+    confirmPaidParticipation,
 } from "./service";
 export type { BillingStatus } from "./service";
 

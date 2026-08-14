@@ -1,5 +1,5 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import { getPendingInvitesForEmail } from "@/domain/organizations";
 import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,28 +18,7 @@ const InvitationsPage = async () => {
     }
 
     // Fetch pending invitations
-    const invitations = await prisma.pendingInvite.findMany({
-        where: {
-            email: userEmail,
-            status: "PENDING",
-            expiresAt: {
-                gte: new Date(), // Only show non-expired
-            },
-        },
-        include: {
-            organization: true,
-            inviter: {
-                select: {
-                    name: true,
-                    email: true,
-                    image: true,
-                },
-            },
-        },
-        orderBy: {
-            createdAt: "desc",
-        },
-    });
+    const invitations = await getPendingInvitesForEmail(userEmail);
 
     const getRoleBadge = (role: string) => {
         const colors = {

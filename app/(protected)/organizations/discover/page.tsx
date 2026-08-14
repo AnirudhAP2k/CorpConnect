@@ -1,10 +1,11 @@
-import { prisma } from "@/lib/db";
 import Link from "next/link";
 import { Suspense } from "react";
 import OrgCard from "@/components/organizations/OrgCard";
 import OrgDiscoverFilters from "@/components/organizations/OrgDiscoverFilters";
 import { OrgGridSkeleton } from "@/components/OrgCardSkeleton";
 import { Building2, Sparkles } from "lucide-react";
+import { discoverOrganizations, discoverOrganizationsSchema, getAllIndustries } from "@/domain/organizations";
+import { getPopularOrgTags } from "@/domain/tags";
 
 interface SearchParams {
     q?: string;
@@ -25,61 +26,17 @@ export const revalidate = 300;
 
 // ─── Async server component that streams org results ─────────────────────────
 async function OrgResults({ params }: { params: SearchParams }) {
-    const q = params.q ?? "";
-    const industry = params.industry ?? "";
-    const size = params.size ?? "";
-    const location = params.location ?? "";
-    const tagIds = params.tags ? params.tags.split(",").filter(Boolean) : [];
-    const page = Math.max(1, parseInt(params.page ?? "1", 10));
-    const limit = 24;
-    const skip = (page - 1) * limit;
+    // Unparseable filters (e.g. a hand-edited industry ID) fall back to defaults
+    // rather than crashing the page.
+    const parsed = discoverOrganizationsSchema.safeParse(params);
+    const input = parsed.success ? parsed.data : discoverOrganizationsSchema.parse({});
 
-    const where: any = {};
-    if (q) {
-        where.OR = [
-            { name: { contains: q, mode: "insensitive" } },
-            { description: { contains: q, mode: "insensitive" } },
-        ];
-    }
-    if (industry) where.industryId = industry;
-    if (size) where.size = size;
-    if (location) where.location = { contains: location, mode: "insensitive" };
-    if (tagIds.length > 0) {
-        where.orgTags = { some: { tagId: { in: tagIds } } };
-    }
+    const { organizations, total, page, totalPages } = await discoverOrganizations(input);
+    const skip = (page - 1) * input.limit;
 
-    const [organizations, total] = await Promise.all([
-        prisma.organization.findMany({
-            where,
-            skip,
-            take: limit,
-            orderBy: [
-                { isVerified: "desc" },
-                { events: { _count: "desc" } },
-                { createdAt: "desc" },
-            ],
-            select: {
-                id: true,
-                name: true,
-                description: true,
-                logo: true,
-                location: true,
-                size: true,
-                isVerified: true,
-                website: true,
-                industry: { select: { id: true, label: true } },
-                orgTags: {
-                    take: 5,
-                    select: { tag: { select: { id: true, label: true } } },
-                },
-                _count: { select: { members: true, events: true } },
-            },
-        }),
-        prisma.organization.count({ where }),
-    ]);
-
-    const hasFilters = q || industry || size || location || tagIds.length > 0;
-    const totalPages = Math.ceil(total / limit);
+    const hasFilters = Boolean(
+        input.q || input.industry || input.size || input.location || input.tags
+    );
 
     if (organizations.length === 0) {
         return (
@@ -96,7 +53,7 @@ async function OrgResults({ params }: { params: SearchParams }) {
     return (
         <div>
             <p className="text-sm text-gray-500 mb-4">
-                Showing <span className="font-medium text-gray-800">{skip + 1}–{Math.min(skip + limit, total)}</span> of{" "}
+                Showing <span className="font-medium text-gray-800">{skip + 1}–{Math.min(skip + input.limit, total)}</span> of{" "}
                 <span className="font-medium text-gray-800">{total}</span> organizations
             </p>
 
@@ -140,12 +97,8 @@ export default async function OrgsDiscoverPage({ searchParams }: OrgsDiscoverPag
 
     // These are relatively static — cached by the ISR revalidate above
     const [industries, popularTags] = await Promise.all([
-        prisma.industry.findMany({ orderBy: { label: "asc" }, select: { id: true, label: true } }),
-        prisma.tag.findMany({
-            orderBy: { orgTags: { _count: "desc" } },
-            take: 30,
-            select: { id: true, label: true },
-        }),
+        getAllIndustries(),
+        getPopularOrgTags(),
     ]);
 
     const hasFilters = params.q || params.industry || params.size || params.location || params.tags;

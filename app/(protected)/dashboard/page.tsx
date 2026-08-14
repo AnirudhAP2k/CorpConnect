@@ -9,7 +9,8 @@ import StatCard from "@/components/dashboard/StatCard";
 import EventRow from "@/components/dashboard/EventRow";
 import { getUserDashboardStats, getRecommendedEvents } from "@/data/dashboard";
 import { getUserOrganizations } from "@/data/organization";
-import { prisma } from "@/lib/db";
+import { getDashboardUser } from "@/domain/users";
+import { getUnverifiedOrgsForAdmin } from "@/domain/organizations";
 import { VerificationReminderBanner } from "@/components/shared/VerificationReminderBanner";
 import Image from "next/image";
 
@@ -18,42 +19,14 @@ const DashboardPage = async () => {
     const userId = session?.user?.id;
     if (!userId) redirect("/login");
 
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-            name: true,
-            isAppAdmin: true,
-        },
+    const user = await getDashboardUser(userId);
 
-    });
-
-    const userWithOrg = await prisma.user.findUnique({
-        where: { id: userId },
-        include: { organization: { select: { industryId: true } } },
-    });
-
-    const [stats, orgs, recommendedEvents] = await Promise.all([
+    const [stats, orgs, recommendedEvents, unverifiedOrgBanners] = await Promise.all([
         getUserDashboardStats(userId),
         getUserOrganizations(userId),
-        getRecommendedEvents(userId, userWithOrg?.organization?.industryId),
+        getRecommendedEvents(userId, user?.industryId),
+        getUnverifiedOrgsForAdmin(userId),
     ]);
-
-    const unverifiedOrgBanners = await prisma.organizationMember.findMany({
-        where: {
-            userId,
-            role: { in: ["OWNER", "ADMIN"] },
-            organization: { isVerified: false },
-        },
-        select: {
-            organization: {
-                select: {
-                    id: true, name: true,
-                    meta: { select: { verificationStatus: true } },
-                },
-            },
-        },
-        take: 3,
-    });
 
     return (
         <div className="wrapper py-8">
@@ -61,7 +34,7 @@ const DashboardPage = async () => {
                 {/* Verification Reminder Banners */}
                 {unverifiedOrgBanners.length > 0 && (
                     <div className="flex flex-col gap-3">
-                        {unverifiedOrgBanners.map(({ organization: o }) => (
+                        {unverifiedOrgBanners.map((o) => (
                             <VerificationReminderBanner
                                 key={o.id}
                                 orgId={o.id}
@@ -322,8 +295,8 @@ const DashboardPage = async () => {
                                     Browse Events <ArrowRight className="h-3 w-3" />
                                 </Button>
                             </Link>
-                            {userWithOrg?.organization && (
-                                <Link href={`/organizations/${userWithOrg.activeOrganizationId}/ai-planner`}>
+                            {user?.activeOrganizationId && (
+                                <Link href={`/organizations/${user.activeOrganizationId}/ai-planner`}>
                                     <Button variant="ghost" size="sm" className="text-xs h-7 gap-1 text-primary hover:text-primary hover:bg-primary/10">
                                         <Sparkles className="h-3 w-3" /> AI Brainstorming
                                     </Button>
