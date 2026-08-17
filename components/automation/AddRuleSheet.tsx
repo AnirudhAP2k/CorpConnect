@@ -41,7 +41,7 @@ export function AddRuleSheet({ orgId, open, onOpenChange, onRuleCreated }: AddRu
     const [useCustomWebhook, setUseCustomWebhook] = useState(false);
     const [promptTemplate, setPrompt] = useState("");
     const [templates, setTemplates] = useState<AutomationTemplateOption[]>([]);
-    const [templatesLoading, setTemplatesLoading] = useState(false);
+    const [templatesLoading, setTemplatesLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
 
@@ -58,12 +58,17 @@ export function AddRuleSheet({ orgId, open, onOpenChange, onRuleCreated }: AddRu
 
     useEffect(() => {
         if (!open) return;
-        setTemplatesLoading(true);
+        let active = true;
         listAutomationTemplates()
             .then(res => {
-                if (res.success) setTemplates(res.data);
+                if (active && res.success) setTemplates(res.data);
             })
-            .finally(() => setTemplatesLoading(false));
+            .finally(() => {
+                if (active) setTemplatesLoading(false);
+            });
+        return () => {
+            active = false;
+        };
     }, [open]);
 
     const templatesForTrigger = trigger
