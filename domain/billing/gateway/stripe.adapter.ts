@@ -7,6 +7,7 @@
 
 import { prisma } from "@/lib/db";
 import { getStripe, STRIPE_PRICE_IDS } from "@/lib/payment/stripe";
+import { paymentIdempotencyKey, resolveIdempotencyKey } from "@/lib/payment/idempotency";
 import { BillingError, WebhookVerificationError } from "../errors";
 import type {
     BillingOrg,
@@ -24,14 +25,22 @@ function periodDate(unixSeconds: number | undefined, fallbackMs: number): Date {
 export const stripeGateway: PaymentGateway = {
     provider: "stripe",
 
-    async ensureCustomer(org: BillingOrg): Promise<string> {
+    async ensureCustomer(org: BillingOrg, idempotencyKey?: string): Promise<string> {
         if (org.stripeCustomerId) return org.stripeCustomerId;
 
         const stripe = getStripe();
-        const customer = await stripe.customers.create({
-            name: org.name,
-            metadata: { orgId: org.id },
-        });
+        const customer = await stripe.customers.create(
+            {
+                name: org.name,
+                metadata: { orgId: org.id },
+            },
+            {
+                idempotencyKey: resolveIdempotencyKey(
+                    idempotencyKey,
+                    paymentIdempotencyKey("cust", "stripe", org.id)
+                ),
+            }
+        );
         await prisma.organization.update({
             where: { id: org.id },
             data: { stripeCustomerId: customer.id },
@@ -39,23 +48,31 @@ export const stripeGateway: PaymentGateway = {
         return customer.id;
     },
 
-    async createSubscriptionCheckout({ org, plan, appUrl }): Promise<SubscriptionCheckout> {
+    async createSubscriptionCheckout({ org, plan, appUrl, idempotencyKey }): Promise<SubscriptionCheckout> {
         const stripe = getStripe();
         const priceId = STRIPE_PRICE_IDS[plan];
         if (!priceId) {
             throw new BillingError(500, `Stripe Price ID for ${plan} is not configured`);
         }
 
-        const customerId = await this.ensureCustomer(org);
+        const customerId = await this.ensureCustomer(org, idempotencyKey);
 
-        const checkoutSession = await stripe.checkout.sessions.create({
-            customer: customerId,
-            mode: "subscription",
-            line_items: [{ price: priceId, quantity: 1 }],
-            success_url: `${appUrl}/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
-            cancel_url: `${appUrl}/billing?cancelled=1`,
-            metadata: { orgId: org.id, plan },
-        });
+        const checkoutSession = await stripe.checkout.sessions.create(
+            {
+                customer: customerId,
+                mode: "subscription",
+                line_items: [{ price: priceId, quantity: 1 }],
+                success_url: `${appUrl}/billing?success=1&session_id={CHECKOUT_SESSION_ID}`,
+                cancel_url: `${appUrl}/billing?cancelled=1`,
+                metadata: { orgId: org.id, plan },
+            },
+            {
+                idempotencyKey: resolveIdempotencyKey(
+                    idempotencyKey,
+                    paymentIdempotencyKey("sub", "stripe", org.id, plan)
+                ),
+            }
+        );
 
         return { url: checkoutSession.url ?? "" };
     },
