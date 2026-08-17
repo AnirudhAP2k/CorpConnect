@@ -85,13 +85,14 @@ export interface PaymentGateway {
     readonly provider: PaymentProvider;
 
     /** Returns the provider customer id for the org, creating+persisting it if absent. */
-    ensureCustomer(org: BillingOrg): Promise<string>;
+    ensureCustomer(org: BillingOrg, idempotencyKey?: string): Promise<string>;
 
     /** Creates a subscription checkout and returns the URL to redirect the payer to. */
     createSubscriptionCheckout(input: {
         org: BillingOrg;
         plan: BillingPlan;
         appUrl: string;
+        idempotencyKey?: string;
     }): Promise<SubscriptionCheckout>;
 
     /** Creates a self-serve customer portal session. Not all providers support this. */
