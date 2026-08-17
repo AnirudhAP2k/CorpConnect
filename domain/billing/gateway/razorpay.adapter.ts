@@ -7,10 +7,12 @@
 
 import { timingSafeEqual } from "node:crypto";
 import { prisma } from "@/lib/db";
-import { getRazorpay, RAZORPAY_PRICE_IDS } from "@/lib/payment/razorpay";
+import { RAZORPAY_PRICE_IDS, razorpayIdempotentPost } from "@/lib/payment/razorpay";
 import { hashMessage } from "@/lib/hash";
+import { paymentIdempotencyKey, resolveIdempotencyKey } from "@/lib/payment/idempotency";
 import { BillingError, WebhookVerificationError } from "../errors";
 import type { Subscriptions } from "razorpay/dist/types/subscriptions";
+import type { Customers } from "razorpay/dist/types/customers";
 import type {
     BillingOrg,
     NormalizedBillingEvent,
@@ -35,14 +37,18 @@ function verifyRzpSignature(body: string, signature: string): boolean {
 export const razorpayGateway: PaymentGateway = {
     provider: "razorpay",
 
-    async ensureCustomer(org: BillingOrg): Promise<string> {
+    async ensureCustomer(org: BillingOrg, idempotencyKey?: string): Promise<string> {
         if (org.razorpayCustomerId) return org.razorpayCustomerId;
 
-        const razorpay = getRazorpay();
-        const customer = await razorpay.customers.create({
-            name: org.name,
-            notes: { orgId: org.id },
-        });
+        const key = resolveIdempotencyKey(
+            idempotencyKey,
+            paymentIdempotencyKey("cust", "razorpay", org.id)
+        );
+        const customer = await razorpayIdempotentPost<Customers.RazorpayCustomer>(
+            "/customers",
+            { name: org.name, notes: { orgId: org.id } },
+            key
+        );
         await prisma.organization.update({
             where: { id: org.id },
             data: { razorpayCustomerId: customer.id },
@@ -50,22 +56,29 @@ export const razorpayGateway: PaymentGateway = {
         return customer.id;
     },
 
-    async createSubscriptionCheckout({ org, plan }): Promise<SubscriptionCheckout> {
-        const razorpay = getRazorpay();
+    async createSubscriptionCheckout({ org, plan, idempotencyKey }): Promise<SubscriptionCheckout> {
         const rzpPlanId = RAZORPAY_PRICE_IDS[plan];
         if (!rzpPlanId) {
             throw new BillingError(500, `Razorpay Plan ID for ${plan} is not configured`);
         }
 
         // Ensure the customer record exists/persisted (mirrors prior behavior).
-        await this.ensureCustomer(org);
+        await this.ensureCustomer(org, idempotencyKey);
 
-        const subscription = await (razorpay.subscriptions.create({
-            plan_id: rzpPlanId,
-            customer_notify: 1,
-            total_count: 120,
-            notes: { orgId: org.id, plan },
-        }) as Promise<Subscriptions.RazorpaySubscription>);
+        const key = resolveIdempotencyKey(
+            idempotencyKey,
+            paymentIdempotencyKey("sub", "razorpay", org.id, plan)
+        );
+        const subscription = await razorpayIdempotentPost<Subscriptions.RazorpaySubscription>(
+            "/subscriptions",
+            {
+                plan_id: rzpPlanId,
+                customer_notify: 1,
+                total_count: 120,
+                notes: { orgId: org.id, plan },
+            },
+            key
+        );
 
         const url = subscription.short_url;
         if (!url) {
