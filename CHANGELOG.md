@@ -1,3 +1,20 @@
+# [1.30.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.29.0...v1.30.0) (2026-08-17)
+
+
+### Bug Fixes
+
+* **auth:** replace react-icons with lucide-react and inline SVG in Social ([fe62872](https://github.com/AnirudhAP2k/CorpConnect/commit/fe62872af1def1ea79b824241f91303aaa6f63c9))
+* **auth:** replace react-icons with lucide-react in ErrorCard ([7d81ab0](https://github.com/AnirudhAP2k/CorpConnect/commit/7d81ab03a3370cb241cbc50b9a17a960976878f3))
+* **config:** update serverExternalPackages and sentry configuration ([c3e0eea](https://github.com/AnirudhAP2k/CorpConnect/commit/c3e0eea6218c285d663b598a4890ac027f38de43))
+* **deps:** update pnpm lockfile ([7ce40c1](https://github.com/AnirudhAP2k/CorpConnect/commit/7ce40c159a0ac2e3a912978fa9bb71c976ca2c36))
+* **ui:** replace react-icons with lucide-react in FormErrors ([6f9a352](https://github.com/AnirudhAP2k/CorpConnect/commit/6f9a352b9f4c8151f89902350642ee7433ae67c4))
+* **ui:** replace react-icons with lucide-react in FormSuccess ([e75f82f](https://github.com/AnirudhAP2k/CorpConnect/commit/e75f82faa57d604706b7ee31a92cc51e0ac837e1))
+
+
+### Features
+
+* **deps:** add bundle-analyzer and remove unused react-icons ([5707c9f](https://github.com/AnirudhAP2k/CorpConnect/commit/5707c9f0c2848c48e36c5827cb7291759a339e84))
+
 # [1.29.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.28.0...v1.29.0) (2026-08-17)
 
 
