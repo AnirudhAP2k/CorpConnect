@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { getGroupById, getGroupFeed, getGroupEvents, getGroupMembers } from "@/data/groups";
-import { prisma } from "@/lib/db";
+import { checkOrganizationPermission } from "@/domain/organizations";
 import GroupFeed from "@/components/groups/GroupFeed";
 import GroupCalendar from "@/components/groups/GroupCalendar";
 import GroupMembers from "@/components/groups/GroupMembers";
@@ -58,11 +58,8 @@ export default async function GroupDetailsPage({
 
     const isMember = group.members && group.members.length > 0;
 
-    // Fetch members to check admin role
-    const myOrgProfile = await prisma.organizationMember.findUnique({
-        where: { userId_organizationId: { userId, organizationId: orgId } }
-    });
-    const isAdmin = myOrgProfile?.role === "OWNER" || myOrgProfile?.role === "ADMIN";
+    // Admin rights in the active org drive the group management controls
+    const { hasPermission: isAdmin } = await checkOrganizationPermission(userId, orgId, "ADMIN");
 
     // If member, fetch feed, events, and all members
     const [feed, events, allMembers] = isMember

@@ -206,6 +206,42 @@ export async function deleteEventAction(eventId: string) {
     }
 }
 
+// ─── Accept Event Invite ──────────────────────────────────────────────────────
+
+/**
+ * Marks an event invite as accepted and registers the user, unless they are
+ * already registered. Idempotent so a refreshed invite link is harmless.
+ */
+export async function acceptEventInvite(input: {
+    inviteId: string;
+    eventId: string;
+    userId: string;
+}) {
+    const { inviteId, eventId, userId } = input;
+
+    const existingParticipation = await prisma.eventParticipation.findUnique({
+        where: { eventId_userId: { eventId, userId } },
+    });
+
+    await prisma.$transaction(async (tx) => {
+        await tx.eventInvite.update({
+            where: { id: inviteId },
+            data: { status: "ACCEPTED" },
+        });
+
+        if (existingParticipation) return;
+
+        await tx.eventParticipation.create({
+            data: { eventId, userId, status: "REGISTERED" },
+        });
+
+        await tx.events.update({
+            where: { id: eventId },
+            data: { attendeeCount: { increment: 1 } },
+        });
+    });
+}
+
 // ─── Send External Event Invites ──────────────────────────────────────────────
 
 export async function sendEventInvitesAction(rawInput: unknown) {

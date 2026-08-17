@@ -13,7 +13,7 @@ export type AdminTemplateRow = {
     name: string;
     description: string | null;
     trigger: string;
-    webhookUrl: string;
+    webhookUrl: string | null;
     defaultPromptTemplate: string | null;
     isActive: boolean;
 };
@@ -21,7 +21,7 @@ export type AdminTemplateRow = {
 export function AdminAutomationsClient({ initial }: { initial: AdminTemplateRow[] }) {
     const [rows, setRows] = useState(initial);
     const [drafts, setDrafts] = useState<Record<string, string>>(
-        Object.fromEntries(initial.map(t => [t.id, t.webhookUrl])),
+        Object.fromEntries(initial.map(t => [t.id, t.webhookUrl ?? ""])),
     );
     const [message, setMessage] = useState<string | null>(null);
     const [isPending, startTransition] = useTransition();
@@ -111,7 +111,7 @@ export function AdminAutomationsClient({ initial }: { initial: AdminTemplateRow[
                         </div>
                         <Button
                             size="sm"
-                            disabled={isPending || drafts[t.id] === t.webhookUrl}
+                            disabled={isPending || drafts[t.id] === (t.webhookUrl ?? "")}
                             onClick={() => save(t.id)}
                         >
                             {isPending && <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />}

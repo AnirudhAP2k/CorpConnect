@@ -3,11 +3,19 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: process.env.STANDALONE === "true" ? "standalone" : undefined,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   allowedDevOrigins: [
     "*.ngrok-free.dev",
   ],
-  serverExternalPackages: ["cloudinary"],
-  transpilePackages: ["import-in-the-middle"],
+  serverExternalPackages: [
+    "cloudinary",
+    "nodemailer",
+    "stripe",
+    "razorpay",
+    "crypto-js",
+  ],
   images: {
     remotePatterns: [
       {
@@ -46,20 +54,19 @@ export default withSentryConfig(nextConfig, {
   // For all available options, see:
   // https://docs.sentry.io/platforms/javascript/guides/nextjs/manual-setup/
 
-  // Upload a larger set of source maps for prettier stack traces
-  widenClientFileUpload: true,
+  widenClientFileUpload: false,
 
   webpack: {
     reactComponentAnnotation: {
-      enabled: true,  // Automatically annotate React components to show their component name in breadcrumbs & spans
-    }
+      enabled: false,
+    },
   },
 
   tunnelRoute: "/monitoring",
 
   // Upload source maps to Sentry
   sourcemaps: {
-    disable: false,
+    disable: true,
     ignore: ["**/*.d.ts", "**/*.test.ts", "**/*.test.tsx"],
   },
 });

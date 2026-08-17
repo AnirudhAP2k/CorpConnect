@@ -258,6 +258,35 @@ export async function addOrganizationMemberAction(
     }
 }
 
+/**
+ * Accepts a pending invitation: adds the membership, sets it as the user's
+ * organization, and closes the invite.
+ */
+export async function acceptOrganizationInvite(input: {
+    inviteId: string;
+    organizationId: string;
+    userId: string;
+    role: OrganizationRole;
+}) {
+    const { inviteId, organizationId, userId, role } = input;
+
+    await prisma.$transaction(async (tx) => {
+        await tx.organizationMember.create({
+            data: { userId, organizationId, role },
+        });
+
+        await tx.user.update({
+            where: { id: userId },
+            data: { organizationId },
+        });
+
+        await tx.pendingInvite.update({
+            where: { id: inviteId },
+            data: { status: "ACCEPTED" },
+        });
+    });
+}
+
 export async function removeOrganizationMemberAction(
     organizationId: string,
     memberIdToRemove: string

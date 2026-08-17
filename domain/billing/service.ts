@@ -63,6 +63,36 @@ export async function createBillingPortal(userId: string): Promise<PortalSession
     return gateway.createPortalSession(org, appUrl());
 }
 
+/**
+ * Confirms a paid event registration after the gateway redirect. The webhook
+ * writes the same rows, so both paths are guarded to stay idempotent.
+ */
+export async function confirmPaidParticipation(input: {
+    participationId: string;
+    paymentIntentId: string | null;
+    receiptUrl: string | null;
+}): Promise<void> {
+    const { participationId, paymentIntentId, receiptUrl } = input;
+
+    await prisma.$transaction(async (tx) => {
+        await tx.eventParticipation.updateMany({
+            where: {
+                id: participationId,
+                status: "PENDING_PAYMENT", // only update if still pending
+            },
+            data: { isPaid: true, status: "REGISTERED" },
+        });
+
+        // Without a payment intent there is nothing to reconcile the payment row against.
+        if (!paymentIntentId) return;
+
+        await tx.eventPayment.updateMany({
+            where: { participationId },
+            data: { status: "SUCCEEDED", receiptUrl },
+        });
+    });
+}
+
 export interface BillingStatus {
     plan: string;
     status: string | null;

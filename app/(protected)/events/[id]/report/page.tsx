@@ -1,7 +1,8 @@
 import { auth } from "@/auth";
 import { redirect, notFound } from "next/navigation";
-import { prisma } from "@/lib/db";
 import { isEnterpriseOrg } from "@/lib/enterprise";
+import { getEventTitle, getEventWithReport } from "@/domain/events";
+import { checkOrganizationPermission } from "@/domain/organizations";
 import { EnterpriseGate } from "@/components/shared/EnterpriseGate";
 import { format } from "date-fns";
 import { BarChart3, Users, Clock, Eye, Sparkles, TrendingUp, TrendingDown, Lightbulb, Star } from "lucide-react";
@@ -15,12 +16,9 @@ export async function generateMetadata({
     params: Promise<{ id: string }>;
 }): Promise<Metadata> {
     const { id } = await params;
-    const event = await prisma.events.findUnique({
-        where: { id },
-        select: { title: true },
-    });
+    const title = await getEventTitle(id);
     return {
-        title: event ? `Analytics Report — ${event.title}` : "Event Report",
+        title: title ? `Analytics Report — ${title}` : "Event Report",
         description: "Post-event performance analytics and AI executive summary.",
     };
 }
@@ -63,27 +61,16 @@ export default async function EventReportPage({
     const { id: eventId } = await params;
 
     // Fetch event with org and report
-    const event = await prisma.events.findUnique({
-        where: { id: eventId },
-        include: {
-            organization: {
-                select: { id: true, name: true },
-            },
-            report: true,
-        },
-    });
+    const event = await getEventWithReport(eventId);
 
     if (!event || !event.organization?.id) notFound();
 
     // Auth: must be a member of the hosting org
-    const membership = await prisma.organizationMember.findFirst({
-        where: { userId: session.user.id, organizationId: event.organization.id },
-        select: { role: true },
-    });
+    const { role } = await checkOrganizationPermission(session.user.id, event.organization.id);
 
-    if (!membership) redirect(`/events/${eventId}`);
+    if (!role) redirect(`/events/${eventId}`);
 
-    const isAdmin = ["OWNER", "ADMIN"].includes(membership.role);
+    const isAdmin = ["OWNER", "ADMIN"].includes(role);
     const org = event.organization!;
     const isEnterprise = await isEnterpriseOrg(org.id);
 

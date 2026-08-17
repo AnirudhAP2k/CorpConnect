@@ -105,6 +105,90 @@ export async function getGroupMessages(
 }
 
 /**
+ * Just the group's name — for page titles and metadata.
+ */
+export async function getGroupName(groupId: string): Promise<string | null> {
+    const group = await prisma.groupConversation.findUnique({
+        where: { id: groupId },
+        select: { name: true },
+    });
+
+    return group?.name ?? null;
+}
+
+/**
+ * Group, the caller's membership and the latest messages for the chat screen.
+ * Returns null when the group is missing or the caller is not a member, so the
+ * page can render a 404 either way.
+ */
+export async function getGroupChatData(groupId: string, userId: string) {
+    const group = await prisma.groupConversation.findUnique({
+        where: { id: groupId },
+        include: {
+            members: {
+                include: {
+                    user: { select: { id: true, name: true, image: true, email: true } },
+                    organization: { select: { id: true, name: true, logo: true } },
+                },
+            },
+        },
+    });
+
+    if (!group) return null;
+
+    const membership = group.members.find((m) => m.userId === userId);
+    if (!membership) return null;
+
+    const messages = await prisma.groupMessage.findMany({
+        where: { groupId },
+        orderBy: { createdAt: "asc" },
+        take: -30, // Prisma: negative take = last N rows
+        include: {
+            senderUser: { select: { id: true, name: true, image: true } },
+            senderOrg: { select: { id: true, name: true, logo: true } },
+        },
+    });
+
+    return { group, membership, messages };
+}
+
+// ─── Direct Conversation Queries ──────────────────────────────────────────────
+
+/**
+ * Returns a direct conversation only when the given org is one of its two
+ * participants, so a conversation ID alone is not enough to read it.
+ */
+export async function getDirectConversationForOrg(conversationId: string, orgId: string) {
+    return prisma.directConversation.findFirst({
+        where: {
+            id: conversationId,
+            OR: [{ orgAId: orgId }, { orgBId: orgId }],
+        },
+        include: {
+            orgA: { select: { id: true, name: true, logo: true, isVerified: true } },
+            orgB: { select: { id: true, name: true, logo: true, isVerified: true } },
+        },
+    });
+}
+
+/**
+ * Most recent messages in a conversation, returned oldest-first for display.
+ */
+export async function getDirectMessages(conversationId: string, take = 30) {
+    const messages = await prisma.directMessage.findMany({
+        where: { conversationId },
+        include: {
+            senderOrg: { select: { id: true, name: true, logo: true } },
+            senderUser: { select: { id: true, name: true, image: true } },
+        },
+        orderBy: { createdAt: "desc" },
+        take,
+    });
+
+    return messages.reverse();
+}
+
+/**
  * Returns all pending group invitations for a user.
  */
 export async function getPendingGroupInvites(userId: string) {

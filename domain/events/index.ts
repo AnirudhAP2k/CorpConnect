@@ -37,6 +37,11 @@ export {
     getMeetingRequestsForEvent,
     getMatchingOrgsForEvent,
     getEventInviteByToken,
+    getEventTitle,
+    getEventSummary,
+    getEventWithReport,
+    getActiveVirtualRooms,
+    getVirtualRoomJoinContext,
 } from "./queries";
 
 // Server Actions (authenticated mutations)
@@ -45,4 +50,5 @@ export {
     updateEventAction,
     deleteEventAction,
     sendEventInvitesAction,
+    acceptEventInvite,
 } from "./actions";

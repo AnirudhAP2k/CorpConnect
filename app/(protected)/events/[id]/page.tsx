@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import Link from "next/link";
 import { getEventById, getMeetingRequestsForEvent, getMatchingOrgsForEvent } from "@/domain/events";
 import { getPublicUserById } from "@/domain/users";
-import { prisma } from "@/lib/db";
+import { getActiveVirtualRooms } from "@/domain/events";
 import JoinEventButton from "@/components/shared/JoinEventButton";
 import CancelParticipationButton from "@/components/shared/CancelParticipationButton";
 import EventParticipantsPanel from "@/components/shared/EventParticipantsPanel";
@@ -125,11 +125,7 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
     // Fetch virtual rooms for ONLINE/HYBRID events
     const isVirtualEvent = ["ONLINE", "HYBRID"].includes(event.eventType);
     const virtualRooms = isVirtualEvent
-        ? await prisma.virtualRoom.findMany({
-            where: { eventId: id, isActive: true },
-            select: { id: true, name: true, livekitRoom: true, isActive: true, maxParticipants: true, createdAt: true },
-            orderBy: { createdAt: "asc" },
-        })
+        ? await getActiveVirtualRooms(id)
         : [];
 
     // Build meetingStatusMap for OrgMatchWidget

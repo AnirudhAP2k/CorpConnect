@@ -1,5 +1,5 @@
 import React from 'react';
-import { FaCheckCircle } from "react-icons/fa";
+import { CheckCircle2 } from "lucide-react";
 
 interface FormSuccessProps {
     message?: string
@@ -14,7 +14,7 @@ export const FormSuccess = ({
 
     return (
         <div className="bg-emerald-500/15 p-3 rounded-md flex items-center text-sm gap-x-2 text-emerald-500">
-            <FaCheckCircle className="h-4 w-4" />
+            <CheckCircle2 className="h-4 w-4" />
             <span>{message}</span>
         </div>
     )

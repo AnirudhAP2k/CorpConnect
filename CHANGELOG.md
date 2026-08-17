@@ -1,3 +1,115 @@
+# [1.30.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.29.0...v1.30.0) (2026-08-17)
+
+
+### Bug Fixes
+
+* **auth:** replace react-icons with lucide-react and inline SVG in Social ([fe62872](https://github.com/AnirudhAP2k/CorpConnect/commit/fe62872af1def1ea79b824241f91303aaa6f63c9))
+* **auth:** replace react-icons with lucide-react in ErrorCard ([7d81ab0](https://github.com/AnirudhAP2k/CorpConnect/commit/7d81ab03a3370cb241cbc50b9a17a960976878f3))
+* **config:** update serverExternalPackages and sentry configuration ([c3e0eea](https://github.com/AnirudhAP2k/CorpConnect/commit/c3e0eea6218c285d663b598a4890ac027f38de43))
+* **deps:** update pnpm lockfile ([7ce40c1](https://github.com/AnirudhAP2k/CorpConnect/commit/7ce40c159a0ac2e3a912978fa9bb71c976ca2c36))
+* **ui:** replace react-icons with lucide-react in FormErrors ([6f9a352](https://github.com/AnirudhAP2k/CorpConnect/commit/6f9a352b9f4c8151f89902350642ee7433ae67c4))
+* **ui:** replace react-icons with lucide-react in FormSuccess ([e75f82f](https://github.com/AnirudhAP2k/CorpConnect/commit/e75f82faa57d604706b7ee31a92cc51e0ac837e1))
+
+
+### Features
+
+* **deps:** add bundle-analyzer and remove unused react-icons ([5707c9f](https://github.com/AnirudhAP2k/CorpConnect/commit/5707c9f0c2848c48e36c5827cb7291759a339e84))
+
+# [1.29.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.28.0...v1.29.0) (2026-08-17)
+
+
+### Bug Fixes
+
+* **admin:** update webhookUrl type in AdminTemplateRow to accept null ([c593733](https://github.com/AnirudhAP2k/CorpConnect/commit/c5937338e46692447ae1a04e448db95a250633b5))
+* **ai-service:** update authentication middleware for webhook routes ([334c2f6](https://github.com/AnirudhAP2k/CorpConnect/commit/334c2f6ca8acadcbf0e5f6076b61ce86923e7fed))
+* **automation:** fix prefer-const error in automation actions ([dd56b67](https://github.com/AnirudhAP2k/CorpConnect/commit/dd56b679b65bf4b39eb67f6bc5823753f04a4c26))
+* **automation:** prevent synchronous setState inside useEffect ([dcd9104](https://github.com/AnirudhAP2k/CorpConnect/commit/dcd9104dfcb482b023c99418072811ea610dfc44))
+* **config:** add ignoreDuringBuilds to next.config.ts ([f5f273f](https://github.com/AnirudhAP2k/CorpConnect/commit/f5f273f532d8e509870a2d0491c71b382454b174))
+* **docker:** update docker ignore patterns for build efficiency ([9ff5cac](https://github.com/AnirudhAP2k/CorpConnect/commit/9ff5cac3d9d6b3cf7069e8e43557c8505a95b68d))
+
+
+### Features
+
+* **actions:** add automation rule management server actions ([bd42920](https://github.com/AnirudhAP2k/CorpConnect/commit/bd42920d7b72548d41c018fc2124538ee76fa073))
+* **actions:** update admin management server actions ([7a8aa5e](https://github.com/AnirudhAP2k/CorpConnect/commit/7a8aa5eb0b9fec9d71a6e88c0ce6066a9ff6c591))
+* **admin:** add admin automations management page route ([a33e023](https://github.com/AnirudhAP2k/CorpConnect/commit/a33e02362187d45174993bb16202d79203ad77d0))
+* **admin:** add AdminAutomationsClient component ([fd07658](https://github.com/AnirudhAP2k/CorpConnect/commit/fd07658c54d658d13d27aed449ad080d554cc946))
+* **admin:** add automations link to admin navigation layout ([6eefa22](https://github.com/AnirudhAP2k/CorpConnect/commit/6eefa22896cf22c60b3291966495f1a3ec0593ff))
+* **ai-service:** add webhook and LLM configuration settings ([843a16b](https://github.com/AnirudhAP2k/CorpConnect/commit/843a16b033479d09c03022d37fd3763a43b1f1fb))
+* **ai-service:** add webhook trigger router ([9a9c1b2](https://github.com/AnirudhAP2k/CorpConnect/commit/9a9c1b20b11e64d6509e59e2c067620b6f8b64b6))
+* **ai-service:** add YAML prompt template for n8n evaluate_condition task ([de3e170](https://github.com/AnirudhAP2k/CorpConnect/commit/de3e170394efb085200ac98825720a58b19d5a1f))
+* **ai-service:** add YAML prompt template for n8n freeform task ([1e48092](https://github.com/AnirudhAP2k/CorpConnect/commit/1e4809220a5ea2f25642413a4eddc62f9cb3d65f))
+* **ai-service:** add YAML prompt template for n8n generate_email task ([730c619](https://github.com/AnirudhAP2k/CorpConnect/commit/730c619e8175ffca521769c57756cb095b8a94f7))
+* **ai-service:** load n8n webhook system prompts from YAML templates ([590ab5a](https://github.com/AnirudhAP2k/CorpConnect/commit/590ab5a03f9970a8a54c5697e3c595fe47a6f929))
+* **ai-service:** register webhook router in FastAPI app ([6fbdc81](https://github.com/AnirudhAP2k/CorpConnect/commit/6fbdc81e2d8ce21fcb1fe1c98f5beda7b0abb3bb))
+* **ai-service:** update AI service environment variable examples ([92f0715](https://github.com/AnirudhAP2k/CorpConnect/commit/92f071548a795f4c5a7c136a12f583c48bd9999b))
+* **ai-service:** update LLM provider integration engine ([f956514](https://github.com/AnirudhAP2k/CorpConnect/commit/f9565140ea41e18b4a34090af3b9fd85d1ba9150))
+* **automation:** add AddRuleSheet component for rule creation ([d27511c](https://github.com/AnirudhAP2k/CorpConnect/commit/d27511c4a6bd35d60d14a16339ef07d1181ef825))
+* **automation:** add AutomationRulesPanel component ([3b7104b](https://github.com/AnirudhAP2k/CorpConnect/commit/3b7104b504446642edf0cfb42af2d40d183b1116))
+* **automation:** add catalog workflow template picker and toast notifications to AddRuleSheet ([1e8394c](https://github.com/AnirudhAP2k/CorpConnect/commit/1e8394c774f2ed2a206efa383292a40d0a356e7d))
+* **automation:** render template names and integrate sonner toasts in AutomationRulesPanel ([1a0e945](https://github.com/AnirudhAP2k/CorpConnect/commit/1a0e945be789d6e5461a81fa0c75b4a27e503ad8))
+* **config:** update environment variable examples ([a10a79c](https://github.com/AnirudhAP2k/CorpConnect/commit/a10a79cc7659a53ac5ee50c984f1f809ebd321bc))
+* **db:** add automation rules and workflow template seed data ([9b9497f](https://github.com/AnirudhAP2k/CorpConnect/commit/9b9497fc87063cd96e4688139261f0890336e4c1))
+* **db:** add migration SQL for automation rules and workflow templates ([c4a5f1d](https://github.com/AnirudhAP2k/CorpConnect/commit/c4a5f1dcca737ce106604a88a3e9dda6f42570f9))
+* **db:** update schema with automation rules and workflow templates ([bcca92a](https://github.com/AnirudhAP2k/CorpConnect/commit/bcca92a8b10719a72f615b078dd3f59ec4d97008))
+* **docs:** add LLM integration suggestions documentation ([fdbadff](https://github.com/AnirudhAP2k/CorpConnect/commit/fdbadff273f6a1f73fd1edff60f22a5caf3330cd))
+* **docs:** add n8n agentic workflow implementation plan ([02e9756](https://github.com/AnirudhAP2k/CorpConnect/commit/02e9756b00eaca38546d606ee634c18c91612251))
+* **docs:** add n8n architecture and workflow specification ([9102854](https://github.com/AnirudhAP2k/CorpConnect/commit/9102854b2ff48ede91b64bf214add578d0637b65))
+* **docs:** add n8n workflow template JSON definitions ([1237014](https://github.com/AnirudhAP2k/CorpConnect/commit/1237014f63ed522d80f6b743e8bb86d8a9a278be))
+* **docs:** update LLM integration task checklist ([ef234ad](https://github.com/AnirudhAP2k/CorpConnect/commit/ef234adeb1624121a36169ae026ce4e179acbdfb))
+* **docs:** update organization verification documentation ([ee18a1d](https://github.com/AnirudhAP2k/CorpConnect/commit/ee18a1de0651efe0b2fe87ea8037539c0222a69e))
+* **docs:** update phase 5 implementation plan documentation ([4ec580c](https://github.com/AnirudhAP2k/CorpConnect/commit/4ec580c52309f34b0fe0bd03702a1172e389266e))
+* **events:** trigger automation rules on event publication ([5ab1f63](https://github.com/AnirudhAP2k/CorpConnect/commit/5ab1f639c8e024a6e664ef8411925106e3c2cdea))
+* **jobs:** add automation rule execution background job ([eeaa6da](https://github.com/AnirudhAP2k/CorpConnect/commit/eeaa6da2068616191f815d339db68e6012baccbb))
+* **jobs:** add n8n workflow trigger background job ([fff58f2](https://github.com/AnirudhAP2k/CorpConnect/commit/fff58f288cb6747dd81ae8697975e3c0a14d5b0e))
+* **jobs:** add organization webhook delivery background job ([368eca1](https://github.com/AnirudhAP2k/CorpConnect/commit/368eca16ebdf1716fdd26569e847e6779b235b02))
+* **jobs:** support template webhook URL and prompt fallback resolution in n8n trigger ([617083f](https://github.com/AnirudhAP2k/CorpConnect/commit/617083f4641f99b3083fc7da04431d26d1d9c707))
+* **validation:** add automation rule Zod validation schemas ([6193656](https://github.com/AnirudhAP2k/CorpConnect/commit/619365695f124b2aec14065262e4623bee329d9a))
+
+# [1.28.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.27.0...v1.28.0) (2026-08-14)
+
+
+### Features
+
+* **billing:** add billing domain query functions ([65a3bf4](https://github.com/AnirudhAP2k/CorpConnect/commit/65a3bf4a0ef0acc2ae93d65a29f46a177763abb4))
+* **billing:** export billing queries and service in domain public contract ([22084d8](https://github.com/AnirudhAP2k/CorpConnect/commit/22084d8a99e3f189bc26ec5eb622fd601e441f5d))
+* **billing:** update billing page to consume domain queries ([b2216ff](https://github.com/AnirudhAP2k/CorpConnect/commit/b2216ff0b786f324f264073a56ac54321d07e45d))
+* **billing:** update billing service layer methods ([7db9661](https://github.com/AnirudhAP2k/CorpConnect/commit/7db96610168dc7744cba9f6b8a4440bfed7646f0))
+* **dashboard:** refactor dashboard page data fetching to use domain queries ([0180b4e](https://github.com/AnirudhAP2k/CorpConnect/commit/0180b4ee43f56fb4f06acdcbab3dde543c40f243))
+* **events:** add event queries for detailed page rendering ([918e818](https://github.com/AnirudhAP2k/CorpConnect/commit/918e8185fa0e69bb0fb31fb5dfbbf25d4497aac2))
+* **events:** export event queries and actions in domain index ([9fe2143](https://github.com/AnirudhAP2k/CorpConnect/commit/9fe2143f86f1a97f240bf7ec550a870d4e72073d))
+* **events:** refactor event details page to use domain queries ([0c5de19](https://github.com/AnirudhAP2k/CorpConnect/commit/0c5de19867420a8ad73dc398277d92cd9df16aa6))
+* **events:** refactor payment success page with domain queries ([f87a9dd](https://github.com/AnirudhAP2k/CorpConnect/commit/f87a9dd75bfc2f12423e4c0129c126566b7ae5df))
+* **events:** refactor root invite token page with domain queries ([9f4f561](https://github.com/AnirudhAP2k/CorpConnect/commit/9f4f561d7d820b42b1a6e357983de5811d8137b2))
+* **events:** update event creation page options fetching with domain queries ([2912bcc](https://github.com/AnirudhAP2k/CorpConnect/commit/2912bcccf5d46017eb0433a49a824b78218d7972))
+* **events:** update event invitation page to consume domain queries ([16edbfa](https://github.com/AnirudhAP2k/CorpConnect/commit/16edbfac5237d923cc557e8f1745d08b8f85b522))
+* **events:** update event report page data fetching to use domain queries ([4da6c65](https://github.com/AnirudhAP2k/CorpConnect/commit/4da6c6511d528e0c66f3bb6a40c9d429d39afcd4))
+* **events:** update event server actions for domain logic ([8b3e940](https://github.com/AnirudhAP2k/CorpConnect/commit/8b3e940f7c4dc0cc8e5b10dac530c89346fe45b2))
+* **events:** update virtual room page data fetching with domain queries ([6cc9c56](https://github.com/AnirudhAP2k/CorpConnect/commit/6cc9c56a2e9387cc35660e531762e0b1fda5292f))
+* **groups:** refactor group detail page to consume domain queries ([1d361fc](https://github.com/AnirudhAP2k/CorpConnect/commit/1d361fc4bc1023a98bed0d7686b884a4a92ead34))
+* **groups:** refactor groups discovery page to consume domain queries ([3d53278](https://github.com/AnirudhAP2k/CorpConnect/commit/3d532784a6ddfa1a5d0bd0ac196a43b6d06be006))
+* **invitations:** refactor invitations page data fetching to use domain queries ([7a1f713](https://github.com/AnirudhAP2k/CorpConnect/commit/7a1f71308f8754f6065c874dcb25279993c09a09))
+* **messaging:** add messaging domain query functions ([d86cee9](https://github.com/AnirudhAP2k/CorpConnect/commit/d86cee9af7b97316bca27c8a6dd38a49887ca7e9))
+* **messaging:** export messaging domain queries and actions ([9d062ae](https://github.com/AnirudhAP2k/CorpConnect/commit/9d062aec4d50966d0d895b6ded3e1d06b8cdd296))
+* **messaging:** refactor direct conversation page to consume domain queries ([e0a61d8](https://github.com/AnirudhAP2k/CorpConnect/commit/e0a61d8ffd61f69e22d9f546161d1d5d3f14f42f))
+* **messaging:** refactor group conversation page to consume domain queries ([1d7eee1](https://github.com/AnirudhAP2k/CorpConnect/commit/1d7eee144678203c5b90a93d0ef9aade6a4f437a))
+* **messaging:** update messaging server actions for domain logic ([2fb0dbc](https://github.com/AnirudhAP2k/CorpConnect/commit/2fb0dbca56d96ad4bb05b55b981d78b093047163))
+* **organizations:** add organization query functions for domain layer ([fff65b9](https://github.com/AnirudhAP2k/CorpConnect/commit/fff65b9194d424030600d3c85a5d45bc17348fa2))
+* **organizations:** export organization queries and actions in domain index ([894eeda](https://github.com/AnirudhAP2k/CorpConnect/commit/894eeda3a9e369c980b48a9fe1a42dc3fdd69e85))
+* **organizations:** refactor organization details page with domain queries ([e3269d3](https://github.com/AnirudhAP2k/CorpConnect/commit/e3269d3c30318fcec961e783003f42b4824cfd90))
+* **organizations:** update AI planner page data fetching to use domain queries ([2e270d8](https://github.com/AnirudhAP2k/CorpConnect/commit/2e270d80a33452d7d2042ef0124555934e1e4911))
+* **organizations:** update complete verification page with domain queries ([b06865e](https://github.com/AnirudhAP2k/CorpConnect/commit/b06865ec6f07b5f12808bea3ebb8801bba69a617))
+* **organizations:** update organization discovery page to consume domain queries ([3bc6218](https://github.com/AnirudhAP2k/CorpConnect/commit/3bc62184149c941985f3b58bee4cca67b8b169cd))
+* **organizations:** update organization events tab page with domain queries ([d7147f7](https://github.com/AnirudhAP2k/CorpConnect/commit/d7147f7ba07207123dc9c2f9ad66d52702f3d32a))
+* **organizations:** update organization server actions ([cf208b5](https://github.com/AnirudhAP2k/CorpConnect/commit/cf208b5e650dabe5922d6867b4b94dbab421bd3c))
+* **pitches:** add pitch domain queries for pitch management ([f5f879d](https://github.com/AnirudhAP2k/CorpConnect/commit/f5f879df6cfbad9926d9e0d7608d2a5d0e5a9e9b))
+* **pitches:** export pitch queries in domain index ([8da919a](https://github.com/AnirudhAP2k/CorpConnect/commit/8da919a9ca64e9a92defecdba4b2156f5f1fd279))
+* **pitches:** update organization pitches page with domain queries ([59416bf](https://github.com/AnirudhAP2k/CorpConnect/commit/59416bf00a90d6699b2bc2e6a971d3c8b0cd48fa))
+* **pitches:** update pitch detail page data fetching to use domain queries ([89dfa06](https://github.com/AnirudhAP2k/CorpConnect/commit/89dfa06098a672979cc1b8a3af0f63c3e3339e5a))
+* **pitches:** update pitch tasks page data fetching with domain queries ([cbd8a83](https://github.com/AnirudhAP2k/CorpConnect/commit/cbd8a8345b10a6c2d090957f35b0a70bd5b2ab7c))
+* **tags:** add tag query functions for domain layer ([13859b2](https://github.com/AnirudhAP2k/CorpConnect/commit/13859b2e862e866d9a1c9cb820f843786b4ff344))
+* **tags:** export tag queries in domain index ([5cd708e](https://github.com/AnirudhAP2k/CorpConnect/commit/5cd708ed886ff6a741e6e17eeaa023502986d9d0))
+
 # [1.27.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.26.0...v1.27.0) (2026-08-04)
 
 

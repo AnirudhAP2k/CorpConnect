@@ -1,5 +1,10 @@
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
+import {
+    acceptOrganizationInvite,
+    getInviteByToken,
+    hasAnyOrganizationMembership,
+} from "@/domain/organizations";
+import { getUserById } from "@/domain/users";
 import { redirect } from "next/navigation";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -19,13 +24,7 @@ const InvitePage = async ({ params }: InvitePageProps) => {
     const { token } = await params;
 
     // Fetch invite by token
-    const invite = await prisma.pendingInvite.findUnique({
-        where: { token },
-        include: {
-            organization: true,
-            inviter: true,
-        },
-    });
+    const invite = await getInviteByToken(token);
 
     // Check if invite exists
     if (!invite) {
@@ -109,9 +108,7 @@ const InvitePage = async ({ params }: InvitePageProps) => {
     }
 
     // Check if user's email matches the invite
-    const user = await prisma.user.findUnique({
-        where: { id: userId },
-    });
+    const user = await getUserById(userId);
 
     if (user?.email !== invite.email) {
         return (
@@ -140,9 +137,7 @@ const InvitePage = async ({ params }: InvitePageProps) => {
     }
 
     // Check if user already belongs to another organization
-    const existingMembership = await prisma.organizationMember.findFirst({
-        where: { userId },
-    });
+    const existingMembership = await hasAnyOrganizationMembership(userId);
 
     if (existingMembership) {
         return (
@@ -169,27 +164,11 @@ const InvitePage = async ({ params }: InvitePageProps) => {
 
     // Accept the invitation
     try {
-        await prisma.$transaction(async (tx) => {
-            // Add user to organization
-            await tx.organizationMember.create({
-                data: {
-                    userId,
-                    organizationId: invite.organizationId,
-                    role: invite.role,
-                },
-            });
-
-            // Update user's organizationId
-            await tx.user.update({
-                where: { id: userId },
-                data: { organizationId: invite.organizationId },
-            });
-
-            // Mark invite as accepted
-            await tx.pendingInvite.update({
-                where: { id: invite.id },
-                data: { status: "ACCEPTED" },
-            });
+        await acceptOrganizationInvite({
+            inviteId: invite.id,
+            organizationId: invite.organizationId,
+            userId,
+            role: invite.role,
         });
 
         // Success! Redirect to organization page

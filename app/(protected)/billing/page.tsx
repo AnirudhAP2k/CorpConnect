@@ -8,10 +8,10 @@
  */
 
 import { auth } from "@/auth";
-import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import { PricingPlans } from "@/components/billing/PricingPlans";
 import { getAiUsageStats } from "@/domain/ai";
+import { getBillingAccess, getBillingOverview } from "@/domain/billing";
 import { PLAN_COLORS, STATUS_COLORS, PLAN_FEATURES } from "@/constants";
 import { BadgeCheck, CreditCard, Calendar, Users, TrendingUp, Zap, Globe, IndianRupee } from "lucide-react";
 
@@ -24,76 +24,23 @@ export default async function BillingPage() {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
-    const user = await prisma.user.findUnique({
-        where: { id: session.user.id },
-        select: { activeOrganizationId: true },
-    });
+    const access = await getBillingAccess(session.user.id);
 
-    if (!user?.activeOrganizationId) redirect("/onboarding");
-
-    const orgId = user.activeOrganizationId;
-
-    // Verify OWNER/ADMIN
-    const membership = await prisma.organizationMember.findUnique({
-        where: { userId_organizationId: { userId: session.user.id, organizationId: orgId } },
-        select: { role: true },
-    });
-
-    if (!membership || !["OWNER", "ADMIN"].includes(membership.role)) {
-        redirect("/dashboard?flash=unauthorized");
+    if (!access.allowed) {
+        redirect(access.reason === "no-active-org" ? "/onboarding" : "/dashboard?flash=unauthorized");
     }
 
-    const [org, eventPayments, subscriptions] = await Promise.all([
-        prisma.organization.findUnique({
-            where: { id: orgId },
-            select: {
-                name: true,
-                subscriptionPlan: true,
-                subscriptionStatus: true,
-                subscriptionExpiresAt: true,
-                isVerified: true,
-                _count: { select: { events: true, members: true } },
-            },
-        }),
+    const { orgId } = access;
 
-        // Recent event payments received for this org's events
-        prisma.eventPayment.findMany({
-            where: { event: { organizationId: orgId }, status: "SUCCEEDED" },
-            orderBy: { createdAt: "desc" },
-            take: 10,
-            select: {
-                id: true,
-                amount: true,
-                currency: true,
-                provider: true,
-                status: true,
-                createdAt: true,
-                event: { select: { title: true } },
-            },
-        }),
-
-        // Subscription history
-        prisma.orgSubscription.findMany({
-            where: { organizationId: orgId },
-            orderBy: { createdAt: "desc" },
-            take: 5,
-            select: {
-                plan: true,
-                provider: true,
-                status: true,
-                currentPeriodStart: true,
-                currentPeriodEnd: true,
-                cancelledAt: true,
-            },
-        }),
-    ]);
-
-    if (!org) redirect("/dashboard");
-
-    const [totalRevenue, aiUsage] = await Promise.all([
-        Promise.resolve(eventPayments.reduce((sum, p) => sum + p.amount, 0)),
+    const [overview, aiUsage] = await Promise.all([
+        getBillingOverview(orgId),
         getAiUsageStats(orgId),
     ]);
+
+    if (!overview) redirect("/dashboard");
+
+    const { org, eventPayments, subscriptions, totalRevenue } = overview;
+
     const planColor = PLAN_COLORS[org.subscriptionPlan];
     const statusColor = STATUS_COLORS[org.subscriptionStatus];
     const aiUsagePercent = aiUsage.limit > 0 ? Math.min(100, Math.round((aiUsage.used / aiUsage.limit) * 100)) : 0;
