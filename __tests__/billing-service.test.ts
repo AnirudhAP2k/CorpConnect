@@ -108,8 +108,31 @@ describe("Billing Service", () => {
                 org: mockOrg,
                 plan: "ENTERPRISE",
                 appUrl: expect.any(String),
+                idempotencyKey: undefined,
             });
             expect(result).toEqual({ url: "https://rzp.io/checkout" });
+        });
+
+        it("forwards a client Idempotency-Key to the gateway", async () => {
+            mockResolvedBillingOrg("ADMIN");
+            const createSubscriptionCheckout = jest
+                .fn()
+                .mockResolvedValue({ url: "https://checkout.stripe.com/c/pay/cs_test" });
+            (getPaymentGateway as jest.Mock).mockReturnValue({ createSubscriptionCheckout });
+
+            await createBillingCheckout({
+                userId: USER_ID,
+                plan: "PRO",
+                provider: "stripe",
+                idempotencyKey: "mobile-pay-abc-123",
+            });
+
+            expect(createSubscriptionCheckout).toHaveBeenCalledWith({
+                org: mockOrg,
+                plan: "PRO",
+                appUrl: expect.any(String),
+                idempotencyKey: "mobile-pay-abc-123",
+            });
         });
     });
 
