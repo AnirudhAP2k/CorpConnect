@@ -1,3 +1,54 @@
+# [1.29.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.28.0...v1.29.0) (2026-08-17)
+
+
+### Bug Fixes
+
+* **admin:** update webhookUrl type in AdminTemplateRow to accept null ([c593733](https://github.com/AnirudhAP2k/CorpConnect/commit/c5937338e46692447ae1a04e448db95a250633b5))
+* **ai-service:** update authentication middleware for webhook routes ([334c2f6](https://github.com/AnirudhAP2k/CorpConnect/commit/334c2f6ca8acadcbf0e5f6076b61ce86923e7fed))
+* **automation:** fix prefer-const error in automation actions ([dd56b67](https://github.com/AnirudhAP2k/CorpConnect/commit/dd56b679b65bf4b39eb67f6bc5823753f04a4c26))
+* **automation:** prevent synchronous setState inside useEffect ([dcd9104](https://github.com/AnirudhAP2k/CorpConnect/commit/dcd9104dfcb482b023c99418072811ea610dfc44))
+* **config:** add ignoreDuringBuilds to next.config.ts ([f5f273f](https://github.com/AnirudhAP2k/CorpConnect/commit/f5f273f532d8e509870a2d0491c71b382454b174))
+* **docker:** update docker ignore patterns for build efficiency ([9ff5cac](https://github.com/AnirudhAP2k/CorpConnect/commit/9ff5cac3d9d6b3cf7069e8e43557c8505a95b68d))
+
+
+### Features
+
+* **actions:** add automation rule management server actions ([bd42920](https://github.com/AnirudhAP2k/CorpConnect/commit/bd42920d7b72548d41c018fc2124538ee76fa073))
+* **actions:** update admin management server actions ([7a8aa5e](https://github.com/AnirudhAP2k/CorpConnect/commit/7a8aa5eb0b9fec9d71a6e88c0ce6066a9ff6c591))
+* **admin:** add admin automations management page route ([a33e023](https://github.com/AnirudhAP2k/CorpConnect/commit/a33e02362187d45174993bb16202d79203ad77d0))
+* **admin:** add AdminAutomationsClient component ([fd07658](https://github.com/AnirudhAP2k/CorpConnect/commit/fd07658c54d658d13d27aed449ad080d554cc946))
+* **admin:** add automations link to admin navigation layout ([6eefa22](https://github.com/AnirudhAP2k/CorpConnect/commit/6eefa22896cf22c60b3291966495f1a3ec0593ff))
+* **ai-service:** add webhook and LLM configuration settings ([843a16b](https://github.com/AnirudhAP2k/CorpConnect/commit/843a16b033479d09c03022d37fd3763a43b1f1fb))
+* **ai-service:** add webhook trigger router ([9a9c1b2](https://github.com/AnirudhAP2k/CorpConnect/commit/9a9c1b20b11e64d6509e59e2c067620b6f8b64b6))
+* **ai-service:** add YAML prompt template for n8n evaluate_condition task ([de3e170](https://github.com/AnirudhAP2k/CorpConnect/commit/de3e170394efb085200ac98825720a58b19d5a1f))
+* **ai-service:** add YAML prompt template for n8n freeform task ([1e48092](https://github.com/AnirudhAP2k/CorpConnect/commit/1e4809220a5ea2f25642413a4eddc62f9cb3d65f))
+* **ai-service:** add YAML prompt template for n8n generate_email task ([730c619](https://github.com/AnirudhAP2k/CorpConnect/commit/730c619e8175ffca521769c57756cb095b8a94f7))
+* **ai-service:** load n8n webhook system prompts from YAML templates ([590ab5a](https://github.com/AnirudhAP2k/CorpConnect/commit/590ab5a03f9970a8a54c5697e3c595fe47a6f929))
+* **ai-service:** register webhook router in FastAPI app ([6fbdc81](https://github.com/AnirudhAP2k/CorpConnect/commit/6fbdc81e2d8ce21fcb1fe1c98f5beda7b0abb3bb))
+* **ai-service:** update AI service environment variable examples ([92f0715](https://github.com/AnirudhAP2k/CorpConnect/commit/92f071548a795f4c5a7c136a12f583c48bd9999b))
+* **ai-service:** update LLM provider integration engine ([f956514](https://github.com/AnirudhAP2k/CorpConnect/commit/f9565140ea41e18b4a34090af3b9fd85d1ba9150))
+* **automation:** add AddRuleSheet component for rule creation ([d27511c](https://github.com/AnirudhAP2k/CorpConnect/commit/d27511c4a6bd35d60d14a16339ef07d1181ef825))
+* **automation:** add AutomationRulesPanel component ([3b7104b](https://github.com/AnirudhAP2k/CorpConnect/commit/3b7104b504446642edf0cfb42af2d40d183b1116))
+* **automation:** add catalog workflow template picker and toast notifications to AddRuleSheet ([1e8394c](https://github.com/AnirudhAP2k/CorpConnect/commit/1e8394c774f2ed2a206efa383292a40d0a356e7d))
+* **automation:** render template names and integrate sonner toasts in AutomationRulesPanel ([1a0e945](https://github.com/AnirudhAP2k/CorpConnect/commit/1a0e945be789d6e5461a81fa0c75b4a27e503ad8))
+* **config:** update environment variable examples ([a10a79c](https://github.com/AnirudhAP2k/CorpConnect/commit/a10a79cc7659a53ac5ee50c984f1f809ebd321bc))
+* **db:** add automation rules and workflow template seed data ([9b9497f](https://github.com/AnirudhAP2k/CorpConnect/commit/9b9497fc87063cd96e4688139261f0890336e4c1))
+* **db:** add migration SQL for automation rules and workflow templates ([c4a5f1d](https://github.com/AnirudhAP2k/CorpConnect/commit/c4a5f1dcca737ce106604a88a3e9dda6f42570f9))
+* **db:** update schema with automation rules and workflow templates ([bcca92a](https://github.com/AnirudhAP2k/CorpConnect/commit/bcca92a8b10719a72f615b078dd3f59ec4d97008))
+* **docs:** add LLM integration suggestions documentation ([fdbadff](https://github.com/AnirudhAP2k/CorpConnect/commit/fdbadff273f6a1f73fd1edff60f22a5caf3330cd))
+* **docs:** add n8n agentic workflow implementation plan ([02e9756](https://github.com/AnirudhAP2k/CorpConnect/commit/02e9756b00eaca38546d606ee634c18c91612251))
+* **docs:** add n8n architecture and workflow specification ([9102854](https://github.com/AnirudhAP2k/CorpConnect/commit/9102854b2ff48ede91b64bf214add578d0637b65))
+* **docs:** add n8n workflow template JSON definitions ([1237014](https://github.com/AnirudhAP2k/CorpConnect/commit/1237014f63ed522d80f6b743e8bb86d8a9a278be))
+* **docs:** update LLM integration task checklist ([ef234ad](https://github.com/AnirudhAP2k/CorpConnect/commit/ef234adeb1624121a36169ae026ce4e179acbdfb))
+* **docs:** update organization verification documentation ([ee18a1d](https://github.com/AnirudhAP2k/CorpConnect/commit/ee18a1de0651efe0b2fe87ea8037539c0222a69e))
+* **docs:** update phase 5 implementation plan documentation ([4ec580c](https://github.com/AnirudhAP2k/CorpConnect/commit/4ec580c52309f34b0fe0bd03702a1172e389266e))
+* **events:** trigger automation rules on event publication ([5ab1f63](https://github.com/AnirudhAP2k/CorpConnect/commit/5ab1f639c8e024a6e664ef8411925106e3c2cdea))
+* **jobs:** add automation rule execution background job ([eeaa6da](https://github.com/AnirudhAP2k/CorpConnect/commit/eeaa6da2068616191f815d339db68e6012baccbb))
+* **jobs:** add n8n workflow trigger background job ([fff58f2](https://github.com/AnirudhAP2k/CorpConnect/commit/fff58f288cb6747dd81ae8697975e3c0a14d5b0e))
+* **jobs:** add organization webhook delivery background job ([368eca1](https://github.com/AnirudhAP2k/CorpConnect/commit/368eca16ebdf1716fdd26569e847e6779b235b02))
+* **jobs:** support template webhook URL and prompt fallback resolution in n8n trigger ([617083f](https://github.com/AnirudhAP2k/CorpConnect/commit/617083f4641f99b3083fc7da04431d26d1d9c707))
+* **validation:** add automation rule Zod validation schemas ([6193656](https://github.com/AnirudhAP2k/CorpConnect/commit/619365695f124b2aec14065262e4623bee329d9a))
+
 # [1.28.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.27.0...v1.28.0) (2026-08-14)
 
 
