@@ -10,6 +10,7 @@ import { stripeGateway } from "@/domain/billing/gateway/stripe.adapter";
 import { razorpayGateway } from "@/domain/billing/gateway/razorpay.adapter";
 import { BillingError, WebhookVerificationError } from "@/domain/billing/errors";
 import { getStripe } from "@/lib/payment/stripe";
+import { razorpayIdempotentPost } from "@/lib/payment/razorpay";
 import { hashMessage } from "@/lib/hash";
 
 jest.mock("@/lib/db", () => ({
@@ -23,6 +24,7 @@ jest.mock("@/lib/payment/stripe", () => ({
 
 jest.mock("@/lib/payment/razorpay", () => ({
     getRazorpay: jest.fn(),
+    razorpayIdempotentPost: jest.fn(),
     RAZORPAY_PRICE_IDS: { PRO: "plan_pro", ENTERPRISE: "plan_ent" },
     PLATFORM_FEE_PERCENT: { PRO: 0.02, ENTERPRISE: 0.01 },
 }));
@@ -196,6 +198,49 @@ describe("Stripe adapter", () => {
             )
         ).rejects.toMatchObject({ status: 400 });
     });
+
+    it("passes deterministic idempotency keys on customer and checkout create", async () => {
+        const customersCreate = jest.fn().mockResolvedValue({ id: "cus_new" });
+        const sessionsCreate = jest.fn().mockResolvedValue({ url: "https://checkout.stripe.com/c/pay/cs" });
+        (getStripe as jest.Mock).mockReturnValue({
+            customers: { create: customersCreate },
+            checkout: { sessions: { create: sessionsCreate } },
+        });
+
+        await stripeGateway.createSubscriptionCheckout({
+            org: { id: ORG_ID, name: "Acme", stripeCustomerId: null, razorpayCustomerId: null },
+            plan: "PRO",
+            appUrl: "http://localhost:3000",
+        });
+
+        expect(customersCreate).toHaveBeenCalledWith(
+            { name: "Acme", metadata: { orgId: ORG_ID } },
+            { idempotencyKey: `cust:stripe:${ORG_ID}` }
+        );
+        expect(sessionsCreate).toHaveBeenCalledWith(
+            expect.objectContaining({ customer: "cus_new", mode: "subscription" }),
+            { idempotencyKey: `sub:stripe:${ORG_ID}:PRO` }
+        );
+    });
+
+    it("prefers a client Idempotency-Key on Stripe checkout create", async () => {
+        const sessionsCreate = jest.fn().mockResolvedValue({ url: "https://checkout.stripe.com/c/pay/cs" });
+        (getStripe as jest.Mock).mockReturnValue({
+            checkout: { sessions: { create: sessionsCreate } },
+        });
+
+        await stripeGateway.createSubscriptionCheckout({
+            org: { id: ORG_ID, name: "Acme", stripeCustomerId: "cus_existing", razorpayCustomerId: null },
+            plan: "ENTERPRISE",
+            appUrl: "http://localhost:3000",
+            idempotencyKey: "mobile-pay-abc-123",
+        });
+
+        expect(sessionsCreate).toHaveBeenCalledWith(
+            expect.objectContaining({ customer: "cus_existing" }),
+            { idempotencyKey: "mobile-pay-abc-123" }
+        );
+    });
 });
 
 describe("Razorpay adapter", () => {
@@ -337,5 +382,50 @@ describe("Razorpay adapter", () => {
                 "http://localhost:3000"
             )
         ).rejects.toMatchObject({ status: 400 });
+    });
+
+    it("passes X-Razorpay-Idempotency on customer and subscription create", async () => {
+        (razorpayIdempotentPost as jest.Mock)
+            .mockResolvedValueOnce({ id: "cust_rzp" })
+            .mockResolvedValueOnce({ id: "sub_rzp", short_url: "https://rzp.io/i/x" });
+
+        await razorpayGateway.createSubscriptionCheckout({
+            org: { id: ORG_ID, name: "Acme", stripeCustomerId: null, razorpayCustomerId: null },
+            plan: "PRO",
+            appUrl: "http://localhost:3000",
+        });
+
+        expect(razorpayIdempotentPost).toHaveBeenNthCalledWith(
+            1,
+            "/customers",
+            { name: "Acme", notes: { orgId: ORG_ID } },
+            `cust:razorpay:${ORG_ID}`
+        );
+        expect(razorpayIdempotentPost).toHaveBeenNthCalledWith(
+            2,
+            "/subscriptions",
+            expect.objectContaining({ notes: { orgId: ORG_ID, plan: "PRO" } }),
+            `sub:razorpay:${ORG_ID}:PRO`
+        );
+    });
+
+    it("prefers a client Idempotency-Key on Razorpay subscription create", async () => {
+        (razorpayIdempotentPost as jest.Mock).mockResolvedValue({
+            id: "sub_rzp",
+            short_url: "https://rzp.io/i/x",
+        });
+
+        await razorpayGateway.createSubscriptionCheckout({
+            org: { id: ORG_ID, name: "Acme", stripeCustomerId: null, razorpayCustomerId: "cust_existing" },
+            plan: "ENTERPRISE",
+            appUrl: "http://localhost:3000",
+            idempotencyKey: "mobile-pay-abc-123",
+        });
+
+        expect(razorpayIdempotentPost).toHaveBeenCalledWith(
+            "/subscriptions",
+            expect.objectContaining({ notes: { orgId: ORG_ID, plan: "ENTERPRISE" } }),
+            "mobile-pay-abc-123"
+        );
     });
 });
