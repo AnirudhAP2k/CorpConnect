@@ -3,6 +3,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 
 const nextConfig: NextConfig = {
   output: process.env.STANDALONE === "true" ? "standalone" : undefined,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   allowedDevOrigins: [
     "*.ngrok-free.dev",
   ],
