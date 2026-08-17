@@ -121,7 +121,7 @@ export async function createAutomationRule(
         return { success: false, error: parsed.error.errors.map(e => e.message).join(". ") };
     }
 
-    let templateId: string | null = parsed.data.templateId ?? null;
+    const templateId: string | null = parsed.data.templateId ?? null;
     let webhookUrl: string | null = parsed.data.webhookUrl ?? null;
     let promptTemplate: string | null = parsed.data.promptTemplate ?? null;
 
