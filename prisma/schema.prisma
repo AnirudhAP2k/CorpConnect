@@ -664,23 +664,43 @@ model EventFeedback {
   @@index([eventId, sentiment])
 }
 
+model AutomationWorkflowTemplate {
+  id                    String            @id @default(uuid()) @db.Uuid
+  slug                  String            @unique
+  name                  String
+  description           String?
+  trigger               AutomationTrigger
+  webhookUrl            String
+  defaultPromptTemplate String?           @db.Text
+  isActive              Boolean           @default(true)
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  rules                 AutomationRule[]
+
+  @@index([trigger, isActive])
+}
+
 model AutomationRule {
-  id             String            @id @default(uuid()) @db.Uuid
-  organizationId String            @db.Uuid
+  id             String                      @id @default(uuid()) @db.Uuid
+  organizationId String                      @db.Uuid
   name           String
   description    String?
   trigger        AutomationTrigger
-  webhookUrl     String
+  webhookUrl     String?
+  templateId     String?                     @db.Uuid
   filterJson     Json?
-  status         AutomationStatus  @default(ACTIVE)
-  runCount       Int               @default(0)
+  promptTemplate String?                     @db.Text
+  status         AutomationStatus            @default(ACTIVE)
+  runCount       Int                         @default(0)
   lastRunAt      DateTime?
   lastRunStatus  String?
-  createdAt      DateTime          @default(now())
-  updatedAt      DateTime          @updatedAt
-  organization   Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  createdAt      DateTime                    @default(now())
+  updatedAt      DateTime                    @updatedAt
+  organization   Organization                @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  template       AutomationWorkflowTemplate? @relation(fields: [templateId], references: [id], onDelete: SetNull)
 
   @@index([organizationId, trigger, status])
+  @@index([templateId])
 }
 
 model EmailLog {

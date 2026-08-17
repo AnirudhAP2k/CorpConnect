@@ -43,8 +43,8 @@ class Settings(BaseSettings):
     LLM_MAX_TOKENS: int = 800
 
     # ─── n8n (Agentic Automation) ────────────────────────────────────────────
-    # HMAC secret used to sign/verify webhook payloads between Evently and n8n
-    N8N_WEBHOOK_SECRET: str = ""
+    # HMAC secret used to sign/verify webhook payloads between CorpConnect and n8n
+    N8N_SHARED_SECRET: str = ""
 
     # ─── Hashing ──────────────────────────────────────────────────────────
     HASHING_ALGO: str = "HS256"

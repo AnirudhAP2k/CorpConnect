@@ -1,7 +1,7 @@
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LayoutDashboard, Building2, Users, Calendar, Settings, Cpu, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Building2, Users, Calendar, Settings, Cpu, ShieldCheck, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { prisma } from "@/lib/db";
 
@@ -11,6 +11,7 @@ const adminNavItems = [
     { href: "/admin/organizations/verify", label: "Verify Orgs", icon: ShieldCheck },
     { href: "/admin/users", label: "Users", icon: Users },
     { href: "/admin/events", label: "Events", icon: Calendar },
+    { href: "/admin/automations", label: "Automations", icon: Zap },
     { href: "/admin/jobs", label: "Job Queue", icon: Settings },
 ];
 

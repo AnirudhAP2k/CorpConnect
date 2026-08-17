@@ -154,8 +154,22 @@ export const CreateRuleSchema = z.object({
         "EVENT_REGISTRATION", "EVENT_CANCELLED", "FEEDBACK_RECEIVED",
         "CONNECTION_ACCEPTED", "MEETING_SCHEDULED", "NEW_MEMBER_JOINED",
     ]),
-    webhookUrl: z.string().url().startsWith("https://", { message: "Webhook URL must start with https://" }),
+    templateId: z.string().uuid().optional(),
+    webhookUrl: z
+        .string()
+        .url()
+        .startsWith("https://", { message: "Webhook URL must start with https://" })
+        .optional(),
     filterJson: z.record(z.unknown()).optional(),
+    promptTemplate: z.string().max(2000, "Agent instruction must be under 2000 characters").optional(),
+}).superRefine((data, ctx) => {
+    if (!data.templateId && !data.webhookUrl) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Select a workflow template or provide a custom webhook URL.",
+            path: ["templateId"],
+        });
+    }
 });
 
 export const OrgKybSchema = z.object({

@@ -1,0 +1,128 @@
+{
+  "name": "CorpConnect — Registration Ops Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "CorpConnect-registration",
+        "responseMode": "lastNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "CorpConnect-registration"
+    },
+    {
+      "parameters": {
+        "jsCode": "// HMAC-SHA256 Signature Verification\n// Rejects requests with invalid or stale signatures.\n\nconst crypto = require('crypto');\n\nconst secret = $env.N8N_SHARED_SECRET || 'change-me';\nconst headers = $input.first().headers || {};\nconst body = $input.first().json;\n\nconst signature = headers['x-CorpConnect-signature'] || '';\nconst timestamp = headers['x-CorpConnect-timestamp'] || '';\n\n// Replay window: reject if older than 5 minutes\nconst age = Math.floor(Date.now() / 1000) - Number(timestamp);\nif (age > 300 || age < -60) {\n  throw new Error(`Replay rejected: timestamp age=${age}s`);\n}\n\nconst message = `${body.ruleId}:${body.trigger}:${body.orgId}:${timestamp}`;\nconst expected = 'sha256=' + crypto.createHmac('sha256', secret).update(message).digest('hex');\n\nif (!crypto.timingSafeEqual(Buffer.from(expected), Buffer.from(signature))) {\n  throw new Error('Invalid HMAC signature');\n}\n\nreturn [{ json: body }];"
+      },
+      "id": "verify-hmac",
+      "name": "Verify HMAC",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "loose"
+          },
+          "conditions": [
+            {
+              "id": "has-prompt",
+              "leftValue": "={{ $json.promptTemplate }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "isNotEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-prompt",
+      "name": "Has Agent Instruction?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Stub: AI Agent processing\n// In production, replace this with an n8n AI Agent node\n// or an HTTP Request to CorpConnect's ai-service /webhooks/n8n endpoint.\n\nconst data = $input.first().json;\nconst prompt = data.promptTemplate || 'Process this event registration.';\nconst context = data.contextData || {};\n\n// Simulate agent reasoning\nconst agentResponse = {\n  decision: 'notify',\n  reasoning: `Agent received prompt: \"${prompt}\". Context: eventId=${context.eventId}, userId=${context.userId}. Would process and take action.`,\n  actions: ['send_notification'],\n  prompt: prompt\n};\n\nreturn [{ json: { ...data, agentResponse } }];"
+      },
+      "id": "agent-stub",
+      "name": "AI Agent (Stub)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 200]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Direct processing without AI Agent\n// Simple pass-through for rules without promptTemplate.\n\nconst data = $input.first().json;\n\nconst result = {\n  decision: 'default_notify',\n  reasoning: 'No agent instruction provided — using default notification flow.',\n  trigger: data.trigger,\n  orgId: data.orgId,\n  contextData: data.contextData\n};\n\nreturn [{ json: { ...data, result } }];"
+      },
+      "id": "default-flow",
+      "name": "Default Flow",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Stub: Send notification (Slack / Email)\n// Replace this with actual Slack or Email nodes and map fields.\n//\n// Example Slack message:\n//   Channel: #events\n//   Text: `New registration for event ${contextData.eventId} by user ${contextData.userId}`\n//\n// Example Email:\n//   To: caterer@example.com\n//   Subject: Dietary restriction alert\n//   Body: Agent decision details\n\nconst data = $input.first().json;\nconst agentResponse = data.agentResponse || data.result || {};\n\nconsole.log('Would send notification:', JSON.stringify(agentResponse, null, 2));\n\nreturn [{\n  json: {\n    ok: true,\n    message: 'Notification sent (stub)',\n    trigger: data.trigger,\n    ruleId: data.ruleId,\n    decision: agentResponse.decision\n  }\n}];"
+      },
+      "id": "notify-stub",
+      "name": "Send Notification (Stub)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1140, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [{ "node": "Verify HMAC", "type": "main", "index": 0 }]
+      ]
+    },
+    "Verify HMAC": {
+      "main": [
+        [{ "node": "Has Agent Instruction?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Has Agent Instruction?": {
+      "main": [
+        [{ "node": "AI Agent (Stub)", "type": "main", "index": 0 }],
+        [{ "node": "Default Flow", "type": "main", "index": 0 }]
+      ]
+    },
+    "AI Agent (Stub)": {
+      "main": [
+        [{ "node": "Send Notification (Stub)", "type": "main", "index": 0 }]
+      ]
+    },
+    "Default Flow": {
+      "main": [
+        [{ "node": "Send Notification (Stub)", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "meta": {
+    "templateId": "CorpConnect-registration-ops-agent",
+    "instanceId": "CorpConnect-demo"
+  },
+  "tags": [
+    { "name": "CorpConnect" },
+    { "name": "automation" },
+    { "name": "registration" }
+  ]
+}

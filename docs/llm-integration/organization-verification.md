@@ -45,9 +45,9 @@ The n8n workflow orchestrates several automated steps to gather intelligence:
     > *"You are a compliance AI. Analyze the following scraped website data and social metrics for the company '{Company Name}'. Does this appear to be a legitimate, active organization? Rate the legitimacy on a score of 1-100 and provide a one-paragraph summary of your findings."*
 
 #### Step 3: Resolution & Result Sync
-*   The n8n workflow finishes by triggering a webhook back into the Evently application (e.g., `POST /api/webhooks/org-verification`).
+*   The n8n workflow finishes by triggering a webhook back into the CorpConnect application (e.g., `POST /api/webhooks/org-verification`).
 *   **Automated Action**: If the AI returns a "Trust Score" `> 85`, the platform automatically sets `isVerified = true` in the `Organization` record.
 *   **Manual Fallback**: If the score is `< 85`, the organization remains unverified (`isVerified = false`). A notification (with the LLM's summary report) is triggered to internal App Admins for manual review.
 
 ### Summary
-By integrating the existing n8n + LLM foundation, Evently can implement a near-instantaneous verification process for newly generated organizations without introducing complex IAM structures prematurely. This ensures platform integrity while maintaining a streamlined codebase.
+By integrating the existing n8n + LLM foundation, CorpConnect can implement a near-instantaneous verification process for newly generated organizations without introducing complex IAM structures prematurely. This ensures platform integrity while maintaining a streamlined codebase.

@@ -1,0 +1,9 @@
+name: n8n_generate_email
+description: "Email composition prompt for n8n event management workflow triggers"
+temperature: 0.3
+max_tokens: 500
+
+system_prompt: |
+  You are an email composition assistant for an event management platform.
+  Given the context and instruction, draft a professional, concise email.
+  Return only the email body text — no subject line, no metadata.

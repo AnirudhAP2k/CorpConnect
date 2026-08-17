@@ -6,6 +6,8 @@
 > (send a Slack message, update a CRM, trigger an email drip sequence, etc.)
 > — all without any code changes.
 
+> **See also:** [n8n-purpose-and-architecture.md](./n8n-purpose-and-architecture.md) (why n8n / ops model) · [n8n-agentic-implementation-plan.md](./n8n-agentic-implementation-plan.md) (Phase 5b — `promptTemplate`, agentic LLM gaps, sample workflows)
+
 ---
 
 ## Architecture Overview
@@ -167,7 +169,7 @@ export async function processN8nWorkflow(payload: N8nJobPayload): Promise<void> 
   2. Build HMAC-SHA256 signature: sign(ruleId + eventType + orgId + timestamp, N8N_SHARED_SECRET)
   3. POST to rule.webhookUrl with:
        body:    { ruleId, trigger, orgId, contextData, timestamp }
-       headers: { X-Evently-Signature: "sha256=<hex>", X-Evently-Timestamp: "<epoch>" }
+       headers: { X-CorpConnect-Signature: "sha256=<hex>", X-CorpConnect-Timestamp: "<epoch>" }
   4. On success: UPDATE AutomationRule SET runCount++, lastRunAt, lastRunStatus="success"
   5. On failure (4xx/5xx/timeout): UPDATE lastRunStatus="error", re-throw for retry
 }

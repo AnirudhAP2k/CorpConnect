@@ -9,6 +9,7 @@ import cryptoJS from "crypto-js";
 import { getEventWithMemberCheck } from "./queries";
 import { setEventTags } from "@/domain/tags/helpers";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
+import { enqueueMatchingRules } from "@/lib/jobs/automation";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -183,6 +184,14 @@ export async function deleteEventAction(eventId: string) {
 
     try {
         await prisma.events.delete({ where: { id: eventId } });
+
+        // Fire EVENT_CANCELLED automation trigger
+        if (event.organizationId) {
+            enqueueMatchingRules("EVENT_CANCELLED", event.organizationId, {
+                eventId,
+                eventTitle: event.title ?? undefined,
+            }).catch(() => { /* fire-and-forget */ });
+        }
 
         revalidateTag("events");
         revalidatePath("/events");

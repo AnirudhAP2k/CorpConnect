@@ -49,7 +49,7 @@ export async function processOrgWebhookDelivery(payload: OrgWebhookPayload): Pro
         timestamp,
     });
 
-    const secret = orgApiKey ?? process.env.N8N_SHARED_SECRET ?? "evently-fallback-secret";
+    const secret = orgApiKey ?? process.env.N8N_SHARED_SECRET ?? "CorpConnect-fallback-secret";
     const signature = buildSignature(requestBody, secret);
 
     const controller = new AbortController();
@@ -60,8 +60,8 @@ export async function processOrgWebhookDelivery(payload: OrgWebhookPayload): Pro
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
-                "X-Evently-Signature": signature,
-                "X-Evently-Timestamp": String(timestamp),
+                "X-CorpConnect-Signature": signature,
+                "X-CorpConnect-Timestamp": String(timestamp),
             },
             body: requestBody,
             signal: controller.signal,

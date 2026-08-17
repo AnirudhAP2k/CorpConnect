@@ -1,7 +1,7 @@
-# Adding LLM Capabilities to Evently
+# Adding LLM Capabilities to CorpConnect
 
 ## Executive Summary
-Using a Large Language Model (LLM) alongside the current `all-MiniLM-L6-v2` setup would be a significant step forward for the **Evently** platform. 
+Using a Large Language Model (LLM) alongside the current `all-MiniLM-L6-v2` setup would be a significant step forward for the **CorpConnect** platform. 
 
 ### The "Why": Complementary Technologies
 Right now, the application uses **`all-MiniLM-L6-v2`**, which is an *encoder-based* sentence transformer. It is blazingly fast and highly efficient for creating vector embeddings, making it the perfect tool for **Retrieval and Matching** (e.g., semantic search, organization matchmaking, and event recommendations). However, it cannot generate text or "understand" context in a conversational way.
@@ -40,7 +40,7 @@ For platform admins, if someone reports an issue with an organization or an even
 ### 6. Agentic Workflows and Automation (Powered by n8n)
 To truly supercharge the platform and make it cutting-edge, we can integrate **n8n** to build Agentic workflows. This elevates the AI from being a simple "answering machine" to an active agent that takes action on behalf of users.
 * **Feature:** Organizers can define natural language automations. For example: *"If someone registers for my event and indicates dietary restrictions, automatically email the caterer to add one vegan meal, and reply to the attendee thanking them for letting us know."*
-* **Implementation:** Use Evently as the trigger source via webhooks, send the data to an **n8n** workflow, where an Agentic LLM evaluates the context, determines the required outcome, and triggers independent follow-up actions (like sending an email, interacting with third-party APIs, or sending a Slack message).
+* **Implementation:** Use CorpConnect as the trigger source via webhooks, send the data to an **n8n** workflow, where an Agentic LLM evaluates the context, determines the required outcome, and triggers independent follow-up actions (like sending an email, interacting with third-party APIs, or sending a Slack message).
 * **Benefit:** It transforms the platform into an autonomous event-management co-pilot. Organizers save hours of manual coordination as the AI actively performs operational tasks rather than just providing text suggestions.
 
 ---

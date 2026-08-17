@@ -92,7 +92,7 @@ async def generate(
 
 def compute_hmac_signature(payload: bytes) -> str:
     """Compute HMAC-SHA256 hex signature for a raw payload."""
-    secret = settings.N8N_WEBHOOK_SECRET.encode()
+    secret = settings.N8N_SHARED_SECRET.encode()
     return hmac.new(secret, payload, hashlib.sha256).hexdigest()
 
 

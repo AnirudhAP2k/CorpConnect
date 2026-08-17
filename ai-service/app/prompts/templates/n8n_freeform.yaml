@@ -1,0 +1,9 @@
+name: n8n_freeform
+description: "Freeform AI assistant prompt for n8n workflow task execution"
+temperature: 0.3
+max_tokens: 600
+
+system_prompt: |
+  You are an AI assistant integrated into an event management automation workflow.
+  Follow the user's instruction using the provided context data.
+  Be concise and actionable.

@@ -1,6 +1,6 @@
 # Task List: LLM and n8n Integration
 
-This document outlines the stepwise implementation of the Large Language Model (LLM) and n8n automation features for the Evently platform.
+This document outlines the stepwise implementation of the Large Language Model (LLM) and n8n automation features for the CorpConnect platform.
 
 ## Phase 1: Foundation & LLM Infrastructure
 *Goal: Enable the AI microservice to communicate with generative models.*
@@ -102,12 +102,43 @@ This document outlines the stepwise implementation of the Large Language Model (
     - [x] Built `components/automation/AddRuleSheet.tsx` — right-side Sheet with name, trigger dropdown, `https://` webhook URL input, description, live payload preview.
     - [x] Embedded `AutomationRulesPanel` on Org Dashboard (below SentimentPanel).
 
-- [ ] **Next.js: Orchestration**
-    - [ ] Implement `lib/actions/automation.ts`.
-    - [ ] Create API route `app/api/webhooks/event-registration/route.ts` as a trigger source.
-- [ ] **Frontend: Automation UI**
-    - [ ] Build `AutomationRulesPanel` for organizers.
-    - [ ] Implement rule management (Create/Toggle/Test).
+## Phase 5b: Agentic LLM Automation
+*Goal: Complete the agentic layer — `promptTemplate`, runtime gaps, sample workflows, optional ai-service inference.*
+
+> See [n8n-agentic-implementation-plan.md](./n8n-agentic-implementation-plan.md) for full spec.
+
+### Workstream A — Agent instructions (`promptTemplate`)
+- [x] A1. Schema: `promptTemplate String? @db.Text` on `AutomationRule`
+- [x] A1. Prisma migration: `add_automation_rule_prompt_template`
+- [x] A2. Validation: `promptTemplate` in `CreateRuleSchema` (max 2000)
+- [x] A2. Actions: persist/list/test `promptTemplate` in `automation.actions.ts`
+- [x] A3. UI: textarea in `AddRuleSheet.tsx`, truncated display in `AutomationRulesPanel.tsx`
+- [x] A4. Payload: `promptTemplate` in `N8nJobPayload`, enqueue, and n8n-trigger POST body
+
+### Workstream B — Runtime gap fixes
+- [x] B1. `EVENT_CANCELLED` producer in `domain/events/actions.ts` (`deleteEventAction`)
+- [x] B2. `filterJson` matching in `enqueueMatchingRules` (equality + comparison operators)
+- [x] B3. Env naming: `.env.example` → `N8N_SHARED_SECRET` / `N8N_CALLBACK_SECRET`; ai-service config alias
+- [x] B4. Security: HTTPS enforcement + hostname-only logging in `n8n-trigger.ts`
+
+### Workstream C — Agentic path + ai-service
+- [x] C1+C2. Ops runbook: `docs/llm-integration/n8n-workflows/README.md`
+- [x] C2. Sample workflow: `registration-ops-agent.json`
+- [x] C3. ai-service: `POST /webhooks/n8n` (HMAC-authed LLM inference for n8n)
+- [x] C3. Router registered in `main.py`; `/webhooks` tier gate added
+
+### Workstream D — Docs & tracking
+- [x] D. Phase 5b checklist added to this file
+- [x] D. Cross-link added to `phase5-implementation-plan.md`
+
+## Phase 5c: Seeded workflow catalog (template dropdown)
+- [x] `AutomationWorkflowTemplate` model + `AutomationRule.templateId` FK + migration
+- [x] `promptTemplate` column included in same migration
+- [x] Seed templates in `prisma/seed.ts`
+- [x] Resolve webhook/prompt from template in `lib/jobs/n8n-trigger.ts`
+- [x] Org UI: template dropdown in `AddRuleSheet` (custom URL advanced)
+- [x] App admin UI: `/admin/automations` to edit template webhook URLs
+- [x] Docs updated for catalog ops model
 
 ## Progress Summary
 - **Phase 1:** ✅ Complete
@@ -115,3 +146,6 @@ This document outlines the stepwise implementation of the Large Language Model (
 - **Phase 3:** ✅ Complete
 - **Phase 4:** ✅ Complete
 - **Phase 5:** ✅ Complete
+- **Phase 5b:** ✅ Complete
+- **Phase 5c:** ✅ Complete (catalog templates)
+- **Phase 5b:** ✅ Complete
