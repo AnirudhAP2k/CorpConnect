@@ -320,12 +320,15 @@ export function OrgVerificationDetail({ org }: OrgDetailProps) {
                                             <span className="text-[10px] uppercase tracking-wide text-gray-400 flex-shrink-0">
                                                 {doc.docType.replace(/_/g, " ")}
                                             </span>
-                                            {doc.sourceUrl && (
-                                                <a href={doc.sourceUrl} target="_blank" rel="noopener noreferrer"
-                                                    className="flex items-center gap-1 text-xs text-indigo-500 hover:underline flex-shrink-0">
-                                                    View <ExternalLink className="h-3 w-3" />
-                                                </a>
-                                            )}
+                                            {(() => {
+                                                const viewUrl = (doc as any).downloadUrl || doc.sourceUrl || `/api/org-documents/${doc.id}/download`;
+                                                return (
+                                                    <a href={viewUrl} target="_blank" rel="noopener noreferrer"
+                                                        className="flex items-center gap-1 text-xs text-indigo-500 hover:underline flex-shrink-0">
+                                                        View <ExternalLink className="h-3 w-3" />
+                                                    </a>
+                                                );
+                                            })()}
                                         </div>
                                     );
                                 })}

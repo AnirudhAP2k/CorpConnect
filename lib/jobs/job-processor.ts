@@ -24,6 +24,8 @@ import type { GenerateTasklistPayload } from "@/lib/jobs/tasklist-generator";
 import { expireStalePendingInvites, processInviteEmail } from "@/lib/jobs/pending-invites";
 import { processEventInviteEmail } from "@/lib/jobs/event-invites";
 import type { EventInviteEmailPayload } from "@/lib/jobs/event-invites";
+import { processUploadScan } from "@/domain/file-uploads/scan";
+import type { ScanUploadPayload } from "@/domain/file-uploads/types";
 
 
 export async function processJobQueue() {
@@ -172,6 +174,10 @@ async function processJob(job: any) {
 
         case "SEND_EVENT_INVITE_EMAIL":
             await processEventInviteEmail(payload as EventInviteEmailPayload);
+            break;
+
+        case "SCAN_UPLOAD":
+            await processUploadScan(payload as ScanUploadPayload);
             break;
 
         default:

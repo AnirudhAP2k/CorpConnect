@@ -95,7 +95,7 @@ export const orgDocumentUploadSchema = z.object({
     /** MIME type of the uploaded file — validated here so the error message is consistent. */
     mimeType: z.string().refine(
         (v) => ALLOWED_MIME.has(v),
-        "Only PDF and image files are allowed (JPEG, PNG, WebP, GIF)"
+        "Only PDF and image files are allowed (JPEG, PNG, WebP)"
     ),
 });
 

@@ -197,7 +197,6 @@ export const ALLOWED_MIME = new Set([
     "image/jpeg",
     "image/png",
     "image/webp",
-    "image/gif",
 ]);
 
 export const KYB_DOC_TYPES = new Set([

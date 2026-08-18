@@ -84,6 +84,8 @@ export interface UploadResult {
   imageUrl: string | null;
   publicId: string | null;
   message?: string;
+  uploadAssetId?: string | null;
+  scanStatus?: string;
 }
 
 /**

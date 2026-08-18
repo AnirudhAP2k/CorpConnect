@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ error: "Forbidden — OWNER or ADMIN role required" }, { status: 403 });
         }
 
-        const uploadResult = await uploadToCloudinary(file, `org-documents/${orgId}`, {
+        const uploadResult = await uploadToCloudinary(file, "ORG_KYB_DOCUMENT", {
+            orgId,
             publicId: `${docType}_${Date.now()}`,
         });
 
@@ -76,12 +77,26 @@ export async function POST(req: NextRequest) {
                 docType: docType as any,
                 title: title.trim(),
                 content: `[KYB Document] ${title.trim()}${taxRefNumber ? ` — Ref: ${taxRefNumber}` : ""}. Uploaded for verification.`,
-                sourceUrl,
+                sourceUrl: null, // P3 Gated: Do not store permanent public URL directly for sensitive KYB docs
                 taxRefNumber: taxRefNumber?.trim() || null,
             },
         });
 
-        return NextResponse.json({ docId: doc.id, sourceUrl }, { status: 201 });
+        if (uploadResult.uploadAssetId) {
+            await prisma.uploadAsset.update({
+                where: { id: uploadResult.uploadAssetId },
+                data: { orgDocumentId: doc.id },
+            });
+        }
+
+        return NextResponse.json(
+            {
+                docId: doc.id,
+                scanStatus: uploadResult.scanStatus ?? "PENDING",
+                downloadUrl: `/api/org-documents/${doc.id}/download`,
+            },
+            { status: 201 }
+        );
     } catch (err: any) {
         console.error("[org-documents/upload] Error:", err);
         return NextResponse.json({ error: "Upload failed" }, { status: 500 });
@@ -90,7 +105,7 @@ export async function POST(req: NextRequest) {
 
 /**
  * GET /api/org-documents/upload?orgId=...
- * Returns the list of KYB documents uploaded for an org.
+ * Returns the list of KYB documents uploaded for an org (without raw sourceUrls).
  */
 export async function GET(req: NextRequest) {
     const user = getApiAuth(req);
@@ -118,11 +133,25 @@ export async function GET(req: NextRequest) {
             docType: true,
             title: true,
             taxRefNumber: true,
-            sourceUrl: true,
             createdAt: true,
+            uploadAsset: {
+                select: {
+                    scanStatus: true,
+                },
+            },
         },
         orderBy: { createdAt: "asc" },
     });
 
-    return NextResponse.json(docs);
+    const formattedDocs = docs.map((doc: any) => ({
+        id: doc.id,
+        docType: doc.docType,
+        title: doc.title,
+        taxRefNumber: doc.taxRefNumber,
+        createdAt: doc.createdAt,
+        scanStatus: doc.uploadAsset?.scanStatus ?? "APPROVED",
+        downloadUrl: `/api/org-documents/${doc.id}/download`,
+    }));
+
+    return NextResponse.json(formattedDocs);
 }

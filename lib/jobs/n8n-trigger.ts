@@ -69,12 +69,12 @@ export async function processN8nWorkflow(payload: N8nJobPayload): Promise<void> 
     // 2. Resolve webhook URL (template preferred so admin can rotate centrally)
     let webhookUrl: string | null = null;
     if (rule.templateId && rule.template) {
-        if (rule.template.isActive) {
+        if (rule.template.isActive && rule.template.webhookUrl) {
             webhookUrl = rule.template.webhookUrl;
         } else if (rule.webhookUrl) {
             webhookUrl = rule.webhookUrl;
         } else {
-            console.log(`[n8n] Rule ${ruleId} template is inactive and no fallback webhookUrl — skipping.`);
+            console.log(`[n8n] Rule ${ruleId} template is inactive/empty and no fallback webhookUrl — skipping.`);
             return;
         }
     } else {

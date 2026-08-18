@@ -112,7 +112,7 @@ export function OrgDocumentUploader({ orgId, onChange, disabled = false }: OrgDo
             fd.append("taxRefNumber", slot.taxRefNumber.trim());
             if (orgId) fd.append("orgId", orgId);
 
-            const { data } = await axios.post<{ docId: string; sourceUrl: string }>(
+            const { data } = await axios.post<{ docId: string; sourceUrl?: string; downloadUrl?: string }>(
                 "/api/org-documents/upload",
                 fd,
                 { headers: { "Content-Type": "multipart/form-data" } }
@@ -120,7 +120,7 @@ export function OrgDocumentUploader({ orgId, onChange, disabled = false }: OrgDo
 
             const result: UploadedDoc = {
                 docId: data.docId,
-                sourceUrl: data.sourceUrl,
+                sourceUrl: data.downloadUrl ?? data.sourceUrl ?? "",
                 docType: slot.docType as KybDocType,
                 title: slot.title.trim(),
                 taxRefNumber: slot.taxRefNumber.trim(),

@@ -138,7 +138,7 @@ export function ProfileEditForm({
                     const optimizedImage = await optimizeProfileImage(imageFile);
                     const uploadResult = await handleUpload(
                         [optimizedImage],
-                        "profile-avatars",
+                        "PROFILE_AVATAR",
                         { imagePreset: "avatar" }
                     );
 

@@ -1,9 +1,13 @@
 import { prisma } from "@/lib/db";
+import { requeueFailedScans } from "@/domain/file-uploads/scan";
 
 export async function cleanupOldJobs() {
-    console.log("[Job Processor] Cleaning up old jobs...");
+    console.log("[Job Processor] Cleaning up old jobs & checking quarantined uploads...");
 
     try {
+        // Re-queue any quarantined uploads whose scanner timed out / suffered an outage
+        await requeueFailedScans();
+
         // Delete completed jobs older than 7 days
         const sevenDaysAgo = new Date();
         sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);

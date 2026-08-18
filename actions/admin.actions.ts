@@ -5,12 +5,21 @@ import { auth } from "@/auth";
 import { createNotification } from "@/domain/notifications";
 import { sendMail } from "@/lib/mailer";
 import { revalidatePath } from "next/cache";
+import { isUUID } from "@/lib/utils";
+
+export interface ListJobQueueAdminInput {
+    page?: number;
+    limit?: number;
+    status?: string;
+    type?: string;
+    search?: string;
+}
 
 /**
  * Checks if the currently logged-in user is an App Admin.
  * Throws an error if unauthorized.
  */
-async function requireAdmin() {
+const requireAdmin = async () => {
     const session = await auth();
     const userId = session?.user?.id;
     if (!userId) {
@@ -47,7 +56,7 @@ export async function requestKybDocumentsAction({
     customMessage,
 }: RequestKybDocsParams) {
     try {
-        const adminUser = await requireAdmin();
+        await requireAdmin();
 
         const org = await prisma.organization.findUnique({
             where: { id: orgId },
@@ -271,3 +280,179 @@ export async function updateAutomationWorkflowTemplateAction(input: {
         return { success: false as const, error: error?.message || "Something went wrong." };
     }
 }
+
+// ─── Job Queue Admin Management Actions ─────────────────────────────────────
+
+export async function listJobQueueAdminAction(input: ListJobQueueAdminInput = {}) {
+    await requireAdmin();
+
+    const page = Math.max(1, input.page || 1);
+    const limit = Math.max(1, Math.min(50, input.limit || 15));
+    const skip = (page - 1) * limit;
+
+    const where: any = {};
+
+    if (input.status && input.status !== "ALL") {
+        where.status = input.status;
+    }
+
+    if (input.type && input.type !== "ALL") {
+        where.type = input.type;
+    }
+
+    if (input.search?.trim()) {
+        const q = input.search.trim();
+        const isUuid = isUUID(q);
+
+        const orConditions: any[] = [
+            { error: { contains: q, mode: "insensitive" } },
+        ];
+
+        if (isUuid) {
+            orConditions.push({ id: q });
+        }
+
+        where.OR = orConditions;
+    }
+
+    try {
+        const [jobs, totalCount, failedCount, pendingCount, processingCount, completedCount, cancelledCount] = await Promise.all([
+            prisma.jobQueue.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { updatedAt: "desc" },
+            }),
+            prisma.jobQueue.count({ where }),
+            prisma.jobQueue.count({ where: { status: "FAILED" } }),
+            prisma.jobQueue.count({ where: { status: "PENDING" } }),
+            prisma.jobQueue.count({ where: { status: "PROCESSING" } }),
+            prisma.jobQueue.count({ where: { status: "COMPLETED" } }),
+            prisma.jobQueue.count({ where: { status: "CANCELLED" } }),
+        ]);
+
+        const totalPages = Math.ceil(totalCount / limit) || 1;
+
+        return {
+            success: true as const,
+            data: {
+                jobs: jobs.map((j: any) => ({
+                    ...j,
+                    scheduledAt: j.scheduledAt.toISOString(),
+                    processedAt: j.processedAt?.toISOString() || null,
+                    createdAt: j.createdAt.toISOString(),
+                    updatedAt: j.updatedAt.toISOString(),
+                })),
+                totalCount,
+                totalPages,
+                currentPage: page,
+                stats: {
+                    failed: failedCount,
+                    pending: pendingCount,
+                    processing: processingCount,
+                    completed: completedCount,
+                    cancelled: cancelledCount,
+                },
+            },
+        };
+    } catch (error: any) {
+        console.error("[listJobQueueAdminAction] Error:", error);
+        return { success: false as const, error: error?.message || "Failed to fetch job queue entries." };
+    }
+}
+
+export async function requeueJobAdminAction(jobId: string) {
+    await requireAdmin();
+
+    try {
+        const job = await prisma.jobQueue.findUnique({
+            where: { id: jobId },
+        });
+
+        if (!job) {
+            return { success: false as const, error: "Job not found." };
+        }
+
+        await prisma.jobQueue.update({
+            where: { id: jobId },
+            data: {
+                status: "PENDING",
+                attempts: 0,
+                scheduledAt: new Date(),
+                processedAt: null,
+                error: null,
+            },
+        });
+
+        revalidatePath("/admin/jobs");
+        return { success: true as const, message: `Re-queued job ${jobId} (${job.type})` };
+    } catch (error: any) {
+        console.error("[requeueJobAdminAction] Error:", error);
+        return { success: false as const, error: error?.message || "Failed to re-queue job." };
+    }
+}
+
+export async function requeueAllFailedJobsAdminAction(jobType?: string) {
+    await requireAdmin();
+
+    try {
+        const where: any = { status: "FAILED" };
+        if (jobType && jobType !== "ALL") {
+            where.type = jobType;
+        }
+
+        const result = await prisma.jobQueue.updateMany({
+            where,
+            data: {
+                status: "PENDING",
+                attempts: 0,
+                scheduledAt: new Date(),
+                processedAt: null,
+                error: null,
+            },
+        });
+
+        revalidatePath("/admin/jobs");
+        return { success: true as const, count: result.count, message: `Re-queued ${result.count} failed job(s)` };
+    } catch (error: any) {
+        console.error("[requeueAllFailedJobsAdminAction] Error:", error);
+        return { success: false as const, error: error?.message || "Failed to re-queue jobs." };
+    }
+}
+
+export async function cancelJobAdminAction(jobId: string) {
+    await requireAdmin();
+
+    try {
+        await prisma.jobQueue.update({
+            where: { id: jobId },
+            data: {
+                status: "CANCELLED",
+            },
+        });
+
+        revalidatePath("/admin/jobs");
+        return { success: true as const, message: `Cancelled job ${jobId}` };
+    } catch (error: any) {
+        console.error("[cancelJobAdminAction] Error:", error);
+        return { success: false as const, error: error?.message || "Failed to cancel job." };
+    }
+}
+
+export async function deleteJobAdminAction(jobId: string) {
+    await requireAdmin();
+
+    try {
+        await prisma.jobQueue.delete({
+            where: { id: jobId },
+        });
+
+        revalidatePath("/admin/jobs");
+        return { success: true as const, message: `Deleted job ${jobId}` };
+    } catch (error: any) {
+        console.error("[deleteJobAdminAction] Error:", error);
+        return { success: false as const, error: error?.message || "Failed to delete job." };
+    }
+}
+
+

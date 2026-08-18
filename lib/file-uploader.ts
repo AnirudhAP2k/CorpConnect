@@ -1,5 +1,6 @@
-import { uploadFileAction } from "@/actions/upload.actions";
+import { uploadFileAction } from "@/domain/file-uploads";
 import type { UploadResult } from "@/lib/types";
+import type { UploadPurpose } from "@/domain/file-uploads";
 
 export type { UploadResult };
 
@@ -7,23 +8,27 @@ export type { UploadResult };
  * Client-side helper for uploading one or more files.
  *
  * Calls the `uploadFileAction` Server Action directly — no HTTP round-trip.
- * Next.js handles the client→server boundary transparently.
+ * Handles the client→server boundary transparently.
  *
- * @param files  - Files to upload (only the first is sent per call)
- * @param folder - Cloud storage destination folder (default: "uploads")
+ * @param files   - Files to upload (only the first is sent per call)
+ * @param purpose - UploadPurpose enum ("PROFILE_AVATAR" | "EVENT_IMAGE" | "ORG_LOGO" | "ORG_KYB_DOCUMENT") or legacy folder
  */
 export const handleUpload = async (
     files: File[],
-    folder = "uploads",
-    options: { imagePreset?: "avatar" } = {}
+    purpose: UploadPurpose | string = "EVENT_IMAGE",
+    options: { imagePreset?: "avatar"; orgId?: string } = {}
 ): Promise<UploadResult | null> => {
     if (files.length === 0) return null;
 
     const formData = new FormData();
     formData.append("file", files[0]);
-    formData.append("folder", folder);
+    formData.append("purpose", purpose);
+    formData.append("folder", purpose); // Backward compatibility
     if (options.imagePreset) {
         formData.append("imagePreset", options.imagePreset);
+    }
+    if (options.orgId) {
+        formData.append("orgId", options.orgId);
     }
 
     try {
@@ -42,24 +47,24 @@ export const handleUpload = async (
 /**
  * Server-side interface for uploading a file to cloud storage.
  *
- * Calls `uploadFileAction` as a plain function — zero HTTP overhead.
- * To migrate to S3 in the future, update `uploadFileAction` only.
- *
  * @param file    - File object to upload
- * @param folder  - Cloud storage folder path (e.g. "org-documents/abc123")
- * @param options - Optional publicId override
- * @throws        - If the upload fails
+ * @param purpose - UploadPurpose enum or legacy folder path
+ * @param options - Optional publicId or orgId override
  */
 export async function uploadToCloudinary(
     file: File,
-    folder: string,
-    options: { publicId?: string } = {}
+    purpose: UploadPurpose | string,
+    options: { publicId?: string; orgId?: string } = {}
 ): Promise<UploadResult> {
     const formData = new FormData();
     formData.append("file", file);
-    formData.append("folder", folder);
+    formData.append("purpose", purpose);
+    formData.append("folder", purpose);
     if (options.publicId) {
         formData.append("publicId", options.publicId);
+    }
+    if (options.orgId) {
+        formData.append("orgId", options.orgId);
     }
 
     const result = await uploadFileAction(formData);
