@@ -1,3 +1,47 @@
+# [1.31.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.30.0...v1.31.0) (2026-08-20)
+
+
+### Bug Fixes
+
+* **actions:** export async uploadFileAction wrapper and update UploadResult type ([dba79ec](https://github.com/AnirudhAP2k/CorpConnect/commit/dba79ec8dab4367cfe9ad822115cadf641e6664c))
+* **build:** remove nodemailer from serverExternalPackages ([e36c743](https://github.com/AnirudhAP2k/CorpConnect/commit/e36c7433700d51ab1619b8e2e83c0d521fd4a53f))
+* **email:** instantiate Resend dynamically to prevent build-time missing API key error ([232fa85](https://github.com/AnirudhAP2k/CorpConnect/commit/232fa854d2e855217cf5484e673dde4cb69e59ff))
+* **file-uploads:** exclude scan export from barrel file ([1ff894f](https://github.com/AnirudhAP2k/CorpConnect/commit/1ff894f06415891ddc24bfa37cb01388e5dd6a71))
+* **file-uploads:** use parsed ClamAV environment variables ([470df1a](https://github.com/AnirudhAP2k/CorpConnect/commit/470df1a0863f03c4f6aee3d2597c6b355ced6eb8))
+* **jobs:** handle optional webhook URLs and update upload MIME constants ([aebc62e](https://github.com/AnirudhAP2k/CorpConnect/commit/aebc62eda169aa9a802b563cf6ac2c54ed769b1f))
+* **tests:** update billing gateway tests for idempotency ([ff744e2](https://github.com/AnirudhAP2k/CorpConnect/commit/ff744e20231f50e9fa900a07f8afd8dc4d55adc1))
+* **tests:** update billing service tests for idempotency ([63ce607](https://github.com/AnirudhAP2k/CorpConnect/commit/63ce607af3dfdd108a75d3591246aa0433cb356c))
+
+
+### Features
+
+* **admin:** build unified background JobQueue management console ([b36f5f5](https://github.com/AnirudhAP2k/CorpConnect/commit/b36f5f511b7f347356e0f231442265145b9b930f))
+* **api:** add scan gated download route and link UploadAsset on document upload ([2680061](https://github.com/AnirudhAP2k/CorpConnect/commit/26800612fc66b5370e3563a2c387c4562a9c787e))
+* **api:** read idempotency header in event checkout route ([53be541](https://github.com/AnirudhAP2k/CorpConnect/commit/53be541d691e12c003161f0fc8e8e0ac55cedbc7))
+* **api:** read idempotency header in subscribe route ([09eb0ae](https://github.com/AnirudhAP2k/CorpConnect/commit/09eb0ae9278399c08a5de6c6d7a25588454d38f0))
+* **billing:** add idempotency support to razorpay adapter ([794e423](https://github.com/AnirudhAP2k/CorpConnect/commit/794e423b024b46f3d138e5e4c9f0a9d7682f7cd8))
+* **billing:** add idempotency support to stripe adapter ([6bf44bc](https://github.com/AnirudhAP2k/CorpConnect/commit/6bf44bcafc67a8b794b5eae4a2bdc93286cd2160))
+* **billing:** forward idempotency key in billing service ([5b7c54e](https://github.com/AnirudhAP2k/CorpConnect/commit/5b7c54e0fdf542abda5ed3bda77b2b5108056374))
+* **billing:** update gateway types for idempotency support ([74c1365](https://github.com/AnirudhAP2k/CorpConnect/commit/74c136586d4bde2f76e887f9f6bde7d7cfc2086f))
+* **components:** support secure download URL in uploader and admin verification viewer ([14d5b3b](https://github.com/AnirudhAP2k/CorpConnect/commit/14d5b3b2c0d812a66ed090661ba99a4962aa1bcc))
+* **components:** update form upload parameters to use domain UploadPurpose ([9133f30](https://github.com/AnirudhAP2k/CorpConnect/commit/9133f3049f579a4978efff96a8122323d66bc8d7))
+* **components:** update KYB verification banner status messages ([641d2ad](https://github.com/AnirudhAP2k/CorpConnect/commit/641d2adb9568908a4c0b30b3452d7c8aad391a89))
+* **database:** add UploadAsset model, scan status, and optional template webhook URL ([047a4b1](https://github.com/AnirudhAP2k/CorpConnect/commit/047a4b1dd7f89d85a17b179bc498a25c987906ce))
+* **docker:** add ClamAV service and environment configuration ([d2d795f](https://github.com/AnirudhAP2k/CorpConnect/commit/d2d795ff696a3907d3d4d3b4ca9ec932e1b0564f))
+* **email:** integrate resend client in mailer ([64fa1a4](https://github.com/AnirudhAP2k/CorpConnect/commit/64fa1a4831675586d16c3a506faab569cd3a9812))
+* **email:** replace nodemailer with resend ([7cb823a](https://github.com/AnirudhAP2k/CorpConnect/commit/7cb823ae96be0fd2edf36ac502938385959fe0bf))
+* **email:** update documentation for resend email adapter ([4374017](https://github.com/AnirudhAP2k/CorpConnect/commit/4374017f80cad2853f4ee1363a3324a157801057))
+* **email:** update environment variables for resend ([b7dae32](https://github.com/AnirudhAP2k/CorpConnect/commit/b7dae321d7228174653657488b0d3242284fc031))
+* **email:** update lockfile for resend dependency ([b4bb424](https://github.com/AnirudhAP2k/CorpConnect/commit/b4bb4243dea501ec85f759dbf8b5e9d8d1ddaae0))
+* **file-uploads:** implement secure upload domain with magic byte validation and rate limiting ([55507c7](https://github.com/AnirudhAP2k/CorpConnect/commit/55507c7fbc83cc8f16868738355546201678082a))
+* **jobs:** integrate SCAN_UPLOAD malware scan handler and auto requeue in job processor ([fdc66db](https://github.com/AnirudhAP2k/CorpConnect/commit/fdc66db18711858f4b0b921156e19a01768665f5))
+* **payment:** add idempotent post helper for razorpay ([fc97b05](https://github.com/AnirudhAP2k/CorpConnect/commit/fc97b052cdf644b7f65522d18b2e74d34969b5a5))
+* **payment:** add payment idempotency utilities ([fca5ca5](https://github.com/AnirudhAP2k/CorpConnect/commit/fca5ca5d848348660d44debd7aad51de602f6a5f))
+* **tests:** add event checkout route idempotency tests ([9c092e1](https://github.com/AnirudhAP2k/CorpConnect/commit/9c092e1d3277e4736ee4958218c277466c70b102))
+* **tests:** add payment idempotency unit tests ([dfc4bce](https://github.com/AnirudhAP2k/CorpConnect/commit/dfc4bce30154d6779cb744d15b772af7f47e1ef0))
+* **tests:** add security validation and ClamAV scan unit tests ([279df80](https://github.com/AnirudhAP2k/CorpConnect/commit/279df80bc6b0a8d63d8f23455e7605ddf06975e3))
+* **tests:** add subscription route idempotency tests ([5057182](https://github.com/AnirudhAP2k/CorpConnect/commit/5057182af40739df28b04f33bc7f22c0da5a75c9))
+
 # [1.30.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.29.0...v1.30.0) (2026-08-17)
 
 
