@@ -4,10 +4,7 @@ import { Resend } from "resend";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 
-const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
 const SENDER_EMAIL = process.env.SENDER_EMAIL ?? "noreply@corpconnect.com";
-
-const resend = new Resend(RESEND_API_KEY);
 
 interface SendMailOptions {
   /** From address (defaults to SENDER_EMAIL env var) */
@@ -42,7 +39,9 @@ export async function sendMail({
   let messageId: string | null = null;
   let errorMessage: string | null = null;
 
-  if (!RESEND_API_KEY) {
+  const apiKey = process.env.RESEND_API_KEY;
+
+  if (!apiKey) {
     errorMessage = "RESEND_API_KEY is not configured";
     console.error("[Mailer]", errorMessage);
 
@@ -60,6 +59,8 @@ export async function sendMail({
 
     return null;
   }
+
+  const resend = new Resend(apiKey);
 
   try {
     const { data, error } = await resend.emails.send({
