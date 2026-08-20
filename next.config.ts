@@ -11,7 +11,6 @@ const nextConfig: NextConfig = {
   ],
   serverExternalPackages: [
     "cloudinary",
-    "nodemailer",
     "stripe",
     "razorpay",
     "crypto-js",
