@@ -11,7 +11,7 @@ import { getPaymentGateway } from "./gateway";
 import { BillingError } from "./errors";
 import type { BillingOrg, BillingPlan, PaymentProvider, PortalSession, SubscriptionCheckout } from "./gateway/types";
 
-function appUrl(): string {
+const appUrl = (): string => {
     return process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000";
 }
 
@@ -50,10 +50,16 @@ export async function createBillingCheckout(input: {
     userId: string;
     plan: BillingPlan;
     provider: PaymentProvider;
+    idempotencyKey?: string;
 }): Promise<SubscriptionCheckout> {
     const org = await resolveBillingOrg(input.userId);
     const gateway = getPaymentGateway(input.provider);
-    return gateway.createSubscriptionCheckout({ org, plan: input.plan, appUrl: appUrl() });
+    return gateway.createSubscriptionCheckout({
+        org,
+        plan: input.plan,
+        appUrl: appUrl(),
+        idempotencyKey: input.idempotencyKey,
+    });
 }
 
 export async function createBillingPortal(userId: string): Promise<PortalSession> {

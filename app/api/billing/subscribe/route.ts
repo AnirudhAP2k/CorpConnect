@@ -13,6 +13,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { paymentProviders, subscriptionPlans } from "@/constants";
 import { createBillingCheckout, BillingError } from "@/domain/billing";
 import type { BillingPlan, PaymentProvider } from "@/domain/billing";
+import { readIdempotencyKeyHeader } from "@/lib/payment/idempotency";
 
 export const POST = async (req: NextRequest) => {
     try {
@@ -32,7 +33,12 @@ export const POST = async (req: NextRequest) => {
             return NextResponse.json({ error: "Invalid provider" }, { status: 400 });
         }
 
-        const checkout = await createBillingCheckout({ userId, plan, provider });
+        const checkout = await createBillingCheckout({
+            userId,
+            plan,
+            provider,
+            idempotencyKey: readIdempotencyKeyHeader(req.headers),
+        });
         return NextResponse.json(checkout, { status: 200 });
     } catch (error: any) {
         if (error instanceof BillingError) {

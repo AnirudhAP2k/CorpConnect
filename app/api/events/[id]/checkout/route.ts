@@ -17,7 +17,13 @@
 import { getApiAuth } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
 import { getStripe, PLATFORM_FEE_PERCENT } from "@/lib/payment/stripe";
-import { getRazorpay } from "@/lib/payment/razorpay";
+import { razorpayIdempotentPost } from "@/lib/payment/razorpay";
+import {
+    paymentIdempotencyKey,
+    razorpayReceipt,
+    readIdempotencyKeyHeader,
+    resolveIdempotencyKey,
+} from "@/lib/payment/idempotency";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (
@@ -35,6 +41,7 @@ export const POST = async (
 
         const body = await req.json().catch(() => ({}));
         const provider = (body.provider ?? "stripe") as "stripe" | "razorpay";
+        const clientIdempotencyKey = readIdempotencyKeyHeader(req.headers);
 
         const event = await prisma.events.findUnique({
             where: { id: eventId },
@@ -108,31 +115,39 @@ export const POST = async (
         if (provider === "stripe") {
             const stripe = getStripe();
 
-            const checkoutSession = await stripe.checkout.sessions.create({
-                mode: "payment",
-                line_items: [
-                    {
-                        price_data: {
-                            currency: currency.toLowerCase(),
-                            product_data: { name: event.title },
-                            unit_amount: amountPaise,
+            const checkoutSession = await stripe.checkout.sessions.create(
+                {
+                    mode: "payment",
+                    line_items: [
+                        {
+                            price_data: {
+                                currency: currency.toLowerCase(),
+                                product_data: { name: event.title },
+                                unit_amount: amountPaise,
+                            },
+                            quantity: 1,
                         },
-                        quantity: 1,
-                    },
-                ],
-                payment_intent_data: {
-                    // TODO: add this after implementing stripe connect with the organization hosting event
-                    // application_fee_amount: platformFee,
-                    // transfer_data: {
-                    //     destination: event.organization.stripeId, // The Org's account
-                    // },
+                    ],
+                    payment_intent_data: {
+                        // TODO: add this after implementing stripe connect with the organization hosting event
+                        // application_fee_amount: platformFee,
+                        // transfer_data: {
+                        //     destination: event.organization.stripeId, // The Org's account
+                        // },
 
+                        metadata: { participationId, eventId, userId },
+                    },
+                    success_url: `${appUrl}/events/${eventId}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+                    cancel_url: `${appUrl}/events/${eventId}`,
                     metadata: { participationId, eventId, userId },
                 },
-                success_url: `${appUrl}/events/${eventId}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-                cancel_url: `${appUrl}/events/${eventId}`,
-                metadata: { participationId, eventId, userId },
-            });
+                {
+                    idempotencyKey: resolveIdempotencyKey(
+                        clientIdempotencyKey,
+                        paymentIdempotencyKey("evt", "stripe", participationId)
+                    ),
+                }
+            );
 
             // Create pending EventPayment record
             await prisma.eventPayment.upsert({
@@ -156,19 +171,23 @@ export const POST = async (
         }
 
         // ── Razorpay ────────────────────────────────────────────────────────────
-        const razorpay = getRazorpay();
-
-        const order = await razorpay.orders.create({
-            amount: amountPaise,
-            currency,
-            // TODO: add transfers array here after implementing razorpay route with the organization hosting event
-            // transfers: [{ account: "acc_...", amount: amountPaise - platformFee, currency }]
-            notes: {
-                participationId,
-                eventId,
-                userId,
+        const orderKey = resolveIdempotencyKey(clientIdempotencyKey, participationId);
+        const order = await razorpayIdempotentPost<{ id: string }>(
+            "/orders",
+            {
+                amount: amountPaise,
+                currency,
+                receipt: razorpayReceipt(orderKey),
+                // TODO: add transfers array here after implementing razorpay route with the organization hosting event
+                // transfers: [{ account: "acc_...", amount: amountPaise - platformFee, currency }]
+                notes: {
+                    participationId,
+                    eventId,
+                    userId,
+                },
             },
-        });
+            orderKey
+        );
 
         // Create pending EventPayment record
         await prisma.eventPayment.upsert({
