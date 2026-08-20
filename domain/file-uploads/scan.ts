@@ -25,9 +25,9 @@ export interface ScanResult {
  */
 export function scanWithClamAV(buffer: Buffer): Promise<ScanResult> {
     return new Promise((resolve, reject) => {
-        const clamHost = process.env.CLAMAV_HOST || "";
-        const clamPort = parseInt(process.env.CLAMAV_PORT || "3310", 10);
-        const timeoutMs = parseInt(process.env.CLAMAV_TIMEOUT_MS || "120000", 10);
+        const clamHost = CLAMAV_HOST;
+        const clamPort = Number(CLAMAV_PORT);
+        const timeoutMs = Number(CLAMAV_TIMEOUT_MS);
 
         if (!clamHost) {
             // ClamAV not configured — graceful degradation
