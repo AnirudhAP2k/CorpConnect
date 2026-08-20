@@ -1,25 +1,13 @@
 "use server";
 
-import nodemailer from "nodemailer";
+import { Resend } from "resend";
 import { prisma } from "@/lib/db";
 import type { Prisma } from "@prisma/client";
 
-const SMTP_SERVER_HOST = process.env.SMTP_SERVER_HOST ?? "";
+const RESEND_API_KEY = process.env.RESEND_API_KEY ?? "";
 const SENDER_EMAIL = process.env.SENDER_EMAIL ?? "noreply@corpconnect.com";
-const SMTP_TRANSPORTER_SERVICE = process.env.SMTP_TRANSPORTER_SERVICE ?? "";
-const SMTP_SERVER_USERNAME = process.env.SMTP_SERVER_USERNAME ?? "";
-const SMTP_SERVER_PASSWORD = process.env.SMTP_SERVER_PASSWORD ?? "";
 
-const transporter = nodemailer.createTransport({
-  service: SMTP_TRANSPORTER_SERVICE || undefined,
-  host: SMTP_TRANSPORTER_SERVICE ? undefined : SMTP_SERVER_HOST,
-  port: 465,
-  secure: true,
-  auth: {
-    user: SMTP_SERVER_USERNAME,
-    pass: SMTP_SERVER_PASSWORD,
-  },
-});
+const resend = new Resend(RESEND_API_KEY);
 
 interface SendMailOptions {
   /** From address (defaults to SENDER_EMAIL env var) */
@@ -38,7 +26,7 @@ interface SendMailOptions {
 }
 
 /**
- * Send an email and write a structured row to the EmailLog table.
+ * Send an email via Resend and write a structured row to the EmailLog table.
  * Never throws — logs the error and returns null on failure.
  */
 export async function sendMail({
@@ -53,13 +41,10 @@ export async function sendMail({
   let status: "SENT" | "FAILED" = "FAILED";
   let messageId: string | null = null;
   let errorMessage: string | null = null;
-  let info: Awaited<ReturnType<typeof transporter.sendMail>> | null = null;
 
-  try {
-    await transporter.verify();
-  } catch (error: any) {
-    console.error("[Mailer] SMTP verification failed:", SMTP_SERVER_USERNAME, error?.message);
-    errorMessage = `SMTP verify failed: ${error?.message ?? String(error)}`;
+  if (!RESEND_API_KEY) {
+    errorMessage = "RESEND_API_KEY is not configured";
+    console.error("[Mailer]", errorMessage);
 
     await logEmail({
       fromAddress: email,
@@ -77,16 +62,21 @@ export async function sendMail({
   }
 
   try {
-    info = await transporter.sendMail({
-      from: email,
-      to: sendTo,
+    const { data, error } = await resend.emails.send({
+      from: email || SENDER_EMAIL,
+      to: sendTo ? [sendTo] : [],
       subject,
       html: html ?? "",
     });
 
-    messageId = info.messageId ?? null;
-    status = "SENT";
-    console.log("[Mailer] Message sent:", messageId, "→", sendTo);
+    if (error) {
+      errorMessage = error.message ?? JSON.stringify(error);
+      console.error("[Mailer] Resend API error →", sendTo, ":", errorMessage);
+    } else if (data) {
+      messageId = data.id ?? null;
+      status = "SENT";
+      console.log("[Mailer] Message sent:", messageId, "→", sendTo);
+    }
   } catch (error: any) {
     errorMessage = error?.message ?? String(error);
     console.error("[Mailer] Send failed →", sendTo, ":", errorMessage);
@@ -106,7 +96,7 @@ export async function sendMail({
     durationMs,
   });
 
-  return info;
+  return status === "SENT" ? { messageId } : null;
 }
 
 // ─── Internal log writer ──────────────────────────────────────────────────────
@@ -132,8 +122,8 @@ async function logEmail(entry: EmailLogEntry) {
         subject: entry.subject,
         templateType: entry.templateType,
         payload: entry.payload as Prisma.InputJsonValue,
-        smtpHost: SMTP_SERVER_HOST || null,
-        smtpService: SMTP_TRANSPORTER_SERVICE || null,
+        smtpHost: null,
+        smtpService: "resend",
         status: entry.status,
         messageId: entry.messageId,
         errorMessage: entry.errorMessage,
