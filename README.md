@@ -224,7 +224,7 @@ uvicorn main:app --reload --port 8000
 ## 📧 Notification System
 
 CorpConnect implements a **Factory + Adapter** notification pattern. Job handlers enqueue events (like `SEND_EVENT_REMINDER` or `VIRTUAL_ROOM_OPENED`) which resolve active notification adapters concurrently:
-* **Email Adapter**: Relies on Nodemailer/SMTP and logs results in the `EmailLog` table for auditing and tracking.
+* **Email Adapter**: Relies on Resend SMTP and logs results in the `EmailLog` table for auditing and tracking.
 * **In-App Adapter**: Writes directly to the `Notification` table.
 * **Slack / Google Chat / SMS Adapters**: Hook into outgoing chat webhook formats.
 
