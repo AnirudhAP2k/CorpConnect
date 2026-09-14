@@ -183,7 +183,6 @@ const OrganizationForm = ({
 									className={CONTROL_CLASS}
 									{...field}
 									disabled={isPending}
-									className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
 								/>
 							</FormControl>
 							<FormMessage />
@@ -200,27 +199,37 @@ const OrganizationForm = ({
 							<FormLabel className="font-label text-nx-on-surface-variant">
 								Industry *
 							</FormLabel>
-							<FormControl>
-								<Dropdown
-									onChangeHandler={field.onChange}
-									value={field.value}
-									disabled={isPending}
-									type="industry"
-								/>
-							</FormControl>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								disabled={isPending}
+							>
+								<FormControl>
+									<SelectTrigger className="rounded-xl border-nx-outline-variant/40 bg-nx-surface-container-low h-11">
+										<SelectValue placeholder="Select an industry" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									{industries.map((industry) => (
+										<SelectItem key={industry.id} value={industry.id}>
+											{industry.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
 							<FormMessage />
 						</FormItem>
 					)}
 				/>
 
-				{/* Organization Size */}
+				{/* Company Size */}
 				<FormField
 					control={form.control}
 					name="size"
 					render={({ field }) => (
 						<FormItem>
 							<FormLabel className="font-label text-nx-on-surface-variant">
-								Organization Size
+								Company Size
 							</FormLabel>
 							<Select
 								onValueChange={field.onChange}
@@ -228,18 +237,14 @@ const OrganizationForm = ({
 								disabled={isPending}
 							>
 								<FormControl>
-									<SelectTrigger className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low">
-										<SelectValue placeholder="Select organization size" />
+									<SelectTrigger className="rounded-xl border-nx-outline-variant/40 bg-nx-surface-container-low h-11">
+										<SelectValue placeholder="Select company size" />
 									</SelectTrigger>
 								</FormControl>
 								<SelectContent>
-									<SelectItem value="STARTUP">
-										Startup (1-50 employees)
-									</SelectItem>
-									<SelectItem value="SME">SME (51-500 employees)</SelectItem>
-									<SelectItem value="ENTERPRISE">
-										Enterprise (500+ employees)
-									</SelectItem>
+									<SelectItem value="STARTUP">Startup (1-10)</SelectItem>
+									<SelectItem value="SME">SME (11-250)</SelectItem>
+									<SelectItem value="ENTERPRISE">Enterprise (250+)</SelectItem>
 								</SelectContent>
 							</Select>
 							<FormMessage />
@@ -262,7 +267,6 @@ const OrganizationForm = ({
 									className={CONTROL_CLASS}
 									{...field}
 									disabled={isPending}
-									className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
 								/>
 							</FormControl>
 							<FormMessage />
@@ -307,7 +311,6 @@ const OrganizationForm = ({
 									className={CONTROL_CLASS}
 									{...field}
 									disabled={isPending}
-									className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
 								/>
 							</FormControl>
 							<FormMessage />
