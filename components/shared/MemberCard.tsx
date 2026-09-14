@@ -77,7 +77,7 @@ const MemberCard = ({
 						<h3 className="font-headline font-semibold text-nx-on-surface">
 							{member.user.name || "Unknown"}
 						</h3>
-						<Badge variant={getRoleBadgeVariant(member.role) as any}>
+						<Badge variant="outline" className={`shrink-0 ${roleBadgeStyle}`}>
 							{member.role}
 						</Badge>
 					</div>
