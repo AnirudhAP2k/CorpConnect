@@ -43,7 +43,7 @@ export function MessageInput({ onSend, disabled, placeholder = "Write a messageâ
     };
 
     return (
-        <div className="px-4 py-3 border-t border-nx-outline-variant bg-white">
+        <div className="px-4 py-3 border-t border-nx-outline-variant bg-nx-surface-container-lowest">
             <div
                 className={cn(
                     "flex items-end gap-2 rounded-2xl border border-nx-outline-variant bg-nx-surface-container px-4 py-2.5 transition-all duration-200",
@@ -67,7 +67,7 @@ export function MessageInput({ onSend, disabled, placeholder = "Write a messageâ
                     className={cn(
                         "shrink-0 w-8 h-8 flex items-center justify-center rounded-xl transition-all duration-200",
                         value.trim() && !disabled
-                            ? "bg-nx-primary text-white hover:opacity-90 shadow-nx-primary active:scale-95"
+                            ? "bg-nx-primary text-nx-on-primary hover:opacity-90 shadow-nx-primary active:scale-95"
                             : "bg-nx-surface-container-high text-nx-on-surface-variant/30 cursor-not-allowed"
                     )}
                     aria-label="Send message"

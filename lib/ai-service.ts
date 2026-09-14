@@ -21,367 +21,372 @@
 import axios, { AxiosRequestConfig } from "axios";
 import { SignJWT } from "jose";
 import {
-    AIChatBrainstormBriefResponse,
-    AIChatHistoryMessage,
-    AIChatRequest,
-    AIChatResponse,
-    AIEventSummaryRequest,
-    AIEventSummaryResult,
-    AIEventTasklistRequest,
-    AIEventTasklistResponse,
-    AIGeneratedContent,
-    AIMatchmakingReason,
-    AIRecommendedEvent,
-    AIRecommendedOrg,
-    AIRecommendEventsResponse,
-    AIRecommendOrgsResponse,
-    AISearchResult,
-    AISemanticSearchResponse,
-    AISentimentRequest,
-    AISentimentResult,
-    AIEventBrief
+	AIChatBrainstormBriefResponse,
+	AIChatHistoryMessage,
+	AIChatRequest,
+	AIChatResponse,
+	AIEventSummaryRequest,
+	AIEventSummaryResult,
+	AIEventTasklistRequest,
+	AIEventTasklistResponse,
+	AIGeneratedContent,
+	AIMatchmakingReason,
+	AIRecommendedEvent,
+	AIRecommendedOrg,
+	AIRecommendEventsResponse,
+	AIRecommendOrgsResponse,
+	AISearchResult,
+	AISemanticSearchResponse,
+	AISentimentRequest,
+	AISentimentResult,
+	AIEventBrief,
 } from "@/lib/types";
 
 export type {
-    AIChatBrainstormBriefResponse,
-    AIChatHistoryMessage,
-    AIChatRequest,
-    AIChatResponse,
-    AIEventSummaryRequest,
-    AIEventSummaryResult,
-    AIEventTasklistRequest,
-    AIEventTasklistResponse,
-    AIGeneratedContent,
-    AIMatchmakingReason,
-    AIRecommendedEvent,
-    AIRecommendedOrg,
-    AIRecommendEventsResponse,
-    AIRecommendOrgsResponse,
-    AISearchResult,
-    AISemanticSearchResponse,
-    AISentimentRequest,
-    AISentimentResult,
-    AIEventBrief
+	AIChatBrainstormBriefResponse,
+	AIChatHistoryMessage,
+	AIChatRequest,
+	AIChatResponse,
+	AIEventSummaryRequest,
+	AIEventSummaryResult,
+	AIEventTasklistRequest,
+	AIEventTasklistResponse,
+	AIGeneratedContent,
+	AIMatchmakingReason,
+	AIRecommendedEvent,
+	AIRecommendedOrg,
+	AIRecommendEventsResponse,
+	AIRecommendOrgsResponse,
+	AISearchResult,
+	AISemanticSearchResponse,
+	AISentimentRequest,
+	AISentimentResult,
+	AIEventBrief,
 };
 
 const AI_SERVICE_URL = process.env.AI_SERVICE_URL ?? "http://localhost:8000";
 const AI_SERVICE_MASTER_KEY = process.env.AI_SERVICE_MASTER_KEY ?? "";
 
 /** Generate a short-lived master JWT for internal service-to-service calls. */
-export async function getMasterJwt(): Promise<string> {
-    const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
-    return new SignJWT({ role: "master" })
-        .setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
-        .setIssuedAt()
-        .setExpirationTime("5m")
-        .sign(secret);
-}
+export const getMasterJwt = async (): Promise<string> => {
+	const secret = new TextEncoder().encode(AI_SERVICE_MASTER_KEY);
+	return new SignJWT({ role: "master" })
+		.setProtectedHeader({ alg: process.env.HASHING_ALGO || "HS256" })
+		.setIssuedAt()
+		.setExpirationTime("5m")
+		.sign(secret);
+};
 
-export async function authHeaders(): Promise<Record<string, string>> {
-    const token = await getMasterJwt();
-    return {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-    };
-}
+export const authHeaders = async (): Promise<Record<string, string>> => {
+	const token = await getMasterJwt();
+	return {
+		"Content-Type": "application/json",
+		Authorization: `Bearer ${token}`,
+	};
+};
 
 // ─── Request helper ────────────────────────────────────────────────────────────
 
 async function request<T>(
-    path: string,
-    options: AxiosRequestConfig = {}
+	path: string,
+	options: AxiosRequestConfig = {},
 ): Promise<T | null> {
-    if (!AI_SERVICE_MASTER_KEY) {
-        // AI service not configured — silently skip
-        return null;
-    }
-    try {
-        const headers = await authHeaders();
-        const res = await axios.get(`${AI_SERVICE_URL}${path}`, {
-            headers,
-            ...options,
-            // Abort after 5s — never block user-facing response
-            timeout: 5000,
-        });
-        if (res.status !== 200) return null;
-        return res.data as Promise<T>;
-    } catch {
-        // Network error, timeout, or AI service down — fail silently
-        return null;
-    }
+	if (!AI_SERVICE_MASTER_KEY) {
+		// AI service not configured — silently skip
+		return null;
+	}
+	try {
+		const headers = await authHeaders();
+		const res = await axios.get(`${AI_SERVICE_URL}${path}`, {
+			headers,
+			...options,
+			// Abort after 5s — never block user-facing response
+			timeout: 5000,
+		});
+		if (res.status !== 200) return null;
+		return res.data as Promise<T>;
+	} catch {
+		// Network error, timeout, or AI service down — fail silently
+		return null;
+	}
 }
 
 // ─── Public API ────────────────────────────────────────────────────────────────
 
 export const aiService = {
+	/** Get AI-ranked event recommendations for a user. Returns empty array if unavailable. */
+	async recommendEvents(
+		userId: string,
+		limit = 10,
+	): Promise<AIRecommendedEvent[]> {
+		const response = await axios.get<AIRecommendEventsResponse>(
+			`${AI_SERVICE_URL}/recommend/events/${userId}?limit=${limit}`,
+			{
+				headers: await authHeaders(),
+			},
+		);
+		return response.data.recommendations ?? [];
+	},
 
-    /** Get AI-ranked event recommendations for a user. Returns empty array if unavailable. */
-    async recommendEvents(
-        userId: string,
-        limit = 10
-    ): Promise<AIRecommendedEvent[]> {
-        const response = await axios.get<AIRecommendEventsResponse>(
-            `${AI_SERVICE_URL}/recommend/events/${userId}?limit=${limit}`,
-            {
-                headers: await authHeaders(),
-            }
-        );
-        return response.data.recommendations ?? [];
-    },
+	/** Get org connection recommendations. Returns empty array if unavailable. */
+	async recommendOrgs(orgId: string, limit = 10): Promise<AIRecommendedOrg[]> {
+		const response = await axios.get<AIRecommendOrgsResponse>(
+			`${AI_SERVICE_URL}/recommend/orgs/${orgId}?limit=${limit}`,
+			{
+				headers: await authHeaders(),
+			},
+		);
+		return response.data.recommendations ?? [];
+	},
 
-    /** Get org connection recommendations. Returns empty array if unavailable. */
-    async recommendOrgs(
-        orgId: string,
-        limit = 10
-    ): Promise<AIRecommendedOrg[]> {
-        const response = await axios.get<AIRecommendOrgsResponse>(
-            `${AI_SERVICE_URL}/recommend/orgs/${orgId}?limit=${limit}`,
-            {
-                headers: await authHeaders(),
-            }
-        );
-        return response.data.recommendations ?? [];
-    },
+	/** Semantic search over events. Returns empty array if unavailable. */
+	async semanticSearch(query: string, limit = 10): Promise<AISearchResult[]> {
+		const response = await axios.post<AISemanticSearchResponse>(
+			`${AI_SERVICE_URL}/search/semantic`,
+			{
+				query,
+				limit,
+			},
+			{
+				headers: await authHeaders(),
+			},
+		);
+		return response.data.results ?? [];
+	},
 
-    /** Semantic search over events. Returns empty array if unavailable. */
-    async semanticSearch(
-        query: string,
-        limit = 10
-    ): Promise<AISearchResult[]> {
-        const response = await axios.post<AISemanticSearchResponse>(
-            `${AI_SERVICE_URL}/search/semantic`,
-            {
-                query,
-                limit
-            },
-            {
-                headers: await authHeaders(),
-            }
-        );
-        return response.data.results ?? [];
-    },
+	/** Trigger embedding generation for an event (called from job runner). */
+	async embedEvent(eventId: string, text: string): Promise<void> {
+		await axios.post(
+			`${AI_SERVICE_URL}/embed/event`,
+			{
+				eventId,
+				text,
+			},
+			{
+				headers: await authHeaders(),
+			},
+		);
+	},
 
-    /** Trigger embedding generation for an event (called from job runner). */
-    async embedEvent(eventId: string, text: string): Promise<void> {
-        await axios.post(`${AI_SERVICE_URL}/embed/event`, {
-            eventId,
-            text
-        },
-            {
-                headers: await authHeaders(),
-            });
-    },
+	/** Trigger embedding generation for an org (called from job runner). */
+	async embedOrg(orgId: string, text: string): Promise<void> {
+		await axios.post(
+			`${AI_SERVICE_URL}/embed/org`,
+			{
+				orgId,
+				text,
+			},
+			{
+				headers: await authHeaders(),
+			},
+		);
+	},
 
-    /** Trigger embedding generation for an org (called from job runner). */
-    async embedOrg(orgId: string, text: string): Promise<void> {
-        await axios.post(`${AI_SERVICE_URL}/embed/org`, {
-            orgId,
-            text
-        },
-            {
-                headers: await authHeaders(),
-            });
-    },
+	/** Returns true if the AI service is reachable. */
+	async isAvailable(): Promise<boolean> {
+		if (!AI_SERVICE_MASTER_KEY) return false;
+		try {
+			const res = await axios.get(`${AI_SERVICE_URL}/health`, {
+				timeout: 2000,
+			});
+			return res.status === 200;
+		} catch {
+			return false;
+		}
+	},
 
-    /** Returns true if the AI service is reachable. */
-    async isAvailable(): Promise<boolean> {
-        if (!AI_SERVICE_MASTER_KEY) return false;
-        try {
-            const res = await axios.get(`${AI_SERVICE_URL}/health`, {
-                timeout: 2000,
-            });
-            return res.status === 200;
-        } catch {
-            return false;
-        }
-    },
+	// ─── Phase 2: Content Generation ──────────────────────────────────────────
 
-    // ─── Phase 2: Content Generation ──────────────────────────────────────────
+	/**
+	 * Generate a polished event description from a rough draft, grounded in
+	 * the org's documents and platform compliance docs via RAG.
+	 */
+	async generateEventDescription(
+		orgId: string,
+		roughDraft: string,
+		eventId?: string,
+	): Promise<AIGeneratedContent | null> {
+		try {
+			const res = await axios.post<AIGeneratedContent>(
+				`${AI_SERVICE_URL}/generate/event-description`,
+				{ orgId, roughDraft, eventId },
+				{ headers: await authHeaders(), timeout: 30000 },
+			);
+			return res.data;
+		} catch (error: any) {
+			console.error(error);
+			return null;
+		}
+	},
 
-    /**
-     * Generate a polished event description from a rough draft, grounded in
-     * the org's documents and platform compliance docs via RAG.
-     */
-    async generateEventDescription(
-        orgId: string,
-        roughDraft: string,
-        eventId?: string,
-    ): Promise<AIGeneratedContent | null> {
-        try {
-            const res = await axios.post<AIGeneratedContent>(
-                `${AI_SERVICE_URL}/generate/event-description`,
-                { orgId, roughDraft, eventId },
-                { headers: await authHeaders(), timeout: 30000 },
-            );
-            return res.data;
-        } catch (error: any) {
-            console.error(error)
-            return null;
-        }
-    },
+	/**
+	 * Generate a human-readable matchmaking explanation grounded in both
+	 * organizations' company descriptions retrieved via RAG.
+	 */
+	async generateMatchmakingReason(
+		sourceOrgId: string,
+		targetOrgId: string,
+		score: number,
+	): Promise<AIMatchmakingReason | null> {
+		try {
+			const res = await axios.post<AIMatchmakingReason>(
+				`${AI_SERVICE_URL}/generate/matchmaking-reason`,
+				{ sourceOrgId, targetOrgId, score },
+				{ headers: await authHeaders(), timeout: 20000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Generate a human-readable matchmaking explanation grounded in both
-     * organizations' company descriptions retrieved via RAG.
-     */
-    async generateMatchmakingReason(
-        sourceOrgId: string,
-        targetOrgId: string,
-        score: number,
-    ): Promise<AIMatchmakingReason | null> {
-        try {
-            const res = await axios.post<AIMatchmakingReason>(
-                `${AI_SERVICE_URL}/generate/matchmaking-reason`,
-                { sourceOrgId, targetOrgId, score },
-                { headers: await authHeaders(), timeout: 20000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	// ─── Phase 3: Conversational AI ───────────────────────────────────────────
 
-    // ─── Phase 3: Conversational AI ───────────────────────────────────────────
+	/**
+	 * Send a message to the RAG-powered chat backend.
+	 * Pass sessionId = "new" to start a fresh conversation.
+	 */
+	async chat(payload: AIChatRequest): Promise<AIChatResponse | null> {
+		try {
+			const res = await axios.post<AIChatResponse>(
+				`${AI_SERVICE_URL}/chat/message`,
+				payload,
+				{ headers: await authHeaders(), timeout: 30000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Send a message to the RAG-powered chat backend.
-     * Pass sessionId = "new" to start a fresh conversation.
-     */
-    async chat(payload: AIChatRequest): Promise<AIChatResponse | null> {
-        try {
-            const res = await axios.post<AIChatResponse>(
-                `${AI_SERVICE_URL}/chat/message`,
-                payload,
-                { headers: await authHeaders(), timeout: 30000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	/**
+	 * Load all messages in a session (for ChatWidget initial load / resume).
+	 */
+	async getChatHistory(sessionId: string): Promise<AIChatHistoryMessage[]> {
+		try {
+			const res = await axios.get<AIChatHistoryMessage[]>(
+				`${AI_SERVICE_URL}/chat/history/${sessionId}`,
+				{ headers: await authHeaders(), timeout: 10000 },
+			);
+			return res.data;
+		} catch {
+			return [];
+		}
+	},
 
-    /**
-     * Load all messages in a session (for ChatWidget initial load / resume).
-     */
-    async getChatHistory(sessionId: string): Promise<AIChatHistoryMessage[]> {
-        try {
-            const res = await axios.get<AIChatHistoryMessage[]>(
-                `${AI_SERVICE_URL}/chat/history/${sessionId}`,
-                { headers: await authHeaders(), timeout: 10000 },
-            );
-            return res.data;
-        } catch {
-            return [];
-        }
-    },
+	/**
+	 * Analyse the sentiment of event feedback via the LLM.
+	 * The endpoint always returns a result (falls back to rating-based heuristic
+	 * if the LLM is unavailable). Returns null only on network failure.
+	 */
+	async analyseSentiment(
+		req: AISentimentRequest,
+	): Promise<AISentimentResult | null> {
+		try {
+			const res = await axios.post<AISentimentResult>(
+				`${AI_SERVICE_URL}/analyse/sentiment`,
+				req,
+				{ headers: await authHeaders(), timeout: 15000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Analyse the sentiment of event feedback via the LLM.
-     * The endpoint always returns a result (falls back to rating-based heuristic
-     * if the LLM is unavailable). Returns null only on network failure.
-     */
-    async analyseSentiment(req: AISentimentRequest): Promise<AISentimentResult | null> {
-        try {
-            const res = await axios.post<AISentimentResult>(
-                `${AI_SERVICE_URL}/analyse/sentiment`,
-                req,
-                { headers: await authHeaders(), timeout: 15000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	// ─── Phase 13: AI Event Brainstorming ─────────────────────────────────────
 
-    // ─── Phase 13: AI Event Brainstorming ─────────────────────────────────────
+	/**
+	 * Send a message to the Enterprise AI brainstorm assistant.
+	 * The assistant maintains stateful multi-turn conversation history.
+	 *
+	 * @param sessionId - Pass "new" to start a fresh session, or an existing UUID to continue.
+	 * @param userId    - UUID of the requesting member.
+	 * @param organizationId - UUID of their active organization (used for session scoping).
+	 * @param message   - The user's chat message.
+	 */
+	async chatBrainstorm(payload: {
+		sessionId: string;
+		userId: string;
+		organizationId: string;
+		message: string;
+	}): Promise<{ sessionId: string; reply: string } | null> {
+		try {
+			const res = await axios.post<{ sessionId: string; reply: string }>(
+				`${AI_SERVICE_URL}/chat/brainstorm/message`,
+				payload,
+				{ headers: await authHeaders(), timeout: 30_000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Send a message to the Enterprise AI brainstorm assistant.
-     * The assistant maintains stateful multi-turn conversation history.
-     *
-     * @param sessionId - Pass "new" to start a fresh session, or an existing UUID to continue.
-     * @param userId    - UUID of the requesting member.
-     * @param organizationId - UUID of their active organization (used for session scoping).
-     * @param message   - The user's chat message.
-     */
-    async chatBrainstorm(payload: {
-        sessionId: string;
-        userId: string;
-        organizationId: string;
-        message: string;
-    }): Promise<{ sessionId: string; reply: string } | null> {
-        try {
-            const res = await axios.post<{ sessionId: string; reply: string }>(
-                `${AI_SERVICE_URL}/chat/brainstorm/message`,
-                payload,
-                { headers: await authHeaders(), timeout: 30_000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	/**
+	 * Extract a structured EventBrief from an existing brainstorm session.
+	 * Call this when the member is ready to formalize their idea into a pitch.
+	 * The returned brief is used to pre-populate the EventPitch form.
+	 */
+	async chatBrainstormBrief(payload: {
+		sessionId: string;
+		userId: string;
+		organizationId: string;
+	}): Promise<AIChatBrainstormBriefResponse | null> {
+		try {
+			const res = await axios.post<AIChatBrainstormBriefResponse>(
+				`${AI_SERVICE_URL}/chat/brainstorm/brief`,
+				payload,
+				{ headers: await authHeaders(), timeout: 45_000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Extract a structured EventBrief from an existing brainstorm session.
-     * Call this when the member is ready to formalize their idea into a pitch.
-     * The returned brief is used to pre-populate the EventPitch form.
-     */
-    async chatBrainstormBrief(payload: {
-        sessionId: string;
-        userId: string;
-        organizationId: string;
-    }): Promise<AIChatBrainstormBriefResponse | null> {
-        try {
-            const res = await axios.post<AIChatBrainstormBriefResponse>(
-                `${AI_SERVICE_URL}/chat/brainstorm/brief`,
-                payload,
-                { headers: await authHeaders(), timeout: 45_000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	// ─── Phase 14: Post-Event Analytics ───────────────────────────────────────
 
-    // ─── Phase 14: Post-Event Analytics ───────────────────────────────────────
+	/**
+	 * Generate an AI executive summary for a completed event.
+	 * Synthesises aggregated feedback texts and performance metrics into
+	 * Strengths / Weaknesses / Recommendations + an overall score.
+	 *
+	 * Returns null on network/service failure — caller should use a fallback.
+	 */
+	async generateEventSummary(
+		req: AIEventSummaryRequest,
+	): Promise<AIEventSummaryResult | null> {
+		try {
+			const res = await axios.post<AIEventSummaryResult>(
+				`${AI_SERVICE_URL}/analyse/event-summary`,
+				req,
+				{ headers: await authHeaders(), timeout: 45_000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 
-    /**
-     * Generate an AI executive summary for a completed event.
-     * Synthesises aggregated feedback texts and performance metrics into
-     * Strengths / Weaknesses / Recommendations + an overall score.
-     *
-     * Returns null on network/service failure — caller should use a fallback.
-     */
-    async generateEventSummary(req: AIEventSummaryRequest): Promise<AIEventSummaryResult | null> {
-        try {
-            const res = await axios.post<AIEventSummaryResult>(
-                `${AI_SERVICE_URL}/analyse/event-summary`,
-                req,
-                { headers: await authHeaders(), timeout: 45_000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
-
-    /**
-     * Generate an operational milestone tasklist for an approved event pitch.
-     * Called by the GENERATE_TASKLIST job immediately after pitch approval.
-     *
-     * Returns null on network/service failure — caller will use the deterministic fallback.
-     */
-    async generateEventTasklist(req: AIEventTasklistRequest): Promise<AIEventTasklistResponse | null> {
-        try {
-            const res = await axios.post<AIEventTasklistResponse>(
-                `${AI_SERVICE_URL}/chat/brainstorm/tasklist`,
-                req,
-                { headers: await authHeaders(), timeout: 60_000 },
-            );
-            return res.data;
-        } catch {
-            return null;
-        }
-    },
+	/**
+	 * Generate an operational milestone tasklist for an approved event pitch.
+	 * Called by the GENERATE_TASKLIST job immediately after pitch approval.
+	 *
+	 * Returns null on network/service failure — caller will use the deterministic fallback.
+	 */
+	async generateEventTasklist(
+		req: AIEventTasklistRequest,
+	): Promise<AIEventTasklistResponse | null> {
+		try {
+			const res = await axios.post<AIEventTasklistResponse>(
+				`${AI_SERVICE_URL}/chat/brainstorm/tasklist`,
+				req,
+				{ headers: await authHeaders(), timeout: 60_000 },
+			);
+			return res.data;
+		} catch {
+			return null;
+		}
+	},
 };

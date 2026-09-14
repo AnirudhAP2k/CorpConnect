@@ -57,7 +57,7 @@ const FileUploader = ({ onFieldChange, image, setFiles }: FileUploaderProps) => 
         <div
             onDrop={handleDrop}
             onDragOver={(e) => e.preventDefault()}
-            className="flex flex-col md:h-52 items-center justify-center p-6 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer transition-all hover:border-blue-500"
+            className="flex min-h-52 cursor-pointer flex-col items-center justify-center rounded-2xl border-2 border-dashed border-nx-outline-variant bg-nx-surface-container-low p-6 text-nx-on-surface transition-all hover:border-nx-primary hover:bg-nx-surface-container"
         >
             {preview ? (
                 <div className="relative w-full">
@@ -66,22 +66,22 @@ const FileUploader = ({ onFieldChange, image, setFiles }: FileUploaderProps) => 
                         height={50}
                         src={preview}
                         alt="Preview"
-                        className="w-full max-h-40 object-contain rounded-lg shadow-md"
+                        className="max-h-40 w-full rounded-xl object-contain shadow-md"
                     />
                     <button
                         onClick={handleRemove}
-                        className="absolute top-2 right-2 bg-red-500 text-white rounded-full p-1 shadow-md hover:bg-red-600 transition"
+                        className="absolute right-2 top-2 rounded-lg bg-nx-error p-1 text-nx-on-error shadow-md transition hover:bg-nx-error/90"
                         title="Remove Image"
                     >
                         <X size={16} />
                     </button>
                 </div>
             ) : (
-                <label htmlFor="fileInput" className="flex flex-col items-center cursor-pointer">
-                    <CloudUpload size={50} className="text-gray-500 mb-2 transition-all hover:text-blue-500" />
-                    <p className="text-gray-600">
+                <label htmlFor="fileInput" className="group flex cursor-pointer flex-col items-center">
+                    <CloudUpload size={50} className="mb-2 text-nx-on-surface-variant transition-colors group-hover:text-nx-primary" />
+                    <p className="text-center font-body text-nx-on-surface-variant">
                         Drag & drop files here or{" "}
-                        <span className="text-blue-500 underline">browse</span>
+                        <span className="font-medium text-nx-primary underline">browse</span>
                     </p>
                 </label>
             )}

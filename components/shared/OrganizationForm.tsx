@@ -9,23 +9,23 @@ import { useRouter } from "next/navigation";
 import { handleUpload } from "@/lib/file-uploader";
 
 import {
-  Form,
-  FormField,
-  FormItem,
-  FormControl,
-  FormMessage,
-  FormLabel,
+	Form,
+	FormField,
+	FormItem,
+	FormControl,
+	FormMessage,
+	FormLabel,
 } from "@/components/ui/form";
 
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
 import FileUploader from "@/components/shared/FileUploader";
 import { FormErrors } from "@/components/FormErrors";
@@ -34,447 +34,523 @@ import TagArrayInput from "@/components/shared/TagArrayInput";
 import Dropdown from "@/components/shared/Dropdown";
 
 const LABEL_CLASS =
-  "text-xs font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant";
+	"text-xs font-label font-semibold uppercase tracking-wider text-nx-on-surface-variant";
 const HINT_CLASS =
-  "normal-case tracking-normal text-nx-on-surface-variant font-normal font-body text-xs";
+	"normal-case tracking-normal text-nx-on-surface-variant font-normal font-body text-xs";
 const CONTROL_CLASS =
-  "h-11 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all";
+	"h-11 rounded-xl bg-nx-surface-container-low border-nx-outline-variant/40 focus:bg-nx-surface-container-lowest focus:border-nx-on-tertiary-container text-sm font-body text-nx-on-surface placeholder:text-nx-on-surface-variant/40 transition-all";
 const TEXTAREA_CLASS = `${CONTROL_CLASS} h-28 min-h-28 resize-none py-3`;
 
 interface OrganizationFormProps {
-  userId: string;
-  type: "Create" | "Update";
-  industries: { id: string; label: string }[];
-  initialData?: any;
-  organizationId?: string;
+	userId: string;
+	type: "Create" | "Update";
+	industries: { id: string; label: string }[];
+	initialData?: any;
+	organizationId?: string;
 }
 
 const OrganizationForm = ({
-  userId,
-  type,
-  industries,
-  initialData,
-  organizationId,
+	userId,
+	type,
+	industries,
+	initialData,
+	organizationId,
 }: OrganizationFormProps) => {
-  const router = useRouter();
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [files, setFiles] = useState<File[]>([]);
-  const [isPending, startTransition] = useTransition();
+	const router = useRouter();
+	const [error, setError] = useState("");
+	const [success, setSuccess] = useState("");
+	const [files, setFiles] = useState<File[]>([]);
+	const [isPending, startTransition] = useTransition();
 
+	const form = useForm<z.infer<typeof OrganizationCreateSchema>>({
+		resolver: zodResolver(OrganizationCreateSchema),
+		defaultValues: initialData || {
+			name: "",
+			industryId: "",
+			description: "",
+			website: "",
+			location: "",
+			size: undefined,
+			logo: null,
+			services: [],
+			technologies: [],
+			partnershipInterests: [],
+			networkingIntent: "GENERAL_NETWORKING",
+			linkedinUrl: "",
+			twitterUrl: "",
+			tags: [],
+		},
+	});
 
-  const form = useForm<z.infer<typeof OrganizationCreateSchema>>({
-    resolver: zodResolver(OrganizationCreateSchema),
-    defaultValues: initialData || {
-      name: "",
-      industryId: "",
-      description: "",
-      website: "",
-      location: "",
-      size: undefined,
-      logo: null,
-      services: [],
-      technologies: [],
-      partnershipInterests: [],
-      networkingIntent: "GENERAL_NETWORKING",
-      linkedinUrl: "",
-      twitterUrl: "",
-      tags: [],
-    },
-  });
+	const onSubmit = async (values: z.infer<typeof OrganizationCreateSchema>) => {
+		setError("");
+		setSuccess("");
 
+		startTransition(async () => {
+			try {
+				let logoUrl = initialData?.logo || "";
 
-  const onSubmit = async (values: z.infer<typeof OrganizationCreateSchema>) => {
-    setError("");
-    setSuccess("");
+				// Upload logo if new file provided
+				if (files.length > 0) {
+					const uploadResult = await handleUpload(files, "ORG_LOGO");
 
-    startTransition(async () => {
-      try {
-        let logoUrl = initialData?.logo || "";
+					if (!uploadResult?.imageUrl) {
+						throw new Error("Failed to upload logo");
+					}
 
-        // Upload logo if new file provided
-        if (files.length > 0) {
-          const uploadResult = await handleUpload(files, "ORG_LOGO");
+					logoUrl = uploadResult.imageUrl as string;
+				}
 
-          if (!uploadResult?.imageUrl) {
-            throw new Error("Failed to upload logo");
-          }
+				// Prepare data for API
+				const apiData = {
+					name: values.name,
+					industryId: values.industryId,
+					description: values.description,
+					website: values.website,
+					location: values.location,
+					size: values.size,
+					logo: logoUrl,
+					services: values.services ?? [],
+					technologies: values.technologies ?? [],
+					partnershipInterests: values.partnershipInterests ?? [],
+					networkingIntent: values.networkingIntent ?? "GENERAL_NETWORKING",
+					linkedinUrl: values.linkedinUrl ?? "",
+					twitterUrl: values.twitterUrl ?? "",
+					tags: values.tags ?? [],
+				};
 
-          logoUrl = uploadResult.imageUrl as string;
-        }
+				let response;
 
-        // Prepare data for API
-        const apiData = {
-          name: values.name,
-          industryId: values.industryId,
-          description: values.description,
-          website: values.website,
-          location: values.location,
-          size: values.size,
-          logo: logoUrl,
-          services: values.services ?? [],
-          technologies: values.technologies ?? [],
-          partnershipInterests: values.partnershipInterests ?? [],
-          networkingIntent: values.networkingIntent ?? "GENERAL_NETWORKING",
-          linkedinUrl: values.linkedinUrl ?? "",
-          twitterUrl: values.twitterUrl ?? "",
-          tags: values.tags ?? [],
-        };
+				if (type === "Create") {
+					response = await fetch("/api/organizations", {
+						method: "POST",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(apiData),
+					});
+				} else {
+					response = await fetch(`/api/organizations/${organizationId}`, {
+						method: "PUT",
+						headers: {
+							"Content-Type": "application/json",
+						},
+						body: JSON.stringify(apiData),
+					});
+				}
 
-        let response;
+				if (!response.ok) {
+					const errorData = await response.json();
+					throw new Error(errorData.error || "Operation failed");
+				}
 
-        if (type === "Create") {
-          response = await fetch("/api/organizations", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(apiData),
-          });
-        } else {
-          response = await fetch(`/api/organizations/${organizationId}`, {
-            method: "PUT",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(apiData),
-          });
-        }
+				const responseData = await response.json();
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "Operation failed");
-        }
+				setSuccess(responseData.message);
 
-        const responseData = await response.json();
+				setTimeout(() => {
+					if (type === "Create") {
+						router.push(responseData.kybUrl);
+					} else {
+						router.push(`/organizations/${organizationId}`);
+					}
+					router.refresh();
+				}, 1000);
+			} catch (err: any) {
+				setError(err?.message || "Something went wrong");
+			}
+		});
+	};
 
-        setSuccess(responseData.message);
+	return (
+		<Form {...form}>
+			<form
+				onSubmit={form.handleSubmit(onSubmit)}
+				className="space-y-6 font-body text-nx-on-surface"
+			>
+				{/* Organization Name */}
+				<FormField
+					control={form.control}
+					name="name"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Organization Name *
+							</FormLabel>
+							<FormControl>
+								<Input
+									placeholder="Enter organization name"
+									className={CONTROL_CLASS}
+									{...field}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        setTimeout(() => {
-          if (type === "Create") {
-            router.push(responseData.kybUrl);
-          } else {
-            router.push(`/organizations/${organizationId}`);
-          }
-          router.refresh();
-        }, 1000);
-      } catch (err: any) {
-        setError(err?.message || "Something went wrong");
-      }
-    });
-  };
+				{/* Industry */}
+				<FormField
+					control={form.control}
+					name="industryId"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Industry *
+							</FormLabel>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								disabled={isPending}
+							>
+								<FormControl>
+									<SelectTrigger className="rounded-xl border-nx-outline-variant/40 bg-nx-surface-container-low h-11">
+										<SelectValue placeholder="Select an industry" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									{industries.map((industry) => (
+										<SelectItem key={industry.id} value={industry.id}>
+											{industry.label}
+										</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
+				{/* Company Size */}
+				<FormField
+					control={form.control}
+					name="size"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Company Size
+							</FormLabel>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								disabled={isPending}
+							>
+								<FormControl>
+									<SelectTrigger className="rounded-xl border-nx-outline-variant/40 bg-nx-surface-container-low h-11">
+										<SelectValue placeholder="Select company size" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									<SelectItem value="STARTUP">Startup (1-10)</SelectItem>
+									<SelectItem value="SME">SME (11-250)</SelectItem>
+									<SelectItem value="ENTERPRISE">Enterprise (250+)</SelectItem>
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-  return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {/* Organization Name */}
-        <FormField
-          control={form.control}
-          name="name"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Organization Name *</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="Enter organization name"
-                  className={CONTROL_CLASS}
-                  {...field}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Location */}
+				<FormField
+					control={form.control}
+					name="location"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Location
+							</FormLabel>
+							<FormControl>
+								<Input
+									placeholder="City, Country"
+									className={CONTROL_CLASS}
+									{...field}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Industry */}
-        <FormField
-          control={form.control}
-          name="industryId"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Industry *</FormLabel>
-              <FormControl>
-                <Dropdown
-                  onChangeHandler={field.onChange}
-                  value={field.value}
-                  disabled={isPending}
-                  type="industry"
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Description */}
+				<FormField
+					control={form.control}
+					name="description"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Description
+							</FormLabel>
+							<FormControl>
+								<Textarea
+									placeholder="Tell us about your organization..."
+									className="h-28 resize-none rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
+									{...field}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Organization Size */}
-        <FormField
-          control={form.control}
-          name="size"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Organization Size</FormLabel>
-              <Select
-                onValueChange={field.onChange}
-                defaultValue={field.value}
-                disabled={isPending}
-              >
-                <FormControl>
-                  <SelectTrigger className={CONTROL_CLASS}>
-                    <SelectValue placeholder="Select organization size" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="STARTUP">Startup (1-50 employees)</SelectItem>
-                  <SelectItem value="SME">SME (51-500 employees)</SelectItem>
-                  <SelectItem value="ENTERPRISE">Enterprise (500+ employees)</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Website */}
+				<FormField
+					control={form.control}
+					name="website"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Website
+							</FormLabel>
+							<FormControl>
+								<Input
+									placeholder="https://example.com"
+									className={CONTROL_CLASS}
+									{...field}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Location */}
-        <FormField
-          control={form.control}
-          name="location"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Location</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="City, Country"
-                  className={CONTROL_CLASS}
-                  {...field}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Logo Upload */}
+				<FormField
+					control={form.control}
+					name="logo"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Organization Logo
+							</FormLabel>
+							<FormControl>
+								<FileUploader
+									image={field.value}
+									setFiles={setFiles}
+									onFieldChange={field.onChange}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Description */}
-        <FormField
-          control={form.control}
-          name="description"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Description</FormLabel>
-              <FormControl>
-                <Textarea
-                  placeholder="Tell us about your organization..."
-                  className={TEXTAREA_CLASS}
-                  {...field}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Social Links */}
+				<div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+					<FormField
+						control={form.control}
+						name="linkedinUrl"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="font-label text-nx-on-surface-variant">
+									LinkedIn URL
+								</FormLabel>
+								<FormControl>
+									<Input
+										className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
+										placeholder="https://linkedin.com/company/..."
+										{...field}
+										disabled={isPending}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+					<FormField
+						control={form.control}
+						name="twitterUrl"
+						render={({ field }) => (
+							<FormItem>
+								<FormLabel className="font-label text-nx-on-surface-variant">
+									Twitter / X URL
+								</FormLabel>
+								<FormControl>
+									<Input
+										className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface"
+										placeholder="https://twitter.com/..."
+										{...field}
+										disabled={isPending}
+									/>
+								</FormControl>
+								<FormMessage />
+							</FormItem>
+						)}
+					/>
+				</div>
 
-        {/* Website */}
-        <FormField
-          control={form.control}
-          name="website"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Website</FormLabel>
-              <FormControl>
-                <Input
-                  placeholder="https://example.com"
-                  className={CONTROL_CLASS}
-                  {...field}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Networking Intent */}
+				<FormField
+					control={form.control}
+					name="networkingIntent"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Networking Intent
+							</FormLabel>
+							<Select
+								onValueChange={field.onChange}
+								defaultValue={field.value}
+								disabled={isPending}
+							>
+								<FormControl>
+									<SelectTrigger className="rounded-xl border-nx-outline-variant bg-nx-surface-container-low">
+										<SelectValue placeholder="What are you looking for?" />
+									</SelectTrigger>
+								</FormControl>
+								<SelectContent>
+									<SelectItem value="GENERAL_NETWORKING">
+										🌐 General Networking
+									</SelectItem>
+									<SelectItem value="OPEN_TO_PARTNERSHIPS">
+										🤝 Open to Partnerships
+									</SelectItem>
+									<SelectItem value="SEEKING_CLIENTS">
+										🎯 Seeking Clients
+									</SelectItem>
+									<SelectItem value="SEEKING_VENDORS">
+										🔍 Seeking Vendors / Solutions
+									</SelectItem>
+									<SelectItem value="SEEKING_INVESTMENT">
+										💰 Seeking Investment
+									</SelectItem>
+									<SelectItem value="SPONSORING_EVENTS">
+										📢 Sponsoring Events
+									</SelectItem>
+								</SelectContent>
+							</Select>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Logo Upload */}
-        <FormField
-          control={form.control}
-          name="logo"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Organization Logo</FormLabel>
-              <FormControl>
-                <FileUploader
-                  image={field.value}
-                  setFiles={setFiles}
-                  onFieldChange={field.onChange}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Services */}
+				<FormField
+					control={form.control}
+					name="services"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Services Offered{" "}
+								<span className="text-xs font-normal text-nx-on-surface-variant/70">
+									(up to 15)
+								</span>
+							</FormLabel>
+							<FormControl>
+								<TagArrayInput
+									value={field.value ?? []}
+									onChange={field.onChange}
+									placeholder="e.g. Cloud Infrastructure, DevOps..."
+									maxItems={15}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Social Links */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="linkedinUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className={LABEL_CLASS}>LinkedIn URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://linkedin.com/company/..." className={CONTROL_CLASS} {...field} disabled={isPending} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="twitterUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel className={LABEL_CLASS}>Twitter / X URL</FormLabel>
-                <FormControl>
-                  <Input placeholder="https://twitter.com/..." className={CONTROL_CLASS} {...field} disabled={isPending} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+				{/* Technologies */}
+				<FormField
+					control={form.control}
+					name="technologies"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Technologies Used{" "}
+								<span className="text-xs font-normal text-nx-on-surface-variant/70">
+									(up to 20)
+								</span>
+							</FormLabel>
+							<FormControl>
+								<TagArrayInput
+									value={field.value ?? []}
+									onChange={field.onChange}
+									placeholder="e.g. React, Kubernetes, Python..."
+									maxItems={20}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Networking Intent */}
-        <FormField
-          control={form.control}
-          name="networkingIntent"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Networking Intent</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isPending}>
-                <FormControl>
-                  <SelectTrigger className={CONTROL_CLASS}>
-                    <SelectValue placeholder="What are you looking for?" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  <SelectItem value="GENERAL_NETWORKING">🌐 General Networking</SelectItem>
-                  <SelectItem value="OPEN_TO_PARTNERSHIPS">🤝 Open to Partnerships</SelectItem>
-                  <SelectItem value="SEEKING_CLIENTS">🎯 Seeking Clients</SelectItem>
-                  <SelectItem value="SEEKING_VENDORS">🔍 Seeking Vendors / Solutions</SelectItem>
-                  <SelectItem value="SEEKING_INVESTMENT">💰 Seeking Investment</SelectItem>
-                  <SelectItem value="SPONSORING_EVENTS">📢 Sponsoring Events</SelectItem>
-                </SelectContent>
-              </Select>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Partnership Interests */}
+				<FormField
+					control={form.control}
+					name="partnershipInterests"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Partnership Interests{" "}
+								<span className="text-xs font-normal text-nx-on-surface-variant/70">
+									(up to 10)
+								</span>
+							</FormLabel>
+							<FormControl>
+								<TagArrayInput
+									value={field.value ?? []}
+									onChange={field.onChange}
+									placeholder="e.g. Co-marketing, Joint Events, Investment..."
+									maxItems={10}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Services */}
-        <FormField
-          control={form.control}
-          name="services"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Services Offered <span className={HINT_CLASS}>(up to 15)</span></FormLabel>
-              <FormControl>
-                <TagArrayInput
-                  value={field.value ?? []}
-                  onChange={field.onChange}
-                  placeholder="e.g. Cloud Infrastructure, DevOps..."
-                  maxItems={15}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				{/* Tags */}
+				<FormField
+					control={form.control}
+					name="tags"
+					render={({ field }) => (
+						<FormItem>
+							<FormLabel className="font-label text-nx-on-surface-variant">
+								Tags{" "}
+								<span className="text-xs font-normal text-nx-on-surface-variant/70">
+									(up to 10)
+								</span>
+							</FormLabel>
+							<FormControl>
+								<TagArrayInput
+									value={field.value ?? []}
+									onChange={field.onChange}
+									placeholder="e.g. AI, Fintech, Cloud Infrastructure..."
+									maxItems={10}
+									disabled={isPending}
+								/>
+							</FormControl>
+							<FormMessage />
+						</FormItem>
+					)}
+				/>
 
-        {/* Technologies */}
-        <FormField
-          control={form.control}
-          name="technologies"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Technologies Used <span className={HINT_CLASS}>(up to 20)</span></FormLabel>
-              <FormControl>
-                <TagArrayInput
-                  value={field.value ?? []}
-                  onChange={field.onChange}
-                  placeholder="e.g. React, Kubernetes, Python..."
-                  maxItems={20}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
+				<FormErrors message={error} />
+				<FormSuccess message={success} />
 
-        {/* Partnership Interests */}
-        <FormField
-          control={form.control}
-          name="partnershipInterests"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Partnership Interests <span className={HINT_CLASS}>(up to 10)</span></FormLabel>
-              <FormControl>
-                <TagArrayInput
-                  value={field.value ?? []}
-                  onChange={field.onChange}
-                  placeholder="e.g. Co-marketing, Joint Events, Investment..."
-                  maxItems={10}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        {/* Tags */}
-        <FormField
-          control={form.control}
-          name="tags"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel className={LABEL_CLASS}>Tags <span className={HINT_CLASS}>(up to 10)</span></FormLabel>
-              <FormControl>
-                <TagArrayInput
-                  value={field.value ?? []}
-                  onChange={field.onChange}
-                  placeholder="e.g. AI, Fintech, Cloud Infrastructure..."
-                  maxItems={10}
-                  disabled={isPending}
-                />
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
-
-        <FormErrors message={error} />
-        <FormSuccess message={success} />
-
-        <Button
-          type="submit"
-          className="w-full h-11 rounded-xl bg-nx-primary text-nx-on-primary font-headline font-semibold text-sm hover:opacity-95 transition-all shadow-nx-primary"
-          disabled={isPending}
-        >
-          {isPending
-            ? type === "Create"
-              ? "Creating..."
-              : "Updating..."
-            : type === "Create"
-              ? "Create Organization"
-              : "Update Organization"}
-        </Button>
-      </form>
-    </Form>
-  );
+				<Button
+					type="submit"
+					className="w-full rounded-xl font-headline"
+					disabled={isPending}
+				>
+					{isPending
+						? type === "Create"
+							? "Creating..."
+							: "Updating..."
+						: type === "Create"
+							? "Create Organization"
+							: "Update Organization"}
+				</Button>
+			</form>
+		</Form>
+	);
 };
 
 export default OrganizationForm;

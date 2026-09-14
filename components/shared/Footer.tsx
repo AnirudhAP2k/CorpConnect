@@ -13,7 +13,7 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-1">
             <div className="flex items-center gap-2 mb-6">
               <Link href='/dashboard' className='flex flex-row items-center gap-2 hover:opacity-90 transition-opacity'>
-                <div className="bg-nx-primary text-white p-1 rounded-lg flex items-center justify-center shadow-nx-primary">
+                <div className="bg-nx-primary text-nx-on-primary p-1 rounded-lg flex items-center justify-center shadow-nx-primary">
                   <span className="material-symbols-outlined text-2xl leading-none">hub</span>
                 </div>
                 <span className="font-headline font-bold text-xl tracking-tight text-nx-primary md:hidden lg:block">

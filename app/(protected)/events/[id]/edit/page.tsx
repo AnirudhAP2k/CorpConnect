@@ -31,15 +31,15 @@ const EditEventPage = async ({ params }: EditEventPageProps) => {
     const userMembership = event.organization?.members[0];
     if (!userMembership || (userMembership.role !== "OWNER" && userMembership.role !== "ADMIN")) {
         return (
-            <div className="wrapper min-h-screen flex items-center justify-center">
-                <div className="bg-red-50 border border-red-200 rounded-lg p-8 text-center max-w-md">
-                    <h2 className="text-2xl font-bold text-red-800 mb-2">Permission Denied</h2>
-                    <p className="text-red-600 mb-4">
+            <div className="flex min-h-screen items-center justify-center bg-nx-surface px-4 text-nx-on-surface">
+                <div className="max-w-md rounded-2xl border border-nx-error/25 bg-nx-error-container p-8 text-center">
+                    <h2 className="mb-2 font-headline text-2xl font-bold text-nx-on-error-container">Permission Denied</h2>
+                    <p className="mb-4 font-body text-nx-on-error-container">
                         Only organization owners and admins can edit events.
                     </p>
                     <a
                         href={`/events/${id}`}
-                        className="inline-block bg-primary-500 text-white px-6 py-2 rounded-lg hover:bg-primary-600"
+                        className="inline-block rounded-xl bg-nx-primary px-6 py-2 font-label font-semibold text-nx-on-primary transition-colors hover:bg-nx-primary/90"
                     >
                         Back to Event
                     </a>
@@ -66,9 +66,9 @@ const EditEventPage = async ({ params }: EditEventPageProps) => {
     };
 
     return (
-        <>
-            <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-5 md:py-10">
-                <h3 className="wrapper h3-bold text-center sm:text-left">Edit Event</h3>
+        <div className="min-h-screen bg-nx-surface text-nx-on-surface">
+            <section className="bg-nx-surface-container-low py-8 md:py-12">
+                <h1 className="wrapper font-headline text-3xl font-bold tracking-tight">Edit Event</h1>
             </section>
 
             <div className="wrapper my-8">
@@ -81,7 +81,7 @@ const EditEventPage = async ({ params }: EditEventPageProps) => {
                     initialData={initialData}
                 />
             </div>
-        </>
+        </div>
     );
 };
 

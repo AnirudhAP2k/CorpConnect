@@ -65,7 +65,7 @@ function GroupItem({
             className={cn(
                 "flex items-start gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group",
                 isActive
-                    ? "bg-nx-primary text-white shadow-nx-primary"
+                    ? "bg-nx-primary text-nx-on-primary shadow-nx-primary"
                     : "hover:bg-nx-primary-container/60"
             )}
         >
@@ -73,7 +73,7 @@ function GroupItem({
             <div className="relative shrink-0 w-10 h-10">
                 {orgLogos.length === 0 ? (
                     <div className="w-10 h-10 rounded-xl bg-nx-surface-container-high border border-nx-outline-variant flex items-center justify-center">
-                        <Users className={cn("w-5 h-5", isActive ? "text-white" : "text-nx-on-surface-variant/50")} />
+                        <Users className={cn("w-5 h-5", isActive ? "text-nx-on-primary" : "text-nx-on-surface-variant/50")} />
                     </div>
                 ) : orgLogos.length === 1 ? (
                     <div className="w-10 h-10 rounded-xl overflow-hidden bg-nx-surface-container border border-nx-outline-variant">
@@ -92,7 +92,7 @@ function GroupItem({
                             <div
                                 key={org!.id}
                                 className={cn(
-                                    "absolute w-7 h-7 rounded-lg overflow-hidden border-2 border-white bg-nx-surface-container-high",
+                                    "absolute w-7 h-7 rounded-lg overflow-hidden border-2 border-nx-surface-container-low bg-nx-surface-container-high",
                                     i === 0 ? "top-0 left-0 z-10" : "bottom-0 right-0 z-20"
                                 )}
                             >
@@ -110,9 +110,9 @@ function GroupItem({
 
                 {/* Role badge */}
                 {(isOwner || isAdmin) && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-white flex items-center justify-center shadow-sm">
+                    <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-nx-surface-container-lowest flex items-center justify-center shadow-sm">
                         {isOwner
-                            ? <Crown className="w-2.5 h-2.5 text-amber-500" />
+                            ? <Crown className="w-2.5 h-2.5 text-nx-warning" />
                             : <Shield className="w-2.5 h-2.5 text-nx-primary" />
                         }
                     </span>
@@ -122,11 +122,11 @@ function GroupItem({
             {/* Content */}
             <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-1">
-                    <span className={cn("text-sm font-semibold truncate", isActive ? "text-white" : "text-nx-on-surface")}>
+                    <span className={cn("text-sm font-semibold truncate", isActive ? "text-nx-on-primary" : "text-nx-on-surface")}>
                         {group.name}
                     </span>
                     {timeAgo && (
-                        <span className={cn("text-[10px] shrink-0 tabular-nums", isActive ? "text-white/70" : "text-nx-on-surface-variant/60")}>
+                        <span className={cn("text-[10px] shrink-0 tabular-nums", isActive ? "text-nx-on-primary/70" : "text-nx-on-surface-variant/60")}>
                             {timeAgo}
                         </span>
                     )}
@@ -134,7 +134,7 @@ function GroupItem({
                 <div className="flex items-center justify-between gap-1 mt-0.5">
                     <p className={cn(
                         "text-xs truncate",
-                        isActive ? "text-white/80"
+                        isActive ? "text-nx-on-primary/80"
                             : group.unreadCount > 0 ? "text-nx-on-surface font-medium"
                                 : "text-nx-on-surface-variant"
                     )}>
@@ -143,7 +143,7 @@ function GroupItem({
                             : `${group.memberCount} member${group.memberCount !== 1 ? "s" : ""}`}
                     </p>
                     {group.unreadCount > 0 && !isActive && (
-                        <span className="shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-nx-primary text-white text-[10px] font-bold">
+                        <span className="shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-nx-primary text-nx-on-primary text-[10px] font-bold">
                             {group.unreadCount > 99 ? "99+" : group.unreadCount}
                         </span>
                     )}
@@ -199,7 +199,7 @@ export function GroupConversationList({
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search groups…"
-                            className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs bg-white border border-nx-outline-variant focus:outline-none focus:border-nx-primary focus:ring-2 focus:ring-nx-primary/10 placeholder:text-nx-on-surface-variant/50"
+                            className="w-full pl-8 pr-3 py-1.5 rounded-lg text-xs bg-nx-surface-container-lowest text-nx-on-surface border border-nx-outline-variant focus:outline-none focus:border-nx-primary focus:ring-2 focus:ring-nx-primary/10 placeholder:text-nx-on-surface-variant/50"
                         />
                     </div>
                 </div>

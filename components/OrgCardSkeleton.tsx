@@ -6,9 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 const OrgCardSkeleton = () => {
     return (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="bg-nx-surface-container-lowest rounded-xl border border-nx-outline-variant/60 overflow-hidden">
             {/* accent bar */}
-            <div className="h-1.5 bg-gray-200" />
+            <div className="h-1.5 bg-nx-surface-container-highest" />
             <div className="p-5">
                 {/* Header row */}
                 <div className="flex items-start gap-3 mb-4">

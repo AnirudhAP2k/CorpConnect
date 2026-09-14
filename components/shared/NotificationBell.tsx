@@ -42,21 +42,21 @@ export function NotificationBell({ reminders: initialReminders }: NotificationBe
         <div className="relative" ref={dropRef}>
             <button
                 onClick={() => setIsOpen(!isOpen)}
-                className="relative p-2 rounded-full hover:bg-gray-100 transition-colors focus:outline-none"
+                className="relative p-2 rounded-full text-nx-on-surface-variant hover:bg-nx-surface-container-high hover:text-nx-on-surface transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-nx-primary"
                 aria-label="Notifications"
             >
-                <Bell className="w-5 h-5 text-gray-700" />
+                <Bell className="w-5 h-5" />
                 {unreadCount > 0 && (
-                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-red-500 border-2 border-white rounded-full"></span>
+                    <span className="absolute top-1.5 right-1.5 w-2.5 h-2.5 bg-nx-error border-2 border-nx-surface rounded-full"></span>
                 )}
             </button>
 
             {isOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
-                    <div className="p-4 border-b border-gray-100 flex items-center justify-between bg-gray-50/50">
-                        <h3 className="font-semibold text-gray-800">Notifications</h3>
+                <div className="absolute right-0 mt-2 w-80 bg-nx-surface-container-lowest text-nx-on-surface rounded-xl shadow-xl border border-nx-outline-variant/60 overflow-hidden z-50">
+                    <div className="p-4 border-b border-nx-outline-variant/60 flex items-center justify-between bg-nx-surface-container-low">
+                        <h3 className="font-semibold text-nx-on-surface">Notifications</h3>
                         {unreadCount > 0 && (
-                            <span className="text-xs text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full font-medium">
+                            <span className="text-xs text-nx-on-tertiary-container bg-nx-tertiary-container px-2 py-0.5 rounded-full font-medium">
                                 {unreadCount} new
                             </span>
                         )}
@@ -64,12 +64,12 @@ export function NotificationBell({ reminders: initialReminders }: NotificationBe
 
                     <div className="max-h-[70vh] overflow-y-auto">
                         {reminders.length === 0 ? (
-                            <div className="p-8 text-center text-gray-500">
-                                <Bell className="w-8 h-8 text-gray-200 mx-auto mb-2" />
+                            <div className="p-8 text-center text-nx-on-surface-variant">
+                                <Bell className="w-8 h-8 text-nx-on-surface-variant/40 mx-auto mb-2" />
                                 <p className="text-sm">You're all caught up!</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-nx-outline-variant/40">
                                 {reminders.map((reminder) => (
                                     <Link
                                         key={reminder.id}
@@ -83,20 +83,20 @@ export function NotificationBell({ reminders: initialReminders }: NotificationBe
                                                 } catch (e) { }
                                             }
                                         }}
-                                        className="block p-4 hover:bg-gray-50 transition-colors group relative"
+                                        className="block p-4 hover:bg-nx-surface-container-low transition-colors group relative"
                                     >
                                         {!reminder.read && (
-                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-blue-500 rounded-r-full" />
+                                            <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-nx-tertiary rounded-r-full" />
                                         )}
                                         <div className="flex gap-3">
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-sm font-semibold text-gray-900 truncate">
+                                                <p className="text-sm font-semibold text-nx-on-surface truncate">
                                                     {reminder.title}
                                                 </p>
-                                                <p className="text-xs text-gray-600 mt-0.5 line-clamp-2 leading-relaxed">
+                                                <p className="text-xs text-nx-on-surface-variant mt-0.5 line-clamp-2 leading-relaxed">
                                                     {reminder.description}
                                                 </p>
-                                                <p className="text-[10px] text-gray-400 mt-2 font-medium uppercase tracking-wider">
+                                                <p className="text-[10px] text-nx-on-surface-variant/70 mt-2 font-medium uppercase tracking-wider">
                                                     {formatDistanceToNow(reminder.date, { addSuffix: true })}
                                                 </p>
                                             </div>
@@ -107,8 +107,8 @@ export function NotificationBell({ reminders: initialReminders }: NotificationBe
                         )}
                     </div>
                     {reminders.length > 0 && (
-                        <div className="p-2 border-t border-gray-100 bg-gray-50">
-                            <button className="w-full py-1.5 text-xs text-gray-500 font-medium hover:text-gray-800 transition-colors">
+                        <div className="p-2 border-t border-nx-outline-variant/60 bg-nx-surface-container-low">
+                            <button className="w-full py-1.5 text-xs text-nx-on-surface-variant font-medium hover:text-nx-on-surface transition-colors">
                                 View all activity
                             </button>
                         </div>

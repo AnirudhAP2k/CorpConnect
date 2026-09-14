@@ -18,7 +18,7 @@ export function ConversationItemSkeleton() {
 
 export function ConversationListSkeleton() {
     return (
-        <div className="flex flex-col h-full bg-[#f8f7f8]">
+        <div className="flex flex-col h-full bg-nx-surface-container-low">
             {/* Header skeleton */}
             <div className="px-4 pt-5 pb-3 border-b border-nx-outline-variant/60 animate-pulse space-y-1.5">
                 <div className="h-4 w-28 rounded bg-nx-surface-container-high" />

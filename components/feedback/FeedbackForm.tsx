@@ -78,14 +78,14 @@ export function FeedbackForm({ eventId, eventTitle, existing, onSuccess }: Feedb
                         >
                             <Star
                                 className={`w-8 h-8 transition-colors ${star <= (hovered || rating)
-                                    ? "fill-amber-400 text-amber-400"
+                                    ? "fill-nx-warning text-nx-warning"
                                     : "fill-muted text-muted-foreground"
                                     }`}
                             />
                         </button>
                     ))}
                     {rating > 0 && (
-                        <span className="ml-3 text-sm font-medium text-amber-600 self-center">
+                        <span className="ml-3 text-sm font-medium text-nx-warning self-center">
                             {["", "Poor", "Fair", "Good", "Great", "Excellent!"][rating]}
                         </span>
                     )}

@@ -23,13 +23,13 @@
 
 Tracked in detail in [design_changes.md](design_changes.md).
 
-- [x] Design credibility quick wins: hide the dark mode toggle until dark tokens land, add a favicon/app icon, remove emoji from UI chrome, fix the unloaded `font-poppins` reference, replace `alert()` in `DeleteConfirmation`, restore suppressed focus rings
-- [ ] Pull `DESIGN.md` and screen references from the Stitch MCP, commit as the design spec, and add a lint rule banning raw gray/white/slate/hex colors. The lint rule is complete; Stitch was unavailable on September 7, 2026, so the design exports remain pending.
-- [x] Convert `nx-*` tokens from static hex to CSS custom properties with `:root` and `.dark` values, referenced as `rgb(var(--token) / <alpha-value>)` to preserve opacity modifiers
-- [x] Rebuild billing (delete `billing.css`), auth, and onboarding onto `nx-*` tokens and shadcn primitives
-- [ ] Migrate the demo-path screens off hardcoded grays, unify type scale and radius, verify in both themes. Code migration and lint protection are complete; authenticated visual QA in both themes is pending.
-- [x] Add `loading.tsx`, `error.tsx`, and `not-found.tsx` route files plus skeletons
-- [x] Fix mobile: messaging conversation switching, dashboard header overflow, fixed-width auth card
+- [ ] Design credibility quick wins: hide the dark mode toggle until dark tokens land, add a favicon/app icon, remove emoji from UI chrome, fix the unloaded `font-poppins` reference, replace `alert()` in `DeleteConfirmation`, restore suppressed focus rings
+- [ ] Pull `DESIGN.md` and screen references from the Stitch MCP, commit as the design spec, and add a lint rule banning raw gray/white/slate/hex colors
+- [ ] Convert `nx-*` tokens from static hex to CSS custom properties with `:root` and `.dark` values, referenced as `rgb(var(--token) / <alpha-value>)` to preserve opacity modifiers
+- [ ] Rebuild billing (delete `billing.css`), auth, and onboarding onto `nx-*` tokens and shadcn primitives
+- [ ] Migrate the demo-path screens off hardcoded grays, unify type scale and radius, verify in both themes. The approved demo-route code migration is complete; authenticated browser QA in both themes remains.
+- [ ] Add `loading.tsx`, `error.tsx`, and `not-found.tsx` route files plus skeletons
+- [ ] Fix mobile: messaging conversation switching, dashboard header overflow, fixed-width auth card
 
 ### Phase 0.75 - Region-aware pricing
 

@@ -56,8 +56,8 @@ export function MessageBubble({ message, isOwn, showAvatar }: MessageBubbleProps
                     className={cn(
                         "relative px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm",
                         isOwn
-                            ? "bg-nx-primary text-white rounded-br-sm"
-                            : "bg-white text-nx-on-surface border border-nx-outline-variant rounded-bl-sm"
+                            ? "bg-nx-primary text-nx-on-primary rounded-br-sm"
+                            : "bg-nx-surface-container-lowest text-nx-on-surface border border-nx-outline-variant rounded-bl-sm"
                     )}
                 >
                     <p className="whitespace-pre-wrap break-words">{message.content}</p>

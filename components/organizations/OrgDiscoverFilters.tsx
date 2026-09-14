@@ -66,8 +66,8 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
         <div className={`transition-opacity ${isPending ? "opacity-50" : ""}`}>
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="w-4 h-4 text-gray-500" />
-                    <h3 className="font-semibold text-gray-800">Filters</h3>
+                    <SlidersHorizontal className="w-4 h-4 text-nx-on-surface-variant" />
+                    <h3 className="font-headline font-semibold text-nx-on-surface">Filters</h3>
                 </div>
                 {hasFilters && (
                     <button
@@ -81,7 +81,7 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
 
             {/* Search */}
             <div className="mb-5">
-                <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Search</Label>
+                <Label className="text-sm font-label font-medium text-nx-on-surface mb-1.5 block">Search</Label>
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -102,7 +102,7 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
 
             {/* Location */}
             <div className="mb-5">
-                <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Location</Label>
+                <Label className="text-sm font-label font-medium text-nx-on-surface mb-1.5 block">Location</Label>
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
@@ -123,11 +123,11 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
 
             {/* Industry */}
             <div className="mb-5">
-                <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Industry</Label>
+                <Label className="text-sm font-label font-medium text-nx-on-surface mb-1.5 block">Industry</Label>
                 <div className="flex flex-col gap-1">
                     <button
                         onClick={() => pushFilter("industry", "")}
-                        className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${!current.industry ? "bg-primary/10 text-primary font-medium" : "hover:bg-gray-100 text-gray-700"
+                        className={`text-left px-3 py-2 rounded-xl text-sm transition-colors ${!current.industry ? "bg-nx-primary-container text-nx-on-primary-container font-medium" : "hover:bg-nx-surface-container text-nx-on-surface"
                             }`}
                     >
                         All Industries
@@ -136,9 +136,9 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
                         <button
                             key={ind.id}
                             onClick={() => pushFilter("industry", current.industry === ind.id ? "" : ind.id)}
-                            className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${current.industry === ind.id
-                                    ? "bg-primary/10 text-primary font-medium"
-                                    : "hover:bg-gray-100 text-gray-700"
+                            className={`text-left px-3 py-2 rounded-xl text-sm transition-colors ${current.industry === ind.id
+                                    ? "bg-nx-primary-container text-nx-on-primary-container font-medium"
+                                    : "hover:bg-nx-surface-container text-nx-on-surface"
                                 }`}
                         >
                             {ind.label}
@@ -149,11 +149,11 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
 
             {/* Size */}
             <div className="mb-5">
-                <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Organization Size</Label>
+                <Label className="text-sm font-label font-medium text-nx-on-surface mb-1.5 block">Organization Size</Label>
                 <div className="flex flex-col gap-1">
                     <button
                         onClick={() => pushFilter("size", "")}
-                        className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${!current.size ? "bg-primary/10 text-primary font-medium" : "hover:bg-gray-100 text-gray-700"
+                        className={`text-left px-3 py-2 rounded-xl text-sm transition-colors ${!current.size ? "bg-nx-primary-container text-nx-on-primary-container font-medium" : "hover:bg-nx-surface-container text-nx-on-surface"
                             }`}
                     >
                         All Sizes
@@ -162,9 +162,9 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
                         <button
                             key={s.id}
                             onClick={() => pushFilter("size", current.size === s.id ? "" : s.id)}
-                            className={`text-left px-3 py-2 rounded-lg text-sm transition-colors ${current.size === s.id
-                                    ? "bg-primary/10 text-primary font-medium"
-                                    : "hover:bg-gray-100 text-gray-700"
+                            className={`text-left px-3 py-2 rounded-xl text-sm transition-colors ${current.size === s.id
+                                    ? "bg-nx-primary-container text-nx-on-primary-container font-medium"
+                                    : "hover:bg-nx-surface-container text-nx-on-surface"
                                 }`}
                         >
                             {s.label}
@@ -176,7 +176,7 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
             {/* Tags */}
             {tags.length > 0 && (
                 <div className="mb-5">
-                    <Label className="text-sm font-medium text-gray-700 mb-1.5 block">Tags</Label>
+                    <Label className="text-sm font-label font-medium text-nx-on-surface mb-1.5 block">Tags</Label>
                     <div className="flex flex-wrap gap-1.5">
                         {tags.map((tag) => {
                             const activeTags = current.tags ? current.tags.split(",") : [];
@@ -188,9 +188,9 @@ export default function OrgDiscoverFilters({ industries, tags }: OrgDiscoverFilt
                                 <button
                                     key={tag.id}
                                     onClick={() => pushFilter("tags", nextTags.join(","))}
-                                    className={`px-2.5 py-1 rounded-full text-xs transition-colors border ${isActive
-                                            ? "bg-primary text-white border-primary"
-                                            : "bg-white text-gray-600 border-gray-300 hover:border-primary"
+                                    className={`px-2.5 py-1 rounded-xl text-xs transition-colors border ${isActive
+                                            ? "bg-nx-primary text-nx-on-primary border-nx-primary"
+                                            : "bg-nx-surface-container-lowest text-nx-on-surface-variant border-nx-outline-variant hover:border-nx-primary"
                                         }`}
                                 >
                                     {tag.label}

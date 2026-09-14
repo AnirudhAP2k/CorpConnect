@@ -42,7 +42,7 @@ export function ConversationItem({
             className={cn(
                 "flex items-start gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group",
                 isActive
-                    ? "bg-nx-primary text-white shadow-nx-primary"
+                    ? "bg-nx-primary text-nx-on-primary shadow-nx-primary"
                     : "hover:bg-nx-primary-container/60"
             )}
         >
@@ -64,7 +64,7 @@ export function ConversationItem({
                     )}
                 </div>
                 {/* Online indicator placeholder */}
-                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-emerald-400 border-2 border-white" />
+                <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 rounded-full bg-nx-success border-2 border-nx-surface-container-low" />
             </div>
 
             {/* Content */}
@@ -73,7 +73,7 @@ export function ConversationItem({
                     <span
                         className={cn(
                             "text-sm font-semibold truncate",
-                            isActive ? "text-white" : "text-nx-on-surface"
+                            isActive ? "text-nx-on-primary" : "text-nx-on-surface"
                         )}
                     >
                         {otherOrg.name}
@@ -85,7 +85,7 @@ export function ConversationItem({
                         <span
                             className={cn(
                                 "text-[10px] shrink-0 tabular-nums",
-                                isActive ? "text-white/70" : "text-nx-on-surface-variant/60"
+                                isActive ? "text-nx-on-primary/70" : "text-nx-on-surface-variant/60"
                             )}
                         >
                             {timeAgo}
@@ -97,7 +97,7 @@ export function ConversationItem({
                         className={cn(
                             "text-xs truncate",
                             isActive
-                                ? "text-white/80"
+                                ? "text-nx-on-primary/80"
                                 : unreadCount > 0
                                     ? "text-nx-on-surface font-medium"
                                     : "text-nx-on-surface-variant"
@@ -108,7 +108,7 @@ export function ConversationItem({
                             : "No messages yet"}
                     </p>
                     {unreadCount > 0 && !isActive && (
-                        <span className="shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-nx-primary text-white text-[10px] font-bold">
+                        <span className="shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rounded-full bg-nx-primary text-nx-on-primary text-[10px] font-bold">
                             {unreadCount > 99 ? "99+" : unreadCount}
                         </span>
                     )}

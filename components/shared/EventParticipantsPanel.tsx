@@ -29,10 +29,10 @@ interface EventParticipantsPanelProps {
 }
 
 const statusConfig: Record<ParticipationStatus, { label: string; className: string }> = {
-    REGISTERED: { label: "Registered", className: "bg-blue-100 text-blue-700" },
-    ATTENDED: { label: "Attended", className: "bg-green-100 text-green-700" },
-    CANCELLED: { label: "Cancelled", className: "bg-red-100 text-red-700" },
-    WAITLISTED: { label: "Waitlisted", className: "bg-yellow-100 text-yellow-700" },
+    REGISTERED: { label: "Registered", className: "bg-nx-tertiary-container text-nx-on-tertiary-container" },
+    ATTENDED: { label: "Attended", className: "bg-nx-success-container text-nx-on-success-container" },
+    CANCELLED: { label: "Cancelled", className: "bg-nx-error-container text-nx-on-error-container" },
+    WAITLISTED: { label: "Waitlisted", className: "bg-nx-warning-container text-nx-on-warning-container" },
 };
 
 export default function EventParticipantsPanel({
@@ -46,24 +46,24 @@ export default function EventParticipantsPanel({
 
     if (active.length === 0) {
         return (
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
                 <h2 className="text-xl font-bold mb-2">Attendees</h2>
-                <p className="text-gray-500 text-sm">No registrations yet.</p>
+                <p className="text-nx-on-surface-variant text-sm">No registrations yet.</p>
             </div>
         );
     }
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-6">
+        <div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
             <div className="flex items-center justify-between mb-4">
                 <h2 className="text-xl font-bold">
                     Attendees{" "}
-                    <span className="text-gray-500 font-normal text-base">
+                    <span className="text-nx-on-surface-variant font-normal text-base">
                         ({totalCount})
                     </span>
                 </h2>
                 {isHost && (
-                    <Badge className="bg-purple-100 text-purple-700">Host View</Badge>
+                    <Badge className="bg-nx-secondary-container text-nx-on-secondary-container">Host View</Badge>
                 )}
             </div>
 
@@ -76,7 +76,7 @@ export default function EventParticipantsPanel({
                     return (
                         <div
                             key={p.id}
-                            className="flex items-center gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
+                            className="flex items-center gap-3 p-3 rounded-lg border border-nx-outline-variant/20 hover:bg-nx-surface-container-low transition-colors"
                         >
                             {/* Avatar */}
                             {p.organization?.logo ? (
@@ -96,11 +96,11 @@ export default function EventParticipantsPanel({
                                     className="rounded-full object-cover flex-shrink-0"
                                 />
                             ) : (
-                                <div className="w-10 h-10 rounded-full bg-primary-100 flex items-center justify-center flex-shrink-0">
+                                <div className="w-10 h-10 rounded-full bg-nx-primary-container flex items-center justify-center flex-shrink-0">
                                     {p.organization ? (
-                                        <Building2 className="w-5 h-5 text-primary-600" />
+                                        <Building2 className="w-5 h-5 text-nx-on-primary-container" />
                                     ) : (
-                                        <User className="w-5 h-5 text-primary-600" />
+                                        <User className="w-5 h-5 text-nx-on-primary-container" />
                                     )}
                                 </div>
                             )}
@@ -111,10 +111,10 @@ export default function EventParticipantsPanel({
                                     {p.organization?.name || p.user.name || "Unknown"}
                                 </p>
                                 {p.organization && (
-                                    <p className="text-xs text-gray-500 truncate">{p.user.name}</p>
+                                    <p className="text-xs text-nx-on-surface-variant truncate">{p.user.name}</p>
                                 )}
                                 {isHost && p.user.email && (
-                                    <p className="text-xs text-gray-400 truncate">{p.user.email}</p>
+                                    <p className="text-xs text-nx-on-surface-variant/70 truncate">{p.user.email}</p>
                                 )}
                             </div>
 

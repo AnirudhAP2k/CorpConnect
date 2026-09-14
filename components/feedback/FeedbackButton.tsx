@@ -37,7 +37,7 @@ export function FeedbackButton({ eventId, eventTitle, existing }: FeedbackButton
             >
                 {existing ? (
                     <>
-                        <Star className="w-4 h-4 fill-amber-400 text-amber-400" />
+                        <Star className="w-4 h-4 fill-nx-warning text-nx-warning" />
                         Edit Your Feedback
                     </>
                 ) : (

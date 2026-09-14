@@ -3,23 +3,20 @@ import { NextResponse } from "next/server";
 import authConfig from "@/auth.config";
 import { handleApiRequest } from "@/lib/middleware/api-request";
 import { decidePageAccess } from "@/lib/middleware/page-access";
-import {
-	classifyRoute,
-	isApiRouteKind,
-} from "@/lib/middleware/route-policy";
+import { classifyRoute, isApiRouteKind } from "@/lib/middleware/route-policy";
 
 const { auth } = NextAuth(authConfig);
 
 export default auth(async (req) => {
 	const { nextUrl } = req;
-	const kind = classifyRoute(nextUrl.pathname);
+	const routeType = classifyRoute(nextUrl.pathname);
 
-	if (isApiRouteKind(kind)) {
-		return handleApiRequest(req, kind, req.auth?.user);
+	if (isApiRouteKind(routeType)) {
+		return handleApiRequest(req, routeType, req.auth?.user);
 	}
 
 	const decision = decidePageAccess({
-		kind,
+		kind: routeType,
 		isLoggedIn: Boolean(req.auth),
 		user: req.auth?.user,
 		pathname: nextUrl.pathname,
@@ -35,8 +32,8 @@ export default auth(async (req) => {
 export const config = {
 	matcher: [
 		// Skip Next.js internals and all static files, unless found in search params
-		'/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)',
+		"/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
 		// Always run for API routes
-		'/(api|trpc)(.*)',
+		"/(api|trpc)(.*)",
 	],
-}
+};

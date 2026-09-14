@@ -137,8 +137,8 @@ export default function InviteGuestsModal({ eventId, eventTitle }: InviteGuestsM
                         <div
                             className={`flex items-start gap-2 rounded-md p-3 text-sm ${
                                 result.type === "success"
-                                    ? "bg-green-50 text-green-800 border border-green-200"
-                                    : "bg-red-50 text-red-800 border border-red-200"
+                                    ? "bg-nx-success-container text-nx-on-success-container border border-nx-success/30"
+                                    : "bg-nx-error-container text-nx-on-error-container border border-nx-error/30"
                             }`}
                         >
                             {result.type === "success" ? (

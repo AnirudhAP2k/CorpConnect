@@ -3,11 +3,24 @@ import { notFound, redirect } from "next/navigation";
 import Image from "next/image";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, MapPin, Users, Globe, Zap, Building2, DollarSign, Video } from "lucide-react";
+import {
+	Calendar,
+	MapPin,
+	Users,
+	Globe,
+	Zap,
+	Building2,
+	DollarSign,
+	Video,
+} from "lucide-react";
 import InviteGuestsModal from "@/components/events/InviteGuestsModal";
 import { format } from "date-fns";
 import Link from "next/link";
-import { getEventById, getMeetingRequestsForEvent, getMatchingOrgsForEvent } from "@/domain/events";
+import {
+	getEventById,
+	getMeetingRequestsForEvent,
+	getMatchingOrgsForEvent,
+} from "@/domain/events";
 import { getPublicUserById } from "@/domain/users";
 import { getActiveVirtualRooms } from "@/domain/events";
 import JoinEventButton from "@/components/shared/JoinEventButton";
@@ -24,432 +37,480 @@ import { VirtualRoomList } from "@/components/virtual/VirtualRoomList";
 import { JoinVirtualButton } from "@/components/virtual/JoinVirtualButton";
 
 interface EventDetailPageProps {
-    params: Promise<{
-        id: string;
-    }>;
+	params: Promise<{
+		id: string;
+	}>;
 }
 
 const EventDetailPage = async ({ params }: EventDetailPageProps) => {
-    const session = await auth();
-    const userId = session?.user?.id;
+	const session = await auth();
+	const userId = session?.user?.id;
 
-    const { id } = await params;
+	const { id } = await params;
 
-    const event = await getEventById(id);
+	const event = await getEventById(id);
 
-    // Get user's active organization for participation
-    const userOrgData = userId
-        ? await getPublicUserById(userId)
-        : null;
-    const activeOrgId = userOrgData?.activeOrganizationId ?? null;
+	// Get user's active organization for participation
+	const userOrgData = userId ? await getPublicUserById(userId) : null;
+	const activeOrgId = userOrgData?.activeOrganizationId ?? null;
 
-    if (!event) {
-        notFound();
-    }
+	if (!event) {
+		notFound();
+	}
 
-    // Check visibility permissions
-    if (event.visibility === "PRIVATE") {
-        if (!userId) {
-            redirect(`/login?callbackUrl=/events/${id}`);
-        }
+	// Check visibility permissions
+	if (event.visibility === "PRIVATE") {
+		if (!userId) {
+			redirect(`/login?callbackUrl=/events/${id}`);
+		}
 
-        // Check if user is member of the organization
-        const isMember = event.organization?.members.some((m) => m.userId === userId);
-        if (!isMember) {
-            return (
-                <div className="wrapper min-h-screen flex items-center justify-center">
-                    <div className="bg-nx-error-container border border-nx-error/20 rounded-2xl p-6 sm:p-8 text-center max-w-md shadow-nx-card">
-                        <h2 className="font-headline text-2xl font-bold text-nx-on-error-container mb-2">Private Event</h2>
-                        <p className="text-nx-on-error-container/80">
-                            This event is only visible to members of {event.organization?.name}.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-    }
+		// Check if user is member of the organization
+		const isMember = event.organization?.members.some(
+			(m) => m.userId === userId,
+		);
+		if (!isMember) {
+			return (
+				<div className="wrapper min-h-screen flex items-center justify-center">
+					<div className="bg-nx-error-container border border-nx-error/30 rounded-lg p-8 text-center max-w-md">
+						<h2 className="text-2xl font-bold text-nx-on-error-container mb-2">
+							Private Event
+						</h2>
+						<p className="text-nx-on-error-container/80">
+							This event is only visible to members of{" "}
+							{event.organization?.name}.
+						</p>
+					</div>
+				</div>
+			);
+		}
+	}
 
-    if (event.visibility === "INVITE_ONLY") {
-        if (!userId) {
-            redirect(`/login?callbackUrl=/events/${id}`);
-        }
+	if (event.visibility === "INVITE_ONLY") {
+		if (!userId) {
+			redirect(`/login?callbackUrl=/events/${id}`);
+		}
 
-        // Check if user is invited (has participation record)
-        const isInvited = event.participations.some((p) => p.userId === userId);
-        const isMember = event.organization?.members.some((m) => m.userId === userId);
+		// Check if user is invited (has participation record)
+		const isInvited = event.participations.some((p) => p.userId === userId);
+		const isMember = event.organization?.members.some(
+			(m) => m.userId === userId,
+		);
 
-        if (!isInvited && !isMember) {
-            return (
-                <div className="wrapper min-h-screen flex items-center justify-center">
-                    <div className="bg-nx-warning-container border border-nx-warning/20 rounded-2xl p-6 sm:p-8 text-center max-w-md shadow-nx-card">
-                        <h2 className="font-headline text-2xl font-bold text-nx-on-warning-container mb-2">Invitation Required</h2>
-                        <p className="text-nx-on-warning-container/80">
-                            This event is invite-only. Please contact the organizer for an invitation.
-                        </p>
-                    </div>
-                </div>
-            );
-        }
-    }
+		if (!isInvited && !isMember) {
+			return (
+				<div className="wrapper min-h-screen flex items-center justify-center">
+					<div className="bg-nx-warning-container border border-nx-warning/30 rounded-lg p-8 text-center max-w-md">
+						<h2 className="text-2xl font-bold text-nx-on-warning-container mb-2">
+							Invitation Required
+						</h2>
+						<p className="text-nx-on-warning-container/80">
+							This event is invite-only. Please contact the organizer for an
+							invitation.
+						</p>
+					</div>
+				</div>
+			);
+		}
+	}
 
-    // Check if user is already participating
-    const userParticipation = userId
-        ? event.participations.find((p) => p.userId === userId)
-        : null;
+	// Check if user is already participating
+	const userParticipation = userId
+		? event.participations.find((p) => p.userId === userId)
+		: null;
 
-    // Check if event is full
-    const isFull = event.maxAttendees ? event.attendeeCount >= event.maxAttendees : false;
+	// Check if event is full
+	const isFull = event.maxAttendees
+		? event.attendeeCount >= event.maxAttendees
+		: false;
 
-    // Check if user is host
-    const isHost = userId && event.organization?.members.some(
-        (m) => m.userId === userId && (m.role === "OWNER" || m.role === "ADMIN")
-    );
+	// Check if user is host
+	const isHost =
+		userId &&
+		event.organization?.members.some(
+			(m) => m.userId === userId && (m.role === "OWNER" || m.role === "ADMIN"),
+		);
 
-    // Matchmaking & meeting requests (only if user is registered with an active org)
-    const isRegistered = !!userParticipation;
-    const participationStatus = userParticipation?.status;
-    const canLeaveFeedback = isRegistered && participationStatus !== "CANCELLED";
+	// Matchmaking & meeting requests (only if user is registered with an active org)
+	const isRegistered = !!userParticipation;
+	const participationStatus = userParticipation?.status;
+	const canLeaveFeedback = isRegistered && participationStatus !== "CANCELLED";
 
-    const [matchedOrgs, existingMeetingRequests, existingFeedback] = (isRegistered && activeOrgId)
-        ? await Promise.all([
-            getMatchingOrgsForEvent(id, activeOrgId),
-            getMeetingRequestsForEvent(id, activeOrgId),
-            canLeaveFeedback ? getUserFeedback(id) : Promise.resolve(null),
-        ])
-        : [
-            [],
-            [],
-            canLeaveFeedback ? await getUserFeedback(id) : null,
-        ];
+	const [matchedOrgs, existingMeetingRequests, existingFeedback] =
+		isRegistered && activeOrgId
+			? await Promise.all([
+					getMatchingOrgsForEvent(id, activeOrgId),
+					getMeetingRequestsForEvent(id, activeOrgId),
+					canLeaveFeedback ? getUserFeedback(id) : Promise.resolve(null),
+				])
+			: [[], [], canLeaveFeedback ? await getUserFeedback(id) : null];
 
-    // Fetch virtual rooms for ONLINE/HYBRID events
-    const isVirtualEvent = ["ONLINE", "HYBRID"].includes(event.eventType);
-    const virtualRooms = isVirtualEvent
-        ? await getActiveVirtualRooms(id)
-        : [];
+	// Fetch virtual rooms for ONLINE/HYBRID events
+	const isVirtualEvent = ["ONLINE", "HYBRID"].includes(event.eventType);
+	const virtualRooms = isVirtualEvent ? await getActiveVirtualRooms(id) : [];
 
-    // Build meetingStatusMap for OrgMatchWidget
-    const meetingStatusMap: Record<string, { status: MeetingStatus; requestId?: string }> = {};
-    for (const mr of existingMeetingRequests as any[]) {
-        const otherOrgId = mr.senderOrgId === activeOrgId ? mr.receiverOrgId : mr.senderOrgId;
-        const isSender = mr.senderOrgId === activeOrgId;
-        let status: MeetingStatus = "NONE";
-        if (mr.status === "PENDING") status = isSender ? "PENDING_SENT" : "PENDING_RECEIVED";
-        else if (mr.status === "ACCEPTED") status = "ACCEPTED";
-        else if (mr.status === "DECLINED") status = "DECLINED";
-        else if (mr.status === "CANCELLED") status = "CANCELLED";
-        meetingStatusMap[otherOrgId] = { status, requestId: mr.id };
-    }
+	// Build meetingStatusMap for OrgMatchWidget
+	const meetingStatusMap: Record<
+		string,
+		{ status: MeetingStatus; requestId?: string }
+	> = {};
+	for (const mr of existingMeetingRequests as any[]) {
+		const otherOrgId =
+			mr.senderOrgId === activeOrgId ? mr.receiverOrgId : mr.senderOrgId;
+		const isSender = mr.senderOrgId === activeOrgId;
+		let status: MeetingStatus = "NONE";
+		if (mr.status === "PENDING")
+			status = isSender ? "PENDING_SENT" : "PENDING_RECEIVED";
+		else if (mr.status === "ACCEPTED") status = "ACCEPTED";
+		else if (mr.status === "DECLINED") status = "DECLINED";
+		else if (mr.status === "CANCELLED") status = "CANCELLED";
+		meetingStatusMap[otherOrgId] = { status, requestId: mr.id };
+	}
 
-    // Split meeting requests for the panel
-    const incomingMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.receiverOrgId === activeOrgId && mr.status === "PENDING");
-    const sentMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.senderOrgId === activeOrgId && mr.status === "PENDING");
-    const confirmedMeetings = (existingMeetingRequests as any[]).filter((mr: any) => mr.status === "ACCEPTED");
+	// Split meeting requests for the panel
+	const incomingMeetings = (existingMeetingRequests as any[]).filter(
+		(mr: any) => mr.receiverOrgId === activeOrgId && mr.status === "PENDING",
+	);
+	const sentMeetings = (existingMeetingRequests as any[]).filter(
+		(mr: any) => mr.senderOrgId === activeOrgId && mr.status === "PENDING",
+	);
+	const confirmedMeetings = (existingMeetingRequests as any[]).filter(
+		(mr: any) => mr.status === "ACCEPTED",
+	);
 
-    const getEventTypeBadge = () => {
-        const types = {
-            ONLINE: { label: "Online", icon: Globe, color: "bg-nx-secondary-container text-nx-on-secondary-container" },
-            OFFLINE: { label: "In-Person", icon: MapPin, color: "bg-nx-success-container text-nx-on-success-container" },
-            HYBRID: { label: "Hybrid", icon: Zap, color: "bg-nx-tertiary-container text-nx-on-tertiary-container" },
-        };
+	const getEventTypeBadge = () => {
+		const types = {
+			ONLINE: {
+				label: "Online",
+				icon: Globe,
+				color: "bg-nx-tertiary-container text-nx-on-tertiary-container",
+			},
+			OFFLINE: {
+				label: "In-Person",
+				icon: MapPin,
+				color: "bg-nx-success-container text-nx-on-success-container",
+			},
+			HYBRID: {
+				label: "Hybrid",
+				icon: Zap,
+				color: "bg-nx-secondary-container text-nx-on-secondary-container",
+			},
+		};
 
-        const type = types[event.eventType];
-        const Icon = type.icon;
+		const type = types[event.eventType];
+		const Icon = type.icon;
 
-        return (
-            <Badge className={`${type.color} flex items-center gap-1`}>
-                <Icon className="w-4 h-4" />
-                {type.label}
-            </Badge>
-        );
-    };
+		return (
+			<Badge className={`${type.color} flex items-center gap-1`}>
+				<Icon className="w-4 h-4" />
+				{type.label}
+			</Badge>
+		);
+	};
 
-    return (
-        <>
-            <div className="min-h-screen bg-nx-surface-container-low">
+	return (
+		<>
+			<div className="min-h-screen bg-nx-surface-container-low text-nx-on-surface">
+				<EventViewTracker eventId={id} />
+				{/* Hero Section */}
+				<div className="relative h-96 w-full bg-nx-primary">
+					{event.image ? (
+						<Image
+							src={event.image}
+							alt={event.title}
+							fill
+							className="object-cover opacity-80"
+						/>
+					) : (
+						<div className="flex h-full items-center justify-center bg-gradient-to-br from-nx-primary to-nx-primary-container">
+							<Calendar className="h-32 w-32 text-nx-on-primary opacity-50" />
+						</div>
+					)}
+					<div className="absolute inset-0 bg-gradient-to-t from-nx-primary/80 to-transparent" />
 
-                <EventViewTracker eventId={id} />
-                {/* Hero Section */}
-                {/* The hero always renders over a dark scrim, so it uses the theme-invariant
-                    *-fixed roles rather than surface roles that flip in dark mode. */}
-                <div className="relative h-64 sm:h-80 md:h-96 w-full bg-nx-on-primary-fixed">
-                    {event.image ? (
-                        <Image
-                            src={event.image}
-                            alt={event.title}
-                            fill
-                            className="object-cover opacity-80"
-                        />
-                    ) : (
-                        <div className="flex h-full items-center justify-center bg-gradient-to-br from-nx-on-primary-fixed to-nx-on-primary-fixed-var">
-                            <Calendar className="h-24 w-24 md:h-32 md:w-32 text-nx-primary-fixed opacity-50" />
-                        </div>
-                    )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-nx-on-primary-fixed/70 to-transparent" />
+					{/* Event Title and Badges */}
+					<div className="absolute bottom-0 left-0 right-0 wrapper pb-6 md:pb-8">
+						<div className="flex flex-wrap gap-2 mb-3 md:mb-4">
+							{getEventTypeBadge()}
+							<Badge
+								variant="outline"
+								className="bg-nx-surface-container-lowest text-nx-on-surface border-nx-outline-variant/30"
+							>
+								{event.category.label}
+							</Badge>
+							{event.visibility !== "PUBLIC" && (
+								<Badge variant="secondary">
+									{event.visibility === "PRIVATE" ? "Private" : "Invite Only"}
+								</Badge>
+							)}
+						</div>
+						<h1 className="text-4xl md:text-5xl font-bold text-nx-on-primary mb-2">
+							{event.title}
+						</h1>
+					</div>
+				</div>
 
-                    {/* Event Title and Badges */}
-                    <div className="absolute bottom-0 left-0 right-0 wrapper pb-6 md:pb-8">
-                        <div className="flex flex-wrap gap-2 mb-3 md:mb-4">
-                            {getEventTypeBadge()}
-                            <Badge className="border-transparent bg-nx-primary-fixed text-nx-on-primary-fixed hover:bg-nx-primary-fixed">
-                                {event.category.label}
-                            </Badge>
-                            {event.visibility !== "PUBLIC" && (
-                                <Badge variant="secondary">
-                                    {event.visibility === "PRIVATE" ? "Private" : "Invite Only"}
-                                </Badge>
-                            )}
-                        </div>
-                        <h1 className="font-headline text-3xl sm:text-4xl md:text-5xl font-bold text-nx-primary-fixed mb-2 break-words">
-                            {event.title}
-                        </h1>
-                    </div>
-                </div>
+				{/* Content */}
+				<div className="wrapper my-8">
+					<div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+						{/* Main Content */}
+						<div className="lg:col-span-2 space-y-6 min-w-0">
+							{/* Description */}
+							<div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
+								<h2 className="text-2xl font-bold mb-4">About This Event</h2>
+								<p className="text-nx-on-surface-variant whitespace-pre-wrap">
+									{event.description}
+								</p>
+							</div>
 
-                {/* Content */}
-                <div className="wrapper my-8">
-                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
-                        {/* Main Content */}
-                        <div className="lg:col-span-2 space-y-6 min-w-0">
-                            {/* Description */}
-                            <div className="bg-nx-surface-container-lowest rounded-2xl border border-nx-outline-variant/30 p-5 sm:p-6 shadow-nx-card">
-                                <h2 className="font-headline text-2xl font-bold text-nx-on-surface mb-4">About This Event</h2>
-                                <p className="text-nx-on-surface-variant whitespace-pre-wrap break-words">{event.description}</p>
-                            </div>
+							{/* Event Details */}
+							<div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
+								<h2 className="text-2xl font-bold mb-4">Event Details</h2>
+								<div className="space-y-4">
+									<div className="flex items-start gap-3">
+										<Calendar className="w-5 h-5 text-nx-on-surface-variant mt-0.5" />
+										<div>
+											<p className="font-medium">Date & Time</p>
+											<p className="text-nx-on-surface-variant">
+												{format(
+													new Date(event.startDateTime),
+													"EEEE, MMMM dd, yyyy",
+												)}
+											</p>
+											<p className="text-nx-on-surface-variant">
+												{format(new Date(event.startDateTime), "h:mm a")} -{" "}
+												{format(new Date(event.endDateTime), "h:mm a")}
+											</p>
+										</div>
+									</div>
 
-                            {/* Event Details */}
-                            <div className="bg-nx-surface-container-lowest rounded-2xl border border-nx-outline-variant/30 p-5 sm:p-6 shadow-nx-card">
-                                <h2 className="font-headline text-2xl font-bold text-nx-on-surface mb-4">Event Details</h2>
-                                <div className="space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <Calendar className="w-5 h-5 shrink-0 text-nx-on-surface-variant mt-0.5" />
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-nx-on-surface">Date & Time</p>
-                                            <p className="text-nx-on-surface-variant">
-                                                {format(new Date(event.startDateTime), "EEEE, MMMM dd, yyyy")}
-                                            </p>
-                                            <p className="text-nx-on-surface-variant">
-                                                {format(new Date(event.startDateTime), "h:mm a")} -{" "}
-                                                {format(new Date(event.endDateTime), "h:mm a")}
-                                            </p>
-                                        </div>
-                                    </div>
+									<div className="flex items-start gap-3">
+										<MapPin className="w-5 h-5 text-nx-on-surface-variant mt-0.5" />
+										<div>
+											<p className="font-medium">Location</p>
+											<p className="text-nx-on-surface-variant">
+												{event.location}
+											</p>
+										</div>
+									</div>
 
-                                    <div className="flex items-start gap-3">
-                                        <MapPin className="w-5 h-5 shrink-0 text-nx-on-surface-variant mt-0.5" />
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-nx-on-surface">Location</p>
-                                            <p className="text-nx-on-surface-variant break-words">{event.location}</p>
-                                        </div>
-                                    </div>
+									{event.maxAttendees && (
+										<div className="flex items-start gap-3">
+											<Users className="w-5 h-5 text-nx-on-surface-variant mt-0.5" />
+											<div>
+												<p className="font-medium">Capacity</p>
+												<p className="text-nx-on-surface-variant">
+													{event.attendeeCount} / {event.maxAttendees} attendees
+												</p>
+												{isFull && (
+													<Badge variant="destructive" className="mt-1">
+														Event Full
+													</Badge>
+												)}
+											</div>
+										</div>
+									)}
 
-                                    {event.maxAttendees && (
-                                        <div className="flex items-start gap-3">
-                                            <Users className="w-5 h-5 shrink-0 text-nx-on-surface-variant mt-0.5" />
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-nx-on-surface">Capacity</p>
-                                                <p className="text-nx-on-surface-variant">
-                                                    {event.attendeeCount} / {event.maxAttendees} attendees
-                                                </p>
-                                                {isFull && (
-                                                    <Badge variant="destructive" className="mt-1">Event Full</Badge>
-                                                )}
-                                            </div>
-                                        </div>
-                                    )}
+									<div className="flex items-start gap-3">
+										<DollarSign className="w-5 h-5 text-nx-on-surface-variant mt-0.5" />
+										<div>
+											<p className="font-medium">Price</p>
+											{event.isFree ? (
+												<Badge className="bg-nx-success-container text-nx-on-success-container">
+													Free
+												</Badge>
+											) : (
+												<p className="text-nx-on-surface-variant font-semibold">
+													${event.price}
+												</p>
+											)}
+										</div>
+									</div>
 
-                                    <div className="flex items-start gap-3">
-                                        <DollarSign className="w-5 h-5 shrink-0 text-nx-on-surface-variant mt-0.5" />
-                                        <div className="min-w-0">
-                                            <p className="font-medium text-nx-on-surface">Price</p>
-                                            {event.isFree ? (
-                                                <Badge className="border-transparent bg-nx-success-container text-nx-on-success-container hover:bg-nx-success-container">Free</Badge>
-                                            ) : (
-                                                <p className="text-nx-on-surface-variant font-semibold">${event.price}</p>
-                                            )}
-                                        </div>
-                                    </div>
+									{event.url && (
+										<div className="flex items-start gap-3">
+											<Globe className="w-5 h-5 text-nx-on-surface-variant mt-0.5" />
+											<div>
+												<p className="font-medium">Event URL</p>
+												<a
+													href={event.url}
+													target="_blank"
+													rel="noopener noreferrer"
+													className="text-nx-tertiary hover:underline"
+												>
+													{event.url}
+												</a>
+											</div>
+										</div>
+									)}
+								</div>
+							</div>
 
-                                    {event.url && (
-                                        <div className="flex items-start gap-3">
-                                            <Globe className="w-5 h-5 shrink-0 text-nx-on-surface-variant mt-0.5" />
-                                            <div className="min-w-0">
-                                                <p className="font-medium text-nx-on-surface">Event URL</p>
-                                                <a
-                                                    href={event.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-nx-primary hover:underline break-all"
-                                                >
-                                                    {event.url}
-                                                </a>
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
+							{/* Attendees panel (visible to host or registered attendees) */}
+							{(userParticipation || isHost) && (
+								<EventParticipantsPanel
+									participants={event.participations as any}
+									isHost={!!isHost}
+									totalCount={event.attendeeCount}
+								/>
+							)}
 
-                            {/* Attendees panel (visible to host or registered attendees) */}
-                            {(userParticipation || isHost) && (
-                                <EventParticipantsPanel
-                                    participants={event.participations as any}
-                                    isHost={!!isHost}
-                                    totalCount={event.attendeeCount}
-                                />
-                            )}
+							{/* Meeting requests panel (registered attendees with an active org only) */}
+							{isRegistered && activeOrgId && (
+								<MeetingRequestsPanel
+									eventId={id}
+									callerOrgId={activeOrgId}
+									incoming={incomingMeetings}
+									sent={sentMeetings}
+									confirmed={confirmedMeetings}
+								/>
+							)}
+						</div>
 
-                            {/* Meeting requests panel (registered attendees with an active org only) */}
-                            {isRegistered && activeOrgId && (
-                                <MeetingRequestsPanel
-                                    eventId={id}
-                                    callerOrgId={activeOrgId}
-                                    incoming={incomingMeetings}
-                                    sent={sentMeetings}
-                                    confirmed={confirmedMeetings}
-                                />
-                            )}
-                        </div>
+						{/* Sidebar */}
+						<div className="space-y-6 min-w-0">
+							{/* Action Card */}
+							<div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6 sticky top-4">
+								{userParticipation ? (
+									<div className="space-y-3">
+										<Badge className="bg-nx-success-container text-nx-on-success-container w-full justify-center py-1.5">
+											✓ You&apos;re Registered
+										</Badge>
+										<CancelParticipationButton
+											eventId={event.id}
+											eventTitle={event.title}
+										/>
+										{/* Feedback button — only for non-cancelled participants */}
+										{canLeaveFeedback && (
+											<FeedbackButton
+												eventId={event.id}
+												eventTitle={event.title}
+												existing={existingFeedback}
+											/>
+										)}
+									</div>
+								) : isHost ? (
+									<div className="space-y-2">
+										<Badge className="bg-nx-secondary-container text-nx-on-secondary-container w-full justify-center py-1.5">
+											You&apos;re the Host
+										</Badge>
+										<Link href={`/events/${event.id}/edit`}>
+											<Button variant="outline" className="w-full">
+												Edit Event
+											</Button>
+										</Link>
+										<InviteGuestsModal
+											eventId={event.id}
+											eventTitle={event.title}
+										/>
+									</div>
+								) : (
+									<JoinEventButton
+										eventId={event.id}
+										eventTitle={event.title}
+										price={event.price || "0"}
+										currency={event.currency || "INR"}
+										isFree={event.isFree ?? event.paymentMode === "FREE"}
+										isFull={isFull}
+										isLoggedIn={!!userId}
+										activeOrganizationId={activeOrgId}
+									/>
+								)}
+							</div>
 
-                        {/* Sidebar */}
-                        <div className="space-y-6 min-w-0">
-                            {/* Action Card */}
-                            <div className="bg-nx-surface-container-lowest rounded-2xl border border-nx-outline-variant/30 p-5 sm:p-6 shadow-nx-card lg:sticky lg:top-4">
-                                {userParticipation ? (
-                                    <div className="space-y-3">
-                                        <Badge className="border-transparent bg-nx-success-container text-nx-on-success-container hover:bg-nx-success-container w-full justify-center py-1.5">
-                                            ✓ You&apos;re Registered
-                                        </Badge>
-                                        <CancelParticipationButton
-                                            eventId={event.id}
-                                            eventTitle={event.title}
-                                        />
-                                        {/* Feedback button — only for non-cancelled participants */}
-                                        {canLeaveFeedback && (
-                                            <FeedbackButton
-                                                eventId={event.id}
-                                                eventTitle={event.title}
-                                                existing={existingFeedback}
-                                            />
-                                        )}
-                                    </div>
-                                ) : isHost ? (
-                                    <div className="space-y-2">
-                                        <Badge className="border-transparent bg-nx-secondary-container text-nx-on-secondary-container hover:bg-nx-secondary-container w-full justify-center py-1.5">
-                                            You&apos;re the Host
-                                        </Badge>
-                                        <Link href={`/events/${event.id}/edit`}>
-                                            <Button variant="outline" className="w-full">
-                                                Edit Event
-                                            </Button>
-                                        </Link>
-                                        <InviteGuestsModal
-                                            eventId={event.id}
-                                            eventTitle={event.title}
-                                        />
-                                    </div>
-                                ) : (
-                                    <JoinEventButton
-                                        eventId={event.id}
-                                        eventTitle={event.title}
-                                        price={event.price || "0"}
-                                        currency={event.currency || "INR"}
-                                        isFree={event.isFree ?? event.paymentMode === "FREE"}
-                                        isFull={isFull}
-                                        isLoggedIn={!!userId}
-                                        activeOrganizationId={activeOrgId}
-                                    />
-                                )}
-                            </div>
+							{/* Organization Card */}
+							{event.organization && (
+								<div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
+									<h3 className="font-bold mb-4">Hosted By</h3>
+									<Link href={`/organizations/${event.organization.id}`}>
+										<div className="flex items-center gap-3 hover:bg-nx-surface-container-low p-3 rounded-lg transition-colors">
+											{event.organization.logo ? (
+												<Image
+													src={event.organization.logo}
+													alt={event.organization.name}
+													width={48}
+													height={48}
+													className="rounded-full shrink-0"
+												/>
+											) : (
+												<div className="w-12 h-12 rounded-full bg-nx-primary-container flex items-center justify-center">
+													<Building2 className="w-6 h-6 text-nx-on-primary-container" />
+												</div>
+											)}
+											<div>
+												<p className="font-semibold">
+													{event.organization.name}
+												</p>
+												<p className="text-sm text-nx-on-surface-variant">
+													View Profile →
+												</p>
+											</div>
+										</div>
+									</Link>
+								</div>
+							)}
 
-                            {/* Organization Card */}
-                            {event.organization && (
-                                <div className="bg-nx-surface-container-lowest rounded-2xl border border-nx-outline-variant/30 p-5 sm:p-6 shadow-nx-card">
-                                    <h3 className="font-headline font-bold text-nx-on-surface mb-4">Hosted By</h3>
-                                    <Link href={`/organizations/${event.organization.id}`}>
-                                        <div className="flex items-center gap-3 hover:bg-nx-surface-container p-3 rounded-xl transition-colors">
-                                            {event.organization.logo ? (
-                                                <Image
-                                                    src={event.organization.logo}
-                                                    alt={event.organization.name}
-                                                    width={48}
-                                                    height={48}
-                                                    className="rounded-full shrink-0"
-                                                />
-                                            ) : (
-                                                <div className="w-12 h-12 shrink-0 rounded-full bg-nx-secondary-container flex items-center justify-center">
-                                                    <Building2 className="w-6 h-6 text-nx-on-secondary-container" />
-                                                </div>
-                                            )}
-                                            <div className="min-w-0">
-                                                <p className="font-semibold text-nx-on-surface break-words">{event.organization.name}</p>
-                                                <p className="text-sm text-nx-on-surface-variant">View Profile →</p>
-                                            </div>
-                                        </div>
-                                    </Link>
-                                </div>
-                            )}
+							{/* Virtual rooms — ONLINE/HYBRID events only */}
+							{isVirtualEvent && (isRegistered || isHost) && (
+								<div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-6">
+									<div className="flex items-center gap-2 mb-4">
+										<Video className="w-5 h-5 text-nx-tertiary" />
+										<h3 className="font-bold">Virtual Sessions</h3>
+										<Badge className="bg-nx-tertiary-container text-nx-on-tertiary-container text-xs ml-auto">
+											{event.eventType === "HYBRID" ? "Hybrid" : "Online"}
+										</Badge>
+									</div>
+									<VirtualRoomList
+										eventId={id}
+										isHost={!!isHost}
+										initialRooms={virtualRooms.map((r) => ({
+											...r,
+											createdAt: r.createdAt.toISOString(),
+										}))}
+									/>
+									{/* Per-room join buttons for registered users */}
+									{(isRegistered || isHost) &&
+										virtualRooms.map((room) => (
+											<div key={room.id} className="mt-2">
+												<JoinVirtualButton
+													eventId={id}
+													roomId={room.id}
+													roomName={room.name}
+													eventType={event.eventType as "ONLINE" | "HYBRID"}
+													isRegistered={!!userParticipation}
+													isPaid={userParticipation?.isPaid ?? false}
+													isFree={event.isFree ?? true}
+													startDateTime={event.startDateTime.toISOString()}
+													endDateTime={event.endDateTime.toISOString()}
+												/>
+											</div>
+										))}
+								</div>
+							)}
 
-                            {/* Virtual rooms — ONLINE/HYBRID events only */}
-                            {isVirtualEvent && (isRegistered || isHost) && (
-                                <div className="bg-nx-surface-container-lowest rounded-2xl border border-nx-outline-variant/30 p-5 sm:p-6 shadow-nx-card">
-                                    <div className="flex items-center gap-2 mb-4">
-                                        <Video className="w-5 h-5 shrink-0 text-nx-primary" />
-                                        <h3 className="font-headline font-bold text-nx-on-surface">Virtual Sessions</h3>
-                                        <Badge className="border-transparent bg-nx-tertiary-container text-nx-on-tertiary-container hover:bg-nx-tertiary-container text-xs ml-auto shrink-0">
-                                            {event.eventType === "HYBRID" ? "Hybrid" : "Online"}
-                                        </Badge>
-                                    </div>
-                                    <VirtualRoomList
-                                        eventId={id}
-                                        isHost={!!isHost}
-                                        initialRooms={virtualRooms.map(r => ({
-                                            ...r,
-                                            createdAt: r.createdAt.toISOString(),
-                                        }))}
-                                    />
-                                    {/* Per-room join buttons for registered users */}
-                                    {(isRegistered || isHost) && virtualRooms.map((room) => (
-                                        <div key={room.id} className="mt-2">
-                                            <JoinVirtualButton
-                                                eventId={id}
-                                                roomId={room.id}
-                                                roomName={room.name}
-                                                eventType={event.eventType as "ONLINE" | "HYBRID"}
-                                                isRegistered={!!userParticipation}
-                                                isPaid={userParticipation?.isPaid ?? false}
-                                                isFree={event.isFree ?? true}
-                                                startDateTime={event.startDateTime.toISOString()}
-                                                endDateTime={event.endDateTime.toISOString()}
-                                            />
-                                        </div>
-                                    ))}
-                                </div>
-                            )}
+							{/* Org match widget (registered attendees with active org only) */}
+							{isRegistered && activeOrgId && matchedOrgs.length > 0 && (
+								<OrgMatchWidget
+									eventId={id}
+									callerOrgId={activeOrgId}
+									matchedOrgs={matchedOrgs}
+									meetingStatusMap={meetingStatusMap}
+								/>
+							)}
+						</div>
+					</div>
+				</div>
+			</div>
 
-                            {/* Org match widget (registered attendees with active org only) */}
-                            {isRegistered && activeOrgId && matchedOrgs.length > 0 && (
-                                <OrgMatchWidget
-                                    eventId={id}
-                                    callerOrgId={activeOrgId}
-                                    matchedOrgs={matchedOrgs}
-                                    meetingStatusMap={meetingStatusMap}
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            {/* AI Chat Widget — available to all logged-in users who can see this event */}
-            {userId && (
-                <ChatWidget
-                    contextId={event.id}
-                    contextType="EVENT"
-                    contextName={event.title}
-                />
-            )}
-        </>
-    );
+			{/* AI Chat Widget — available to all logged-in users who can see this event */}
+			{userId && (
+				<ChatWidget
+					contextId={event.id}
+					contextType="EVENT"
+					contextName={event.title}
+				/>
+			)}
+		</>
+	);
 };
 
 export default EventDetailPage;

@@ -68,8 +68,8 @@ function NavItem({
                 "flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                 isCollapsed && "justify-center px-3",
                 isActive
-                    ? "bg-white text-nx-on-tertiary-container shadow-nx-card font-semibold scale-[0.97]"
-                    : "text-nx-on-surface-variant hover:bg-white/60 hover:text-nx-on-surface hover:translate-x-0.5"
+                    ? "bg-nx-primary-container text-nx-on-primary-container shadow-nx-card font-semibold scale-[0.97]"
+                    : "text-nx-on-surface-variant hover:bg-nx-surface-container-high hover:text-nx-on-surface hover:translate-x-0.5"
             )}
         >
             <span className={cn("shrink-0", isActive ? "text-nx-on-tertiary-container" : "")}>
@@ -87,8 +87,8 @@ export default function Sidebar({ activeOrganizationId, isAdmin, className }: Si
     return (
         <aside
             className={cn(
-                // Nexus Corporate: warm slate-50 background, no border — depth via color shift
-                "bg-[#f8f7f8] h-[calc(100vh-4rem)] sticky top-16 hidden md:flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
+                // Nexus Corporate: tonal surface, no border — depth via color shift
+                "bg-nx-surface-container-low h-[calc(100vh-4rem)] sticky top-16 hidden md:flex flex-col shrink-0 transition-all duration-300 overflow-hidden",
                 isCollapsed ? "w-[72px]" : "w-64",
                 className
             )}
@@ -183,7 +183,7 @@ export default function Sidebar({ activeOrganizationId, isAdmin, className }: Si
                     <div className="bg-nx-primary-container rounded-xl p-4">
                         <Link
                             href="/events"
-                            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-nx-primary text-white rounded-lg text-sm font-semibold font-headline hover:opacity-90 transition-opacity shadow-nx-primary"
+                            className="flex items-center justify-center gap-2 w-full py-2.5 px-4 bg-nx-primary text-nx-on-primary rounded-lg text-sm font-semibold font-headline hover:opacity-90 transition-opacity shadow-nx-primary"
                         >
                             <Calendar className="w-4 h-4" />
                             Browse Events
@@ -195,7 +195,7 @@ export default function Sidebar({ activeOrganizationId, isAdmin, className }: Si
                 <button
                     onClick={() => setIsCollapsed(!isCollapsed)}
                     title={isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
-                    className="flex w-full items-center justify-center p-2.5 rounded-lg hover:bg-white/80 text-nx-on-surface-variant transition-colors duration-200"
+                    className="flex w-full items-center justify-center p-2.5 rounded-lg hover:bg-nx-surface-container-high text-nx-on-surface-variant transition-colors duration-200"
                 >
                     {isCollapsed
                         ? <ChevronRight className="w-4 h-4" />

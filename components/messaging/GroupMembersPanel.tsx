@@ -34,7 +34,7 @@ interface GroupMembersPanelProps {
 function RoleBadge({ role }: { role: string }) {
     if (role === "OWNER") {
         return (
-            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-semibold">
+            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-nx-warning-container border border-nx-warning/30 text-nx-on-warning-container text-[10px] font-semibold">
                 <Crown className="w-2.5 h-2.5" /> Owner
             </span>
         );
@@ -101,7 +101,7 @@ function MemberRow({
             {canRemove && !isCurrentUser && member.role !== "OWNER" && (
                 <button
                     onClick={() => onRemove(member.userId)}
-                    className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-red-50 hover:text-red-600 text-nx-on-surface-variant transition-all"
+                    className="opacity-0 group-hover:opacity-100 w-7 h-7 flex items-center justify-center rounded-lg hover:bg-nx-error-container hover:text-nx-on-error-container text-nx-on-surface-variant transition-all"
                     title="Remove member"
                     aria-label={`Remove ${member.user?.name ?? "member"}`}
                 >
@@ -161,7 +161,7 @@ export function GroupMembersPanel({
 
     return (
         /* Slide-in panel */
-        <div className="absolute top-0 right-0 h-full w-72 bg-white border-l border-nx-outline-variant shadow-lg z-20 flex flex-col">
+        <div className="absolute top-0 right-0 h-full w-72 bg-nx-surface-container-lowest border-l border-nx-outline-variant shadow-lg z-20 flex flex-col">
             {/* Header */}
             <div className="px-4 pt-5 pb-3 shrink-0 border-b border-nx-outline-variant/60 flex items-center justify-between">
                 <h3 className="text-sm font-headline font-bold text-nx-on-surface flex items-center gap-2">

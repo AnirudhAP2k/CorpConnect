@@ -102,11 +102,11 @@ export default function ConnectButton({
     // ── PENDING_RECEIVED: show Accept / Decline inline ────────────────────────
     if (status === "PENDING_RECEIVED") {
         return (
-            <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-500 mr-1">Incoming request</span>
+            <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm text-nx-on-surface-variant mr-1">Incoming request</span>
                 <Button
                     size="sm"
-                    className="gap-1.5 bg-green-600 hover:bg-green-700"
+                    className="gap-1.5 bg-nx-success text-nx-on-success hover:bg-nx-success/90"
                     onClick={() => respond("ACCEPT")}
                     disabled={loading}
                 >
@@ -115,7 +115,7 @@ export default function ConnectButton({
                 <Button
                     size="sm"
                     variant="outline"
-                    className="gap-1.5 text-red-500 border-red-200 hover:bg-red-50"
+                    className="gap-1.5 text-nx-error border-nx-error/30 hover:bg-nx-error-container"
                     onClick={() => respond("DECLINE")}
                     disabled={loading}
                 >
@@ -131,7 +131,7 @@ export default function ConnectButton({
             <Button
                 variant="outline"
                 size="sm"
-                className="gap-2 text-amber-600 border-amber-200 hover:bg-amber-50"
+                className="gap-2 text-nx-warning border-nx-warning/30 hover:bg-nx-warning-container"
                 onClick={withdraw}
                 disabled={loading}
             >
@@ -149,7 +149,7 @@ export default function ConnectButton({
                         <UserPlus className="w-4 h-4" />Connect
                     </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent className="sm:max-w-md bg-white">
+                <AlertDialogContent className="sm:max-w-md bg-nx-surface-container-lowest border-nx-outline-variant">
                     <AlertDialogHeader>
                         <AlertDialogTitle>Connect with {targetOrgName}</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -157,7 +157,7 @@ export default function ConnectButton({
                         </AlertDialogDescription>
                     </AlertDialogHeader>
                     <div className="space-y-3">
-                        <Label htmlFor="conn-msg">Message <span className="text-gray-400 font-normal">(optional)</span></Label>
+                        <Label htmlFor="conn-msg">Message <span className="text-nx-on-surface-variant font-normal">(optional)</span></Label>
                         <Textarea
                             id="conn-msg"
                             placeholder="Tell them why you'd like to connect…"
@@ -166,7 +166,7 @@ export default function ConnectButton({
                             onChange={(e) => setMessage(e.target.value)}
                             maxLength={500}
                         />
-                        <p className="text-xs text-gray-400 text-right">{message.length}/500</p>
+                        <p className="text-xs text-nx-on-surface-variant text-right">{message.length}/500</p>
                     </div>
                     <AlertDialogFooter>
                         <AlertDialogCancel>Cancel</AlertDialogCancel>

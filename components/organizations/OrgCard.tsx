@@ -30,16 +30,16 @@ export default function OrgCard({ org }: OrgCardProps) {
     return (
         <Link
             href={`/organizations/${org.id}`}
-            className="group block bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-lg hover:border-primary/30 transition-all duration-200"
+            className="group block bg-nx-surface-container-lowest border border-nx-outline-variant/60 rounded-xl overflow-hidden hover:shadow-lg hover:border-nx-primary/30 transition-all duration-200"
         >
             {/* Card top accent bar */}
-            <div className="h-1.5 bg-gradient-to-r from-primary/60 to-primary" />
+            <div className="h-1.5 bg-nx-primary" />
 
             <div className="p-5">
                 {/* Header row */}
                 <div className="flex items-start gap-3 mb-3">
                     {/* Logo */}
-                    <div className="relative flex-shrink-0 w-12 h-12 rounded-lg overflow-hidden bg-gray-100 border border-gray-200">
+                    <div className="relative flex-shrink-0 w-12 h-12 rounded-xl overflow-hidden bg-nx-surface-container border border-nx-outline-variant">
                         {org.logo ? (
                             <Image
                                 src={org.logo}
@@ -50,7 +50,7 @@ export default function OrgCard({ org }: OrgCardProps) {
                             />
                         ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                                <Building2 className="w-6 h-6 text-gray-400" />
+                                <Building2 className="w-6 h-6 text-nx-on-surface-variant/60" />
                             </div>
                         )}
                     </div>
@@ -58,19 +58,19 @@ export default function OrgCard({ org }: OrgCardProps) {
                     {/* Name + industry */}
                     <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-1.5">
-                            <h3 className="font-semibold text-gray-900 truncate group-hover:text-primary transition-colors">
+                            <h3 className="font-headline font-semibold text-nx-on-surface truncate group-hover:text-nx-primary transition-colors">
                                 {org.name}
                             </h3>
                             {org.isVerified && (
                                 <CheckCircle className="w-4 h-4 text-primary flex-shrink-0" aria-label="Verified" />
                             )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">{org.industry.label}</p>
+                        <p className="text-xs text-nx-on-surface-variant mt-0.5">{org.industry.label}</p>
                     </div>
                 </div>
 
                 {/* Description */}
-                <p className="text-sm text-gray-600 line-clamp-2 mb-3 min-h-[2.5rem]">
+                <p className="text-sm text-nx-on-surface-variant line-clamp-2 mb-3 min-h-[2.5rem]">
                     {org.description ?? "No description provided."}
                 </p>
 
@@ -81,7 +81,7 @@ export default function OrgCard({ org }: OrgCardProps) {
                             <Badge
                                 key={tag.id}
                                 variant="secondary"
-                                className="text-xs px-2 py-0.5 bg-primary/8 text-primary border-primary/20"
+                                className="text-xs px-2 py-0.5 bg-nx-primary-container text-nx-on-primary-container border-nx-primary/20"
                             >
                                 {tag.label}
                             </Badge>
@@ -95,7 +95,7 @@ export default function OrgCard({ org }: OrgCardProps) {
                 )}
 
                 {/* Footer meta */}
-                <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-nx-on-surface-variant pt-3 border-t border-nx-outline-variant/40">
                     <div className="flex items-center gap-3">
                         <span className="flex items-center gap-1">
                             <Users className="w-3.5 h-3.5" />

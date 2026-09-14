@@ -68,7 +68,7 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
 
     return (
         <Select onValueChange={onChangeHandler} defaultValue={value} disabled={disabled}>
-            <SelectTrigger className="select-field">
+            <SelectTrigger className="h-[54px] rounded-xl border-nx-outline-variant bg-nx-surface-container-low font-body text-nx-on-surface focus:ring-nx-primary/20">
                 <SelectValue placeholder={`${type || 'category'}`} />
             </SelectTrigger>
             <SelectContent>
@@ -76,7 +76,7 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
                     <SelectItem
                         key={option.id}
                         value={option.id}
-                        className="select-item p-regular-14"
+                        className="rounded-lg font-body text-sm text-nx-on-surface focus:bg-nx-surface-container-high focus:text-nx-on-surface"
                     >
                         {option.label}
                     </SelectItem>
@@ -84,8 +84,8 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
                 ))}
 
                 <Dialog open={open} onOpenChange={setOpen}>
-                    <DialogTrigger className="p-medium-14 flex w-full rounded-sm py-3 pl-8 text-primary-500 hover:bg-primary-50 focus:text-primary-500">Add new {type || 'category'}</DialogTrigger>
-                    <DialogContent className="bg-white">
+                    <DialogTrigger className="flex w-full rounded-xl py-3 pl-8 font-label text-sm font-medium text-nx-primary hover:bg-nx-surface-container focus:text-nx-primary">Add new {type || 'category'}</DialogTrigger>
+                    <DialogContent className="rounded-2xl border-nx-outline-variant/30 bg-nx-surface-container-lowest text-nx-on-surface">
                         <DialogHeader>
                             <DialogTitle>New {type || 'category'}</DialogTitle>
                             <DialogDescription>
@@ -95,15 +95,15 @@ const Dropdown = ({ value, onChangeHandler, type, disabled }: DropdownProps) => 
                         <Input
                             type="text"
                             placeholder={`${type || 'category'} name`}
-                            className="input-field mt-1"
+                            className="mt-1 rounded-xl border-nx-outline-variant bg-nx-surface-container-low text-nx-on-surface placeholder:text-nx-on-surface-variant/60 focus-visible:ring-nx-primary/20"
                             value={newOption}
                             onChange={(e) => { setNewOption(e.target.value) }}
                         />
                         <DialogFooter>
                             <DialogClose asChild>
-                                <Button variant="outline">Cancel</Button>
+                                <Button variant="outline" className="rounded-xl font-label">Cancel</Button>
                             </DialogClose>
-                            <Button onClick={() => { startTransition(handleAddOption) }}>Add</Button>
+                            <Button className="rounded-xl font-label" onClick={() => { startTransition(handleAddOption) }}>Add</Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>

@@ -48,19 +48,19 @@ export default function TagArrayInput({
 
     return (
         <div
-            className={`min-h-[42px] flex flex-wrap gap-1.5 items-center px-3 py-2 border border-input rounded-md bg-background cursor-text ${disabled ? "opacity-50 pointer-events-none" : ""}`}
+            className={`flex min-h-[42px] cursor-text flex-wrap items-center gap-1.5 rounded-xl border border-nx-outline-variant bg-nx-surface-container-low px-3 py-2 font-body text-nx-on-surface ${disabled ? "opacity-50 pointer-events-none" : ""}`}
             onClick={() => inputRef.current?.focus()}
         >
             {value.map((tag) => (
                 <span
                     key={tag}
-                    className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20"
+                    className="inline-flex items-center gap-1 rounded-full border border-nx-primary/20 bg-nx-primary-container/30 px-2.5 py-0.5 font-label text-xs font-medium text-nx-primary"
                 >
                     {tag}
                     <button
                         type="button"
                         onClick={(e) => { e.stopPropagation(); removeTag(tag); }}
-                        className="hover:text-destructive transition-colors"
+                        className="transition-colors hover:text-nx-error"
                         aria-label={`Remove ${tag}`}
                     >
                         <X className="w-3 h-3" />
@@ -76,11 +76,11 @@ export default function TagArrayInput({
                     onBlur={() => addTag(inputVal)}
                     placeholder={value.length === 0 ? placeholder : ""}
                     disabled={disabled}
-                    className="border-0 shadow-none p-0 h-auto flex-1 min-w-[140px] focus-visible:ring-0 text-sm"
+                    className="h-auto min-w-[140px] flex-1 border-0 bg-transparent p-0 text-sm text-nx-on-surface shadow-none placeholder:text-nx-on-surface-variant/60 focus-visible:ring-0"
                 />
             )}
             {value.length >= maxItems && (
-                <span className="text-xs text-gray-400">Max {maxItems} reached</span>
+                <span className="text-xs text-nx-on-surface-variant/70">Max {maxItems} reached</span>
             )}
         </div>
     );

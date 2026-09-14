@@ -149,8 +149,8 @@ export default async function MessagingLayout({
                         /* Non-enterprise subtle upgrade prompt */
                         <div className="mx-3 mb-3 mt-auto shrink-0">
                             <div className="rounded-xl border border-nx-outline-variant/60 bg-nx-surface-container-lowest px-3 py-3 text-center">
-                                <div className="w-8 h-8 rounded-lg bg-nx-warning-container border border-nx-warning/20 flex items-center justify-center mx-auto mb-2">
-                                    <Zap className="w-4 h-4 text-nx-warning" />
+                                <div className="w-8 h-8 rounded-lg bg-nx-warning-container border border-nx-warning/30 flex items-center justify-center mx-auto mb-2">
+                                    <Zap className="w-4 h-4 text-nx-on-warning-container" />
                                 </div>
                                 <p className="text-[11px] font-semibold text-nx-on-surface">Enterprise Groups</p>
                                 <p className="text-[10px] text-nx-on-surface-variant mt-0.5 leading-relaxed">
@@ -162,7 +162,8 @@ export default async function MessagingLayout({
                 </aside>
             }
         >
-            <main className="flex h-full flex-col overflow-hidden">
+            {/* ── Right panel: chat area ── */}
+            <main className="flex-1 overflow-hidden flex flex-col">
                 {children}
             </main>
         </MessagingShell>

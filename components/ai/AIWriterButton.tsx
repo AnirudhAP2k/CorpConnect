@@ -64,7 +64,7 @@ export function AIWriterButton({
                 size="sm"
                 onClick={handleGenerate}
                 disabled={isLoading}
-                className="flex items-center gap-2 text-violet-600 border-violet-200 hover:bg-violet-50 hover:border-violet-400 transition-all"
+                className="flex items-center gap-2 rounded-xl border-nx-outline-variant text-nx-primary transition-all hover:border-nx-primary hover:bg-nx-surface-container"
                 id="ai-writer-btn"
             >
                 {isLoading ? (
@@ -77,7 +77,7 @@ export function AIWriterButton({
 
             {/* Error State */}
             {error && (
-                <div className="mt-2 flex items-start gap-2 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+                <div className="mt-2 flex items-start gap-2 rounded-xl border border-nx-error/25 bg-nx-error-container p-3 text-sm text-nx-on-error-container">
                     <X className="w-4 h-4 mt-0.5 shrink-0" />
                     <span>{error}</span>
                 </div>
@@ -85,17 +85,17 @@ export function AIWriterButton({
 
             {/* Generated Result Panel */}
             {result && (
-                <div className="mt-3 rounded-xl border border-violet-200 bg-violet-50/50 overflow-hidden shadow-sm">
+                <div className="mt-3 overflow-hidden rounded-2xl border border-nx-outline-variant/30 bg-nx-surface-container-lowest shadow-nx-card">
                     {/* Header */}
-                    <div className="flex items-center justify-between px-4 py-2 border-b border-violet-200 bg-violet-100/60">
-                        <div className="flex items-center gap-2 text-violet-700 font-medium text-sm">
+                    <div className="flex items-center justify-between border-b border-nx-outline-variant/30 bg-nx-primary-container px-4 py-2">
+                        <div className="flex items-center gap-2 text-sm font-medium text-nx-on-primary-container">
                             <Sparkles className="w-4 h-4" />
                             AI-Generated Description
                         </div>
                         <button
                             type="button"
                             onClick={handleDismiss}
-                            className="text-violet-400 hover:text-violet-700 transition-colors"
+                            className="text-nx-on-primary-container/70 transition-colors hover:text-nx-on-primary-container"
                             aria-label="Dismiss"
                         >
                             <X className="w-4 h-4" />
@@ -103,18 +103,18 @@ export function AIWriterButton({
                     </div>
 
                     {/* Generated Text Preview */}
-                    <div className="px-4 py-3 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+                    <div className="whitespace-pre-wrap px-4 py-3 font-body text-sm leading-relaxed text-nx-on-surface">
                         {result.description}
                     </div>
 
                     {/* Source Documents Badge */}
                     {result.sourceDocs.length > 0 && (
                         <div className="px-4 pb-2 flex flex-wrap gap-1">
-                            <span className="text-xs text-violet-500 font-medium mr-1">Sources used:</span>
+                            <span className="mr-1 text-xs font-medium text-nx-on-surface-variant">Sources used:</span>
                             {result.sourceDocs.map((doc, i) => (
                                 <span
                                     key={i}
-                                    className="text-xs bg-violet-100 text-violet-600 px-2 py-0.5 rounded-full"
+                                    className="rounded-lg bg-nx-secondary-container px-2 py-0.5 text-xs text-nx-on-secondary-container"
                                 >
                                     {doc}
                                 </span>
@@ -124,11 +124,11 @@ export function AIWriterButton({
 
                     {/* Suggestions Accordion */}
                     {result.suggestions.length > 0 && (
-                        <div className="border-t border-violet-200">
+                        <div className="border-t border-nx-outline-variant/30">
                             <button
                                 type="button"
                                 onClick={() => setShowSuggestions(!showSuggestions)}
-                                className="w-full flex items-center justify-between px-4 py-2 text-xs text-violet-600 hover:bg-violet-100/60 transition-colors"
+                                className="flex w-full items-center justify-between px-4 py-2 text-xs text-nx-primary transition-colors hover:bg-nx-surface-container"
                             >
                                 <span className="font-medium">
                                     💡 {result.suggestions.length} improvement suggestions
@@ -142,8 +142,8 @@ export function AIWriterButton({
                             {showSuggestions && (
                                 <ul className="px-4 pb-3 space-y-1">
                                     {result.suggestions.map((s, i) => (
-                                        <li key={i} className="text-xs text-gray-600 flex items-start gap-2">
-                                            <span className="text-violet-400 mt-0.5">•</span>
+                                        <li key={i} className="flex items-start gap-2 text-xs text-nx-on-surface-variant">
+                                            <span className="mt-0.5 text-nx-primary">•</span>
                                             {s}
                                         </li>
                                     ))}
@@ -153,12 +153,12 @@ export function AIWriterButton({
                     )}
 
                     {/* Actions */}
-                    <div className="flex items-center gap-2 px-4 py-3 border-t border-violet-200 bg-white">
+                    <div className="flex flex-wrap items-center gap-2 border-t border-nx-outline-variant/30 bg-nx-surface-container-low px-4 py-3">
                         <Button
                             type="button"
                             size="sm"
                             onClick={handleAccept}
-                            className="bg-violet-600 hover:bg-violet-700 text-white"
+                            className="rounded-xl"
                             id="ai-writer-accept-btn"
                         >
                             Use This Description
@@ -169,7 +169,7 @@ export function AIWriterButton({
                             size="sm"
                             onClick={handleGenerate}
                             disabled={isLoading}
-                            className="text-violet-600 hover:bg-violet-50"
+                            className="rounded-xl text-nx-primary hover:bg-nx-surface-container-high"
                             id="ai-writer-retry-btn"
                         >
                             {isLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Regenerate"}
@@ -179,7 +179,7 @@ export function AIWriterButton({
                             variant="ghost"
                             size="sm"
                             onClick={handleDismiss}
-                            className="text-gray-500 hover:bg-gray-100 ml-auto"
+                            className="ml-auto rounded-xl text-nx-on-surface-variant hover:bg-nx-surface-container-high"
                         >
                             Discard
                         </Button>

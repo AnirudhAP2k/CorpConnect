@@ -36,7 +36,7 @@ export function ConversationList({ conversations, activeOrgId }: ConversationLis
     );
 
     return (
-        <div className="flex flex-col h-full bg-[#f8f7f8]">
+        <div className="flex flex-col h-full bg-nx-surface-container-low">
             {/* Header */}
             <div className="px-4 pt-5 pb-3 shrink-0 border-b border-nx-outline-variant/60">
                 <h2 className="text-base font-headline font-bold text-nx-on-surface flex items-center gap-2">
@@ -58,7 +58,7 @@ export function ConversationList({ conversations, activeOrgId }: ConversationLis
                             value={query}
                             onChange={(e) => setQuery(e.target.value)}
                             placeholder="Search conversations…"
-                            className="w-full pl-8 pr-3 py-2 rounded-lg text-xs bg-white border border-nx-outline-variant focus:outline-none focus:border-nx-primary focus:ring-2 focus:ring-nx-primary/10 placeholder:text-nx-on-surface-variant/50"
+                            className="w-full pl-8 pr-3 py-2 rounded-lg text-xs bg-nx-surface-container-lowest text-nx-on-surface border border-nx-outline-variant focus:outline-none focus:border-nx-primary focus:ring-2 focus:ring-nx-primary/10 placeholder:text-nx-on-surface-variant/50"
                         />
                     </div>
                 </div>

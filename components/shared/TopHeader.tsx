@@ -1,8 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
-import { auth } from "@/auth";
-import { Button } from "@/components/ui/button";
+import { auth, signOut } from "@/auth";
+import { Button } from "../ui/button";
 import OrganizationSwitcher from "@/components/shared/OrganizationSwitcher";
 import { prisma } from "@/lib/db";
 import { getNotificationsByUserId } from "@/domain/notifications";
@@ -15,7 +15,7 @@ import {
 } from "@/components/shared/NotificationBell";
 import { UnreadBadge } from "@/components/messaging/UnreadBadge";
 import { getUserImage } from "@/domain/users";
-import { LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/shared/ThemeToggle";
 
 const TopHeader = async () => {
 	const session = await auth();
@@ -115,9 +115,9 @@ const TopHeader = async () => {
 	reminders.sort((a, b) => b.date.getTime() - a.date.getTime());
 
 	return (
-		<header className="w-full border-b bg-background sticky top-0 z-40 h-16 shrink-0">
+		<header className="w-full border-b border-nx-outline-variant/60 bg-nx-surface sticky top-0 z-40 h-16 shrink-0">
 			<div className="flex items-center justify-between px-4 h-full container mx-auto max-w-[1600px]">
-				<div className="flex items-center gap-2 md:gap-4">
+				<div className="flex items-center gap-4">
 					{session?.user && (
 						<div className="md:hidden">
 							<MobileSidebar
@@ -145,20 +145,13 @@ const TopHeader = async () => {
 				{/* Centre nav — active-aware, client component */}
 				<TopNavLinks />
 
-				<div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+				<div className="flex items-center gap-4">
 					{session && session?.user ? (
 						<>
 							<div className="hidden md:block">
 								<OrganizationSwitcher
 									organizations={userOrganizations}
 									activeOrganizationId={activeOrganizationId}
-								/>
-							</div>
-							<div className="md:hidden">
-								<OrganizationSwitcher
-									organizations={userOrganizations}
-									activeOrganizationId={activeOrganizationId}
-									variant="icon"
 								/>
 							</div>
 							<div className="hidden md:flex items-center gap-2">
@@ -170,16 +163,10 @@ const TopHeader = async () => {
 							<NotificationBell reminders={reminders} />
 							<UnreadBadge />
 
-							<div className="flex items-center gap-2 md:gap-3">
-								<form action={logout} className="hidden md:block">
-									<Button
-										className="rounded-xl md:w-auto md:px-5"
-										size="icon"
-										type="submit"
-										aria-label="Log out"
-									>
-										<LogOut className="h-4 w-4 md:hidden" />
-										<span className="hidden md:inline">Logout</span>
+							<div className="flex items-center gap-3">
+								<form action={logout}>
+									<Button className="rounded-full" size="lg" type="submit">
+										Logout
 									</Button>
 								</form>
 								<Link href={`/profile`}>
@@ -191,13 +178,13 @@ const TopHeader = async () => {
 										className="rounded-full border"
 									/>
 								</Link>
-								{/* Theme toggle stays hidden until authenticated light/dark visual QA passes. */}
+								<ThemeToggle />
 							</div>
 						</>
 					) : (
 						<div className="flex items-center gap-3">
-							{/* Theme toggle stays hidden until light/dark visual QA passes. */}
-							<Button asChild className="rounded-xl" size="lg">
+							<ThemeToggle />
+							<Button asChild className="rounded-full" size="lg">
 								<Link href="/login">Login</Link>
 							</Button>
 						</div>

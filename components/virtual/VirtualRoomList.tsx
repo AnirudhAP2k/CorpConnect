@@ -73,10 +73,10 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
 
     if (rooms.length === 0 && !isHost) {
         return (
-            <div className="text-center py-6 text-gray-500 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <div className="text-center py-6 text-nx-on-surface-variant bg-nx-surface-container-low rounded-lg border border-dashed border-nx-outline-variant/40">
                 <Video className="w-8 h-8 mx-auto mb-2 opacity-40" />
                 <p className="text-sm">No virtual sessions open yet.</p>
-                <p className="text-xs text-gray-400 mt-1">The host will start a session soon.</p>
+                <p className="text-xs text-nx-on-surface-variant/70 mt-1">The host will start a session soon.</p>
             </div>
         );
     }
@@ -87,16 +87,16 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
             {rooms.map((room) => (
                 <div
                     key={room.id}
-                    className="flex items-center justify-between gap-3 bg-white border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors"
+                    className="flex items-center justify-between gap-3 bg-nx-surface-container-lowest border border-nx-outline-variant/20 rounded-lg p-3 hover:border-nx-tertiary/40 transition-colors"
                 >
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-                            <Video className="w-4 h-4 text-blue-600" />
+                        <div className="w-8 h-8 rounded-full bg-nx-tertiary-container flex items-center justify-center shrink-0">
+                            <Video className="w-4 h-4 text-nx-on-tertiary-container" />
                         </div>
                         <div className="min-w-0">
                             <p className="font-medium text-sm truncate">{room.name}</p>
                             {room.maxParticipants && (
-                                <p className="text-xs text-gray-400 flex items-center gap-1">
+                                <p className="text-xs text-nx-on-surface-variant/70 flex items-center gap-1">
                                     <Users className="w-3 h-3" />
                                     Max {room.maxParticipants}
                                 </p>
@@ -104,14 +104,14 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
                         </div>
                     </div>
                     <div className="flex items-center gap-2 shrink-0">
-                        <Badge className="bg-green-100 text-green-700 text-xs">Live</Badge>
+                        <Badge className="bg-nx-success-container text-nx-on-success-container text-xs">Live</Badge>
                         {isHost && (
                             <Button
                                 size="sm"
                                 variant="ghost"
                                 onClick={() => handleDelete(room.id)}
                                 disabled={deletingId === room.id}
-                                className="text-red-500 hover:text-red-700 hover:bg-red-50 h-7 w-7 p-0"
+                                className="text-nx-error hover:text-nx-error/80 hover:bg-nx-error-container h-7 w-7 p-0"
                             >
                                 {deletingId === room.id ? (
                                     <Loader2 className="w-3 h-3 animate-spin" />
@@ -128,14 +128,14 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
             {isHost && (
                 <div>
                     {showForm ? (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 space-y-2">
+                        <div className="bg-nx-tertiary-container border border-nx-tertiary/30 rounded-lg p-3 space-y-2">
                             <input
                                 type="text"
                                 value={newRoomName}
                                 onChange={(e) => setNewRoomName(e.target.value)}
                                 onKeyDown={(e) => e.key === "Enter" && handleCreate()}
                                 placeholder="Room name, e.g. Main Stage"
-                                className="w-full text-sm border border-gray-200 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                className="w-full text-sm bg-nx-surface-container-lowest text-nx-on-surface border border-nx-outline-variant/30 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-nx-tertiary"
                                 autoFocus
                             />
                             <div className="flex gap-2">
@@ -143,7 +143,7 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
                                     size="sm"
                                     onClick={handleCreate}
                                     disabled={creating || !newRoomName.trim()}
-                                    className="bg-blue-600 hover:bg-blue-700 text-white h-8 text-xs flex-1"
+                                    className="bg-nx-primary hover:bg-nx-primary/90 text-nx-on-primary h-8 text-xs flex-1"
                                 >
                                     {creating ? <Loader2 className="w-3 h-3 animate-spin" /> : "Create Room"}
                                 </Button>
@@ -162,7 +162,7 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
                             variant="outline"
                             size="sm"
                             onClick={() => setShowForm(true)}
-                            className="w-full border-dashed border-blue-300 text-blue-600 hover:bg-blue-50 h-9 text-xs gap-1"
+                            className="w-full border-dashed border-nx-tertiary/40 text-nx-tertiary hover:bg-nx-tertiary-container h-9 text-xs gap-1"
                         >
                             <Plus className="w-3 h-3" />
                             Add Virtual Room
@@ -172,7 +172,7 @@ export function VirtualRoomList({ eventId, isHost, initialRooms }: VirtualRoomLi
             )}
 
             {error && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                <p className="text-xs text-nx-on-error-container bg-nx-error-container border border-nx-error/30 rounded-md px-3 py-2">
                     {error}
                 </p>
             )}

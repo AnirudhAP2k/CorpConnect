@@ -70,7 +70,7 @@ export function JoinVirtualButton({
     // Gate: paid events require payment confirmation
     if (!isFree && !isPaid) {
         return (
-            <div className="flex items-center gap-2 text-sm text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-nx-on-warning-container bg-nx-warning-container border border-nx-warning/30 rounded-lg p-3">
                 <CreditCard className="w-4 h-4 shrink-0" />
                 <span>Complete payment to access the virtual session.</span>
             </div>
@@ -86,7 +86,7 @@ export function JoinVirtualButton({
     // Gate: not started yet
     if (now < joinFrom) {
         return (
-            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-nx-on-tertiary-container bg-nx-tertiary-container border border-nx-tertiary/30 rounded-lg p-3">
                 <Clock className="w-4 h-4 shrink-0" />
                 <span>
                     Virtual session opens at{" "}
@@ -101,7 +101,7 @@ export function JoinVirtualButton({
     // Gate: event ended
     if (now > end) {
         return (
-            <div className="flex items-center gap-2 text-sm text-gray-500 bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-nx-on-surface-variant bg-nx-surface-container-low border border-nx-outline-variant/30 rounded-lg p-3">
                 <Lock className="w-4 h-4 shrink-0" />
                 <span>This virtual session has ended.</span>
             </div>
@@ -113,7 +113,7 @@ export function JoinVirtualButton({
             <Button
                 onClick={handleJoin}
                 disabled={loading}
-                className={`w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-5 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] gap-2 ${className}`}
+                className={`w-full bg-gradient-to-r from-nx-tertiary to-nx-primary hover:from-nx-tertiary/90 hover:to-nx-primary/90 text-nx-on-primary font-semibold py-5 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] gap-2 ${className}`}
             >
                 {loading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
@@ -123,7 +123,7 @@ export function JoinVirtualButton({
                 {loading ? "Connecting…" : `Join "${roomName}"`}
             </Button>
             {error && (
-                <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+                <p className="text-xs text-nx-on-error-container bg-nx-error-container border border-nx-error/30 rounded-md px-3 py-2">
                     {error}
                 </p>
             )}

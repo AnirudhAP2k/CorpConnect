@@ -40,10 +40,10 @@ async function OrgResults({ params }: { params: SearchParams }) {
 
     if (organizations.length === 0) {
         return (
-            <div className="bg-white rounded-xl border border-gray-200 p-16 text-center">
-                <Building2 className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">No organizations found</h3>
-                <p className="text-gray-500 text-sm">
+            <div className="bg-nx-surface-container-lowest rounded-xl border border-nx-outline-variant/60 px-5 py-12 sm:p-16 text-center">
+                <Building2 className="w-12 h-12 text-nx-on-surface-variant/50 mx-auto mb-4" />
+                <h3 className="text-lg font-headline font-semibold text-nx-on-surface mb-2">No organizations found</h3>
+                <p className="text-nx-on-surface-variant text-sm">
                     {hasFilters ? "Try adjusting your filters." : "No organizations have been created yet."}
                 </p>
             </div>
@@ -52,9 +52,9 @@ async function OrgResults({ params }: { params: SearchParams }) {
 
     return (
         <div>
-            <p className="text-sm text-gray-500 mb-4">
-                Showing <span className="font-medium text-gray-800">{skip + 1}–{Math.min(skip + input.limit, total)}</span> of{" "}
-                <span className="font-medium text-gray-800">{total}</span> organizations
+            <p className="text-sm text-nx-on-surface-variant mb-4">
+                Showing <span className="font-medium text-nx-on-surface">{skip + 1}–{Math.min(skip + input.limit, total)}</span> of{" "}
+                <span className="font-medium text-nx-on-surface">{total}</span> organizations
             </p>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
@@ -69,18 +69,18 @@ async function OrgResults({ params }: { params: SearchParams }) {
                     {page > 1 && (
                         <a
                             href={`?${new URLSearchParams({ ...params, page: String(page - 1) }).toString()}`}
-                            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                            className="px-4 py-2 text-sm border border-nx-outline-variant rounded-xl bg-nx-surface-container-lowest hover:bg-nx-surface-container transition-colors"
                         >
                             ← Previous
                         </a>
                     )}
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-nx-on-surface-variant">
                         Page {page} of {totalPages}
                     </span>
                     {page < totalPages && (
                         <a
                             href={`?${new URLSearchParams({ ...params, page: String(page + 1) }).toString()}`}
-                            className="px-4 py-2 text-sm border rounded-lg hover:bg-gray-50 transition-colors"
+                            className="px-4 py-2 text-sm border border-nx-outline-variant rounded-xl bg-nx-surface-container-lowest hover:bg-nx-surface-container transition-colors"
                         >
                             Next →
                         </a>
@@ -104,16 +104,16 @@ export default async function OrgsDiscoverPage({ searchParams }: OrgsDiscoverPag
     const hasFilters = params.q || params.industry || params.size || params.location || params.tags;
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-nx-surface font-body text-nx-on-surface">
             {/* Hero header */}
-            <section className="bg-primary-50 bg-dotted-pattern bg-cover bg-center py-10 md:py-16">
+            <section className="bg-nx-primary-container/30 bg-dotted-pattern bg-cover bg-center py-10 md:py-16">
                 <div className="wrapper">
                     <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="w-5 h-5 text-primary" />
-                        <span className="text-sm font-medium text-primary">B2B Network</span>
+                        <Sparkles className="w-5 h-5 text-nx-primary" />
+                        <span className="text-sm font-label font-medium text-nx-primary">B2B Network</span>
                     </div>
-                    <h1 className="h1-bold">Discover Organizations</h1>
-                    <p className="text-gray-600 mt-2 max-w-xl">
+                    <h1 className="text-3xl md:text-4xl font-headline font-bold tracking-tight text-nx-on-surface">Discover Organizations</h1>
+                    <p className="text-nx-on-surface-variant mt-2 max-w-xl">
                         Find and connect with organizations across industries. Build partnerships,
                         attend shared events, and grow your professional network.
                     </p>
@@ -125,7 +125,7 @@ export default async function OrgsDiscoverPage({ searchParams }: OrgsDiscoverPag
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Filter sidebar */}
                     <aside className="lg:w-64 flex-shrink-0">
-                        <div className="bg-white rounded-xl border border-gray-200 p-5 sticky top-4">
+                        <div className="bg-nx-surface-container-lowest rounded-xl border border-nx-outline-variant/60 p-5 lg:sticky lg:top-4">
                             {/* OrgDiscoverFilters is a client component — renders the interactive controls.
                                 The actual results are fetched server-side via searchParams. */}
                             <OrgDiscoverFilters industries={industries} tags={popularTags} />
@@ -135,7 +135,7 @@ export default async function OrgsDiscoverPage({ searchParams }: OrgsDiscoverPag
                     {/* Results — streamed via Suspense */}
                     <main className="flex-1">
                         {hasFilters && (
-                            <div className="flex items-center gap-2 mb-4 text-sm text-primary bg-primary/5 border border-primary/20 rounded-lg px-4 py-2 w-fit">
+                            <div className="flex items-center gap-2 mb-4 text-sm text-nx-on-primary-container bg-nx-primary-container border border-nx-primary/20 rounded-xl px-4 py-2 w-fit">
                                 <span>Filters active</span>
                                 <Link href="/organizations/discover" className="underline hover:no-underline ml-1">
                                     Clear all

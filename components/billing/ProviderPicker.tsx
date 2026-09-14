@@ -74,6 +74,9 @@ export function ProviderPicker({
 				// Razorpay — load browser SDK from CDN then open inline checkout
 				if (data.orderId && typeof window !== "undefined") {
 					await loadRazorpayScript();
+					const primaryChannels = getComputedStyle(document.documentElement)
+						.getPropertyValue("--nx-primary")
+						.trim();
 					const rzp = new (window as any).Razorpay({
 						key: data.keyId,
 						amount: data.amount,
@@ -83,6 +86,7 @@ export function ProviderPicker({
 						order_id: data.orderId,
 						callback_url: data.callbackUrl,
 						prefill: data.prefill,
+						theme: { color: `rgb(${primaryChannels})` },
 					});
 					rzp.open();
 					onClose();
@@ -97,12 +101,12 @@ export function ProviderPicker({
 	return (
 		// Fixed full-screen backdrop
 		<div
-			className="fixed inset-0 z-50 flex items-center justify-center bg-nx-primary/70 backdrop-blur-sm p-4"
+			className="fixed inset-0 z-50 flex items-center justify-center bg-nx-inverse-surface/60 backdrop-blur-sm p-4"
 			onClick={onClose}
 		>
 			{/* Modal card */}
 			<div
-				className="relative w-full max-w-md rounded-2xl border border-nx-outline-variant/30 bg-nx-surface-container-lowest shadow-nx-float p-6 sm:p-8 flex flex-col gap-5"
+				className="relative w-full max-w-md rounded-2xl bg-nx-surface-container-lowest text-nx-on-surface shadow-2xl p-8 flex flex-col gap-5"
 				onClick={(e) => e.stopPropagation()}
 				role="dialog"
 				aria-modal="true"
@@ -110,7 +114,7 @@ export function ProviderPicker({
 			>
 				{/* Close button */}
 				<button
-					className="absolute top-4 right-4 flex h-9 w-9 items-center justify-center rounded-xl text-nx-on-surface-variant hover:bg-nx-surface-container-high hover:text-nx-on-surface transition-colors"
+					className="absolute top-4 right-4 text-nx-on-surface-variant hover:text-nx-on-surface transition-colors"
 					onClick={onClose}
 					aria-label="Close"
 				>
@@ -124,14 +128,16 @@ export function ProviderPicker({
 					</div>
 					<h2
 						id="provider-picker-title"
-						className="font-headline text-xl font-bold text-nx-on-surface"
+						className="text-xl font-bold text-nx-on-surface"
 					>
 						Complete Your Registration
 					</h2>
 					<p className="text-sm text-nx-on-surface-variant">
-						<span className="font-semibold text-nx-on-surface">{eventTitle}</span>
+						<span className="font-semibold text-nx-on-surface">
+							{eventTitle}
+						</span>
 						{" — "}
-						<span className="font-semibold text-nx-primary">
+						<span className="font-semibold text-nx-tertiary">
 							{formatMajorAmount(price, currency)}
 						</span>
 					</p>
@@ -144,7 +150,7 @@ export function ProviderPicker({
 				</p>
 
 				<button
-					className="flex items-center justify-center gap-2 rounded-xl border border-nx-primary bg-nx-primary p-4 font-semibold text-nx-on-primary transition-colors hover:bg-nx-primary/90 disabled:opacity-50"
+					className="flex items-center justify-center gap-2 rounded-xl border-2 border-nx-outline-variant/30 hover:border-nx-tertiary hover:bg-nx-tertiary-container p-4 transition-all disabled:opacity-50 font-semibold text-nx-on-surface"
 					onClick={pay}
 					disabled={isPending}
 				>
@@ -156,22 +162,22 @@ export function ProviderPicker({
 
 				{/* Error */}
 				{error && (
-					<p className="text-sm text-nx-on-error-container text-center bg-nx-error-container rounded-xl px-3 py-2">
+					<p className="text-sm text-nx-on-error-container text-center bg-nx-error-container rounded-lg px-3 py-2">
 						{error}
 					</p>
 				)}
 
 				{/* Pending state */}
 				{isPending && (
-					<p className="text-sm text-nx-primary text-center animate-pulse">
+					<p className="text-sm text-nx-tertiary text-center animate-pulse">
 						Preparing checkout…
 					</p>
 				)}
 
 				{/* Security note */}
-				<p className="flex items-center justify-center gap-1.5 text-xs text-nx-on-surface-variant text-center">
-					<LockKeyhole className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-					<span>Payments secured by Stripe / Razorpay. CorpConnect never stores card details.</span>
+				<p className="text-xs text-nx-on-surface-variant text-center">
+					🔒 Payments secured by Stripe / Razorpay. CorpConnect never stores
+					card details.
 				</p>
 			</div>
 		</div>

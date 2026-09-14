@@ -100,7 +100,7 @@ export default function MeetingRequestButton({
     // ── Accepted ─────────────────────────────────────────────────────────────
     if (status === "ACCEPTED") {
         return (
-            <Badge className="bg-green-100 text-green-700 gap-1 px-3 py-1.5 cursor-default">
+            <Badge className="bg-nx-success-container text-nx-on-success-container gap-1 px-3 py-1.5 cursor-default">
                 <Handshake className="w-3.5 h-3.5" /> Meeting Confirmed
             </Badge>
         );
@@ -109,7 +109,7 @@ export default function MeetingRequestButton({
     // ── Declined / Cancelled ─────────────────────────────────────────────────
     if (status === "DECLINED" || status === "CANCELLED") {
         return (
-            <span className="text-xs text-gray-400 italic">
+            <span className="text-xs text-nx-on-surface-variant italic">
                 {status === "DECLINED" ? "Request declined" : "Request cancelled"}
             </span>
         );
@@ -119,12 +119,12 @@ export default function MeetingRequestButton({
     if (status === "PENDING_SENT") {
         return (
             <div className="flex items-center gap-2">
-                <span className="text-xs text-amber-600 flex items-center gap-1">
+                <span className="text-xs text-nx-warning flex items-center gap-1">
                     <Clock className="w-3.5 h-3.5" /> Pending response
                 </span>
                 <Button
                     size="sm" variant="ghost"
-                    className="h-7 text-xs text-red-500 hover:text-red-700 hover:bg-red-50"
+                    className="h-7 text-xs text-nx-error hover:text-nx-error/80 hover:bg-nx-error-container"
                     disabled={loading}
                     onClick={() => performAction("CANCEL")}
                 >
@@ -138,11 +138,11 @@ export default function MeetingRequestButton({
     if (status === "PENDING_RECEIVED") {
         return (
             <div className="flex items-center gap-2">
-                <span className="text-xs text-primary-600 font-medium">Incoming request</span>
-                <Button size="sm" className="h-7 text-xs bg-green-600 hover:bg-green-700 gap-1" disabled={loading} onClick={() => performAction("ACCEPT")}>
+                <span className="text-xs text-nx-tertiary font-medium">Incoming request</span>
+                <Button size="sm" className="h-7 text-xs bg-nx-success text-nx-on-success hover:bg-nx-success/90 gap-1" disabled={loading} onClick={() => performAction("ACCEPT")}>
                     <Check className="w-3 h-3" />Accept
                 </Button>
-                <Button size="sm" variant="outline" className="h-7 text-xs gap-1 text-red-600 border-red-200 hover:bg-red-50" disabled={loading} onClick={() => performAction("DECLINE")}>
+                <Button size="sm" variant="outline" className="h-7 text-xs gap-1 text-nx-error border-nx-error/30 hover:bg-nx-error-container" disabled={loading} onClick={() => performAction("DECLINE")}>
                     <X className="w-3 h-3" />Decline
                 </Button>
             </div>
@@ -157,7 +157,7 @@ export default function MeetingRequestButton({
                     <Calendar className="w-3.5 h-3.5" />Request Meeting
                 </Button>
             </AlertDialogTrigger>
-            <AlertDialogContent className="sm:max-w-md bg-white">
+            <AlertDialogContent className="sm:max-w-md bg-nx-surface-container-lowest text-nx-on-surface">
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
                         <AlertDialogHeader>
@@ -172,7 +172,7 @@ export default function MeetingRequestButton({
                                 name="agenda"
                                 render={({ field }) => (
                                     <FormItem className="space-y-1.5">
-                                        <FormLabel>Agenda <span className="text-gray-400 font-normal">(optional)</span></FormLabel>
+                                        <FormLabel>Agenda <span className="text-nx-on-surface-variant font-normal">(optional)</span></FormLabel>
                                         <FormControl>
                                             <Textarea
                                                 {...field}
@@ -183,7 +183,7 @@ export default function MeetingRequestButton({
                                                 className="resize-none"
                                             />
                                         </FormControl>
-                                        <p className="text-xs text-gray-400 text-right">{(field.value || "").length}/500</p>
+                                        <p className="text-xs text-nx-on-surface-variant text-right">{(field.value || "").length}/500</p>
                                         <FormMessage />
                                     </FormItem>
                                 )}
@@ -193,11 +193,11 @@ export default function MeetingRequestButton({
                                 name="proposedTime"
                                 render={({ field }) => (
                                     <FormItem className="space-y-1.5 w-full">
-                                        <FormLabel>Proposed Time <span className="text-gray-400 font-normal">(optional)</span></FormLabel>
+                                        <FormLabel>Proposed Time <span className="text-nx-on-surface-variant font-normal">(optional)</span></FormLabel>
                                         <FormControl>
-                                            <div className="flex items-center h-[54px] w-full overflow-hidden rounded-full bg-gray-50 px-4 py-2 border border-gray-200">
-                                                <Calendar className="w-5 h-5 text-gray-500" />
-                                                <p className="ml-3 whitespace-nowrap text-gray-600 mr-2 border-r pr-3 border-gray-200">Time</p>
+                                            <div className="flex items-center h-[54px] w-full overflow-hidden rounded-full bg-nx-surface-container-low px-4 py-2 border border-nx-outline-variant/30">
+                                                <Calendar className="w-5 h-5 text-nx-on-surface-variant" />
+                                                <p className="ml-3 whitespace-nowrap text-nx-on-surface-variant mr-2 border-r pr-3 border-nx-outline-variant/30">Time</p>
                                                 <DatePicker
                                                     selected={field.value}
                                                     onChange={(date: Date | null) => field.onChange(date)}

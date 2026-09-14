@@ -24,7 +24,7 @@ export default function OrgMatchWidget({
     const hasAiResults = matchedOrgs.some((o) => o.source === "ai");
 
     return (
-        <div className="bg-white rounded-lg border border-gray-200 p-5">
+        <div className="bg-nx-surface-container-lowest rounded-lg border border-nx-outline-variant/20 p-5">
             {/* Header */}
             <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
@@ -35,7 +35,7 @@ export default function OrgMatchWidget({
                     </div>
                     <div>
                         <h3 className="font-semibold text-sm">Orgs at this event</h3>
-                        <p className="text-xs text-gray-500">Matched to your profile</p>
+                        <p className="text-xs text-nx-on-surface-variant">Matched to your profile</p>
                     </div>
                 </div>
                 {hasAiResults && (
@@ -51,7 +51,7 @@ export default function OrgMatchWidget({
                     const meetingState = meetingStatusMap[org.id] ?? { status: "NONE" as MeetingStatus };
 
                     return (
-                        <div key={org.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:border-primary/20 hover:bg-primary/5 transition-all">
+                        <div key={org.id} className="flex items-start gap-3 p-3 rounded-lg border border-nx-outline-variant/20 hover:border-nx-primary/20 hover:bg-nx-primary/5 transition-all">
                             {/* Org logo */}
                             {org.logo ? (
                                 <Image
@@ -60,8 +60,8 @@ export default function OrgMatchWidget({
                                     className="rounded-md object-cover flex-shrink-0"
                                 />
                             ) : (
-                                <div className="w-9 h-9 rounded-md bg-gray-100 flex items-center justify-center flex-shrink-0">
-                                    <Building2 className="w-4 h-4 text-gray-500" />
+                                <div className="w-9 h-9 rounded-md bg-nx-surface-container flex items-center justify-center flex-shrink-0">
+                                    <Building2 className="w-4 h-4 text-nx-on-surface-variant" />
                                 </div>
                             )}
 
@@ -71,7 +71,7 @@ export default function OrgMatchWidget({
                                     {org.name}
                                 </Link>
                                 {org.industry && (
-                                    <p className="text-xs text-gray-500 truncate">{org.industry.label}</p>
+                                    <p className="text-xs text-nx-on-surface-variant truncate">{org.industry.label}</p>
                                 )}
                                 <p className="text-xs text-primary/70 mt-0.5 truncate">{org.matchReason}</p>
 
@@ -91,7 +91,7 @@ export default function OrgMatchWidget({
                 })}
             </div>
 
-            <p className="text-xs text-gray-400 mt-3 text-center">
+            <p className="text-xs text-nx-on-surface-variant/70 mt-3 text-center">
                 Only visible to registered attendees
             </p>
         </div>

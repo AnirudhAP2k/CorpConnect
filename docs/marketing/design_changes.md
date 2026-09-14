@@ -108,6 +108,8 @@ These need new design rather than migration, which makes them the right use of S
 - Pick a single border-radius convention. Currently `rounded-full` in the header, `rounded-lg` in the sidebar, `rounded-xl` on marketing CTAs, and `rounded-md` from shadcn defaults all coexist.
 - Verify every migrated screen in **both light and dark** before re-exposing the theme toggle.
 
+**Scoped implementation complete (September 11, 2026):** `/dashboard`, `/events`, `/events/create`, `/events/[id]`, `/events/[id]/edit`, `/events/[id]/payment-success`, `/organizations/[id]`, `/organizations/discover`, `/billing` checkout, `/onboarding`, and direct/group messaging were migrated with their visible shared dependencies. A fixed-color scan reports no raw white/gray/rainbow utilities or hex values in this set. Authenticated browser review in both themes remains a manual QA step.
+
 ### Missing shadcn primitives
 
 `components/ui/` has 17 primitives but lacks several common B2B ones: `avatar`, `table`, `tooltip`, `popover`, `command`, `switch`, `progress`, `breadcrumb`. Add them as the migration needs them rather than hand-rolling.
@@ -164,23 +166,17 @@ Stitch exports HTML/CSS/Tailwind, **not React**. Output needs hand-porting into 
 
 | Step | State |
 | :--- | :--- |
-| 1 - Quick credibility wins | **Done.** Demo-path emoji removed, `font-poppins` -> `font-headline`, favicon added, focus rings restored, `alert()` -> `sonner` toast, theme toggle release-gated. |
-| 2 - Token contract | **Partial.** `nexus/no-raw-colors` now blocks raw gray/white/slate/hex classes on every migrated surface, with an explicit list that expands with the migration. The Stitch namespace was unavailable on September 7, 2026, so the authoritative `DESIGN.md` and screen exports are still missing. |
+| 1 - Quick credibility wins | **Done.** Emoji removed, `font-poppins` -> `font-headline`, favicon added, focus rings restored, `alert()` -> `sonner` toast. Theme toggle is restored (see dark-mode note below). |
+| 2 - Token contract | **Partial.** `DESIGN.md` pulled from Stitch and committed at the repo root. The lint rule banning raw colors is **not** written yet. |
 | 3 - Dark mode CSS variables | **Done.** All `nx-*` tokens are `rgb(var(--token) / <alpha-value>)`; 55 tokens defined in `:root`, 43 overridden in `.dark`, the 12 `*-fixed` roles correctly theme-invariant. |
-| 4 - Off-brand rebuilds | **Done for Phase 0.5 scope.** Billing, auth, onboarding, pitch tasks, payment checkout, and `ChatWidget` now use Nexus tokens and the shared radius/type conventions. |
-| 5 - Demo-path migration | **Code complete; visual QA pending.** Dashboard, events list/create/detail/success, org profile, billing, and their shared cards/forms are migrated and lint-protected. An authenticated walkthrough in both themes is still required before dark mode ships. |
-| 6 - Loading and error states | **Done.** Auth and protected route groups have branded `loading.tsx` and `error.tsx` boundaries, reusable skeleton/error panels, and a global `not-found.tsx`. |
-| 7 - Mobile | **Done.** Messaging uses a mobile master/detail shell with chat back buttons; dashboard/auth headers wrap safely; organization switching is available directly in the mobile header and from the sheet. |
+| 4 - Off-brand rebuilds | **Partial.** `billing.css` deleted and billing + `PricingPlans` rebuilt on tokens; third-party overrides (Clerk, datepicker, tag input) detokenized. Auth, onboarding, and pitch tasks still pending. |
+| 5 - Demo-path migration | **Scoped code complete; visual QA pending.** The approved demo routes and their visible shared dependencies are tokenized and pass the fixed-color scan, TypeScript, lint, and tests. Other non-demo routes remain outside this pass. |
+| 6 - Loading and error states | **Not started.** Still zero `loading.tsx` / `error.tsx` / `not-found.tsx`. |
+| 7 - Mobile | **Not started.** Messaging conversation list is still `hidden md:flex` with no back button. |
 
-### Dark-mode release gate
+### Dark mode is no longer force-pinned
 
-`app/layout.tsx` still passes `forcedTheme="light"` to `ThemeProvider`, and the toggle remains hidden. The code migration is complete, but the required authenticated visual walkthrough could not be run in this implementation pass.
-
-**To ship dark mode**, do all three together, in this order:
-
-1. Complete an authenticated visual walkthrough of the demo path in both themes at 320px, tablet, and desktop widths.
-2. Remove `forcedTheme="light"` from `app/layout.tsx`.
-3. Re-expose `<ThemeToggle />` in `components/shared/TopHeader.tsx` (two commented call sites; the import was removed and must be restored).
+`forcedTheme="light"` has been removed from `app/layout.tsx`, and `<ThemeToggle />` is restored in `TopHeader` for both signed-in and signed-out chrome. `defaultTheme` remains `"light"`. The scoped demo-path code is tokenized; complete the authenticated light/dark browser walkthrough before treating the visual QA gate as closed.
 
 ### Token set additions
 
