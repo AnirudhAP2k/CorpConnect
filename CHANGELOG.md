@@ -1,3 +1,12 @@
+## [1.35.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.0...v1.35.1) (2026-09-14)
+
+
+### Bug Fixes
+
+* **jest:** point setupFilesAfterEnv to jest.setup.ts ([58a28b2](https://github.com/AnirudhAP2k/CorpConnect/commit/58a28b2baaee239354ba18c9fbf35ccbe3b8ee49))
+* **jest:** rename jest.setup.js to jest.setup.ts for typescript support ([2bff527](https://github.com/AnirudhAP2k/CorpConnect/commit/2bff5279890e51ef93b80b3d16432e4c69211f60))
+* **test:** remove sample test file ([66c00c5](https://github.com/AnirudhAP2k/CorpConnect/commit/66c00c5710c7132841394191a8eb27be210f8929))
+
 # [1.35.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.34.0...v1.35.0) (2026-09-14)
 
 
