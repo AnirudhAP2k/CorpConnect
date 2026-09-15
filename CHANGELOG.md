@@ -1,3 +1,13 @@
+## [1.35.2](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.1...v1.35.2) (2026-09-15)
+
+
+### Bug Fixes
+
+* **auth:** format auth configuration and types ([6ac9365](https://github.com/AnirudhAP2k/CorpConnect/commit/6ac93653d905ea41a4fae0e3f60088928927b704))
+* **docker:** clean up log messages in entrypoint script ([e9d8e05](https://github.com/AnirudhAP2k/CorpConnect/commit/e9d8e056f5b76b47fa08a1dfda29dd2639d0bd11))
+* **telemetry:** format Sentry client instrumentation configuration ([2fae6e3](https://github.com/AnirudhAP2k/CorpConnect/commit/2fae6e32137da1b547397e7a1e6ae9c022b73873))
+* **ui:** refactor Sidebar helper components to arrow functions ([f64f8c1](https://github.com/AnirudhAP2k/CorpConnect/commit/f64f8c1a6fbff64b9cb142f557062fdbf8be1fa9))
+
 ## [1.35.1](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.0...v1.35.1) (2026-09-14)
 
 
