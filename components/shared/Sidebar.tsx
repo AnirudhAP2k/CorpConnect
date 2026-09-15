@@ -38,16 +38,16 @@ interface SidebarProps {
 }
 
 /* ─── Nexus Corporate: Section label ─────────────────────────────── */
-function SectionLabel({ label }: { label: string }) {
+const SectionLabel = ({ label }: { label: string }) => {
     return (
         <p className="px-4 text-[10px] font-label font-semibold text-nx-on-surface-variant/60 uppercase tracking-[0.08em] mb-1 mt-2">
             {label}
         </p>
     );
-}
+};
 
 /* ─── Nexus Corporate: Nav item ──────────────────────────────────── */
-function NavItem({
+const NavItem = ({
     href,
     icon,
     label,
@@ -59,7 +59,7 @@ function NavItem({
     label: string;
     isActive: boolean;
     isCollapsed: boolean;
-}) {
+}) => {
     return (
         <Link
             href={href}
@@ -78,7 +78,7 @@ function NavItem({
             {!isCollapsed && <span className="truncate">{label}</span>}
         </Link>
     );
-}
+};
 
 export default function Sidebar({ activeOrganizationId, isAdmin, className }: SidebarProps) {
     const pathname = usePathname();
