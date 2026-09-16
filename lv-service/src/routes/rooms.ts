@@ -87,8 +87,13 @@ router.post("/", async (req: Request, res: Response) => {
 
     try {
         // Verify this user's org actually hosts this event
-        const hostCheck = await pool.query<{ id: string }>(
-            `SELECT e.id
+        const hostCheck = await pool.query<{
+            id: string;
+            eventType: string;
+            startDateTime: Date;
+            endDateTime: Date;
+        }>(
+            `SELECT e.id, e."eventType", e."startDateTime", e."endDateTime"
              FROM "Events" e
              JOIN "OrganizationMember" om ON om."organizationId" = e."organizationId"
              WHERE e.id = $1
@@ -101,7 +106,23 @@ router.post("/", async (req: Request, res: Response) => {
             return res.status(403).json({ error: "NOT_HOST" });
         }
 
-        // Generate a unique, deterministic room name for LiveKit
+        const event = hostCheck.rows[0];
+        if (!["ONLINE", "HYBRID"].includes(event.eventType)) {
+            return res.status(400).json({ error: "NOT_VIRTUAL_EVENT" });
+        }
+
+        const now = new Date();
+        if (now < event.startDateTime) {
+            return res.status(403).json({
+                error: "EVENT_NOT_STARTED",
+                startsAt: event.startDateTime.toISOString(),
+            });
+        }
+        if (now > event.endDateTime) {
+            return res.status(403).json({ error: "EVENT_ENDED" });
+        }
+
+        // Generate a unique room name for LiveKit.
         const livekitRoom = `event-${eventId}-${cryptoJs.lib.WordArray.random(16).toString(cryptoJs.enc.Hex)}`;
 
         // Create the room on LiveKit Cloud first
@@ -213,7 +234,8 @@ router.post("/:id/kick", async (req: Request, res: Response) => {
              JOIN "OrganizationMember" om ON om."organizationId" = e."organizationId"
              WHERE vr.id = $1
                AND om."userId" = $2
-               AND om.role IN ('OWNER', 'ADMIN')`,
+               AND om.role IN ('OWNER', 'ADMIN')
+               AND vr."isActive" = true`,
             [id, userId]
         );
 
@@ -222,6 +244,13 @@ router.post("/:id/kick", async (req: Request, res: Response) => {
         }
 
         await roomService.removeParticipant(check.rows[0].livekitRoom, participantIdentity);
+        await pool.query(
+            `UPDATE "VirtualSession"
+             SET "leftAt" = NOW(),
+                 "durationSecs" = GREATEST(0, EXTRACT(EPOCH FROM (NOW() - "joinedAt"))::INT)
+             WHERE "roomId" = $1 AND "userId" = $2 AND "leftAt" IS NULL`,
+            [id, participantIdentity],
+        );
         return res.json({ ok: true });
     } catch (err) {
         console.error("[lv-service] POST /rooms/:id/kick error:", err);
