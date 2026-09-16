@@ -1,5 +1,8 @@
 # Phase 11: Virtual Events Service (`lv-service`) 🎥
 
+> **v2 (custom meeting UI + host moderation):**
+> `docs/lv-service/v2_implementation_plan.md` and `docs/lv-service/v2_tasks.md`.
+
 > Dedicated Node.js/TypeScript microservice for virtual room management using LiveKit.
 > Follows the same architecture pattern as `ws-service` — isolated from Next.js,
 > authenticated with shared `AUTH_SECRET`, connecting to the same PostgreSQL instance.
