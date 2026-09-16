@@ -18,6 +18,7 @@ describe("middleware route policy", () => {
         ["/invite/abc", "public"],
         ["/api/health", "api-public"],
         ["/api/jobs/trigger", "api-public"],
+        ["/api/webhooks/livekit", "api-public"],
         ["/api/webhooks/stripe", "api-public"],
         ["/api/webhooks/razorpay", "api-public"],
         ["/api/webhooks/n8n-callback", "api-public"],
