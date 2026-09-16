@@ -1,16 +1,16 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Video, Loader2, Clock, CreditCard, Lock } from "lucide-react";
+import { Video, Clock, CreditCard, Lock } from "lucide-react";
 
 interface JoinVirtualButtonProps {
     eventId: string;
     roomId: string;
     roomName: string;
     eventType: "ONLINE" | "OFFLINE" | "HYBRID";
-    isRegistered: boolean;
+    hasAccess: boolean;
     isPaid: boolean;
     isFree: boolean;
     startDateTime: string;
@@ -23,7 +23,7 @@ export function JoinVirtualButton({
     roomId,
     roomName,
     eventType,
-    isRegistered,
+    hasAccess,
     isPaid,
     isFree,
     startDateTime,
@@ -31,41 +31,32 @@ export function JoinVirtualButton({
     className = "",
 }: JoinVirtualButtonProps) {
     const router = useRouter();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [nowMs, setNowMs] = useState(() => Date.now());
+    const startMs = new Date(startDateTime).getTime();
+    const endMs = new Date(endDateTime).getTime();
+    const joinFromMs = startMs - 15 * 60 * 1000;
 
-    // Declared before the gates below: hooks must run unconditionally on every
-    // render, and several of those gates return early.
-    const handleJoin = useCallback(async () => {
-        setLoading(true);
-        setError(null);
-        try {
-            const res = await fetch("/api/virtual/token", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ roomId }),
-            });
+    // Re-render precisely when the join window opens and when the event ends.
+    useEffect(() => {
+        const nextBoundary =
+            nowMs < joinFromMs ? joinFromMs :
+            nowMs <= endMs ? endMs + 1 :
+            null;
 
-            if (!res.ok) {
-                const data = await res.json();
-                setError(data.message ?? "Unable to join the session.");
-                return;
-            }
+        if (nextBoundary === null) return;
 
-            // Navigate to the full-screen join page — token will be re-fetched there
-            router.push(`/events/${eventId}/join/${roomId}`);
-        } catch {
-            setError("Connection error. Please try again.");
-        } finally {
-            setLoading(false);
-        }
-    }, [eventId, roomId, router]);
+        const timeout = window.setTimeout(
+            () => setNowMs(Date.now()),
+            Math.min(nextBoundary - nowMs, 2_147_000_000),
+        );
+        return () => window.clearTimeout(timeout);
+    }, [endMs, joinFromMs, nowMs]);
 
     // Gate: only ONLINE or HYBRID events have virtual sessions
     if (eventType === "OFFLINE") return null;
 
     // Gate: user must be registered
-    if (!isRegistered) return null;
+    if (!hasAccess) return null;
 
     // Gate: paid events require payment confirmation
     if (!isFree && !isPaid) {
@@ -77,21 +68,15 @@ export function JoinVirtualButton({
         );
     }
 
-    const now = new Date();
-    const start = new Date(startDateTime);
-    const end = new Date(endDateTime);
-    // Allow joining 15 minutes early
-    const joinFrom = new Date(start.getTime() - 15 * 60 * 1000);
-
     // Gate: not started yet
-    if (now < joinFrom) {
+    if (nowMs < joinFromMs) {
         return (
             <div className="flex items-center gap-2 text-sm text-nx-on-tertiary-container bg-nx-tertiary-container border border-nx-tertiary/30 rounded-lg p-3">
                 <Clock className="w-4 h-4 shrink-0" />
                 <span>
                     Virtual session opens at{" "}
                     <strong>
-                        {new Date(joinFrom).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(joinFromMs).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                     </strong>
                 </span>
             </div>
@@ -99,7 +84,7 @@ export function JoinVirtualButton({
     }
 
     // Gate: event ended
-    if (now > end) {
+    if (nowMs > endMs) {
         return (
             <div className="flex items-center gap-2 text-sm text-nx-on-surface-variant bg-nx-surface-container-low border border-nx-outline-variant/30 rounded-lg p-3">
                 <Lock className="w-4 h-4 shrink-0" />
@@ -111,22 +96,12 @@ export function JoinVirtualButton({
     return (
         <div className="space-y-2">
             <Button
-                onClick={handleJoin}
-                disabled={loading}
+                onClick={() => router.push(`/events/${eventId}/join/${roomId}`)}
                 className={`w-full bg-gradient-to-r from-nx-tertiary to-nx-primary hover:from-nx-tertiary/90 hover:to-nx-primary/90 text-nx-on-primary font-semibold py-5 text-base shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-[1.02] gap-2 ${className}`}
             >
-                {loading ? (
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                    <Video className="w-5 h-5" />
-                )}
-                {loading ? "Connecting…" : `Join "${roomName}"`}
+                <Video className="w-5 h-5" />
+                {`Join "${roomName}"`}
             </Button>
-            {error && (
-                <p className="text-xs text-nx-on-error-container bg-nx-error-container border border-nx-error/30 rounded-md px-3 py-2">
-                    {error}
-                </p>
-            )}
         </div>
     );
 }
