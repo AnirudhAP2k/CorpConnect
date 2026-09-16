@@ -59,6 +59,17 @@ export async function POST(req: Request) {
         return NextResponse.json({ error: "MISSING_FIELDS" }, { status: 400 });
     }
 
+    const event = await prisma.events.findUnique({
+        where: { id: body.eventId },
+        select: { eventType: true },
+    });
+    if (!event) {
+        return NextResponse.json({ error: "EVENT_NOT_FOUND" }, { status: 404 });
+    }
+    if (!["ONLINE", "HYBRID"].includes(event.eventType)) {
+        return NextResponse.json({ error: "NOT_VIRTUAL_EVENT" }, { status: 400 });
+    }
+
     const lvRes = await lvFetch("/rooms", {
         method: "POST",
         body: JSON.stringify(body),
