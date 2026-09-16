@@ -34,7 +34,6 @@ import { ChatWidget } from "@/components/ai/ChatWidget";
 import { FeedbackButton } from "@/components/feedback/FeedbackButton";
 import { getUserFeedback } from "@/actions/feedback.actions";
 import { VirtualRoomList } from "@/components/virtual/VirtualRoomList";
-import { JoinVirtualButton } from "@/components/virtual/JoinVirtualButton";
 
 interface EventDetailPageProps {
 	params: Promise<{
@@ -462,28 +461,17 @@ const EventDetailPage = async ({ params }: EventDetailPageProps) => {
 									<VirtualRoomList
 										eventId={id}
 										isHost={!!isHost}
+										isRegistered={isRegistered}
+										isPaid={userParticipation?.isPaid ?? false}
+										isFree={event.isFree ?? true}
+										eventType={event.eventType as "ONLINE" | "HYBRID"}
+										startDateTime={event.startDateTime.toISOString()}
+										endDateTime={event.endDateTime.toISOString()}
 										initialRooms={virtualRooms.map((r) => ({
 											...r,
 											createdAt: r.createdAt.toISOString(),
 										}))}
 									/>
-									{/* Per-room join buttons for registered users */}
-									{(isRegistered || isHost) &&
-										virtualRooms.map((room) => (
-											<div key={room.id} className="mt-2">
-												<JoinVirtualButton
-													eventId={id}
-													roomId={room.id}
-													roomName={room.name}
-													eventType={event.eventType as "ONLINE" | "HYBRID"}
-													isRegistered={!!userParticipation}
-													isPaid={userParticipation?.isPaid ?? false}
-													isFree={event.isFree ?? true}
-													startDateTime={event.startDateTime.toISOString()}
-													endDateTime={event.endDateTime.toISOString()}
-												/>
-											</div>
-										))}
 								</div>
 							)}
 
