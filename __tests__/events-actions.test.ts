@@ -9,6 +9,7 @@ import { createEventAction } from "@/domain/events/actions";
 import { prisma } from "@/lib/db";
 import { auth } from "@/auth";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
+import { scheduleAutoVirtualRoom } from "@/lib/jobs/auto-create-virtual-room";
 import { revalidateTag } from "next/cache";
 
 jest.mock("@/lib/db", () => ({
@@ -40,6 +41,10 @@ jest.mock("@/lib/jobs/scheduleEventReport", () => ({
     scheduleEventReport: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock("@/lib/jobs/auto-create-virtual-room", () => ({
+    scheduleAutoVirtualRoom: jest.fn(() => Promise.resolve()),
+}));
+
 const USER_ID = "11111111-1111-4111-8111-111111111111";
 const ORG_ID = "22222222-2222-4222-8222-222222222222";
 const CATEGORY_ID = "44444444-4444-4444-8444-444444444444";
@@ -56,6 +61,7 @@ const validEventData = {
     categoryId: CATEGORY_ID,
     organizationId: ORG_ID,
     imageUrl: "https://cdn.example.com/event.png",
+    eventType: "ONLINE",
     startDateTime: startDateTime.toISOString(),
     endDateTime: endDateTime.toISOString(),
 };
@@ -148,6 +154,7 @@ describe("createEventAction", () => {
         (prisma.organizationMember.findFirst as jest.Mock).mockResolvedValue({ id: "member-1" });
         (prisma.events.create as jest.Mock).mockResolvedValue({
             id: EVENT_ID,
+            eventType: "ONLINE",
             startDateTime,
             endDateTime,
         });
@@ -170,6 +177,11 @@ describe("createEventAction", () => {
         );
         expect(jobTypes).toContain("EMBED_EVENT");
         expect(jobTypes).toContain("SEND_EVENT_REMINDER");
+        expect(scheduleAutoVirtualRoom).toHaveBeenCalledWith({
+            eventId: EVENT_ID,
+            eventType: "ONLINE",
+            startDateTime,
+        });
 
         // Post-event report scheduled since endDateTime is in the future.
         expect(scheduleEventReport).toHaveBeenCalledWith(EVENT_ID, endDateTime);
