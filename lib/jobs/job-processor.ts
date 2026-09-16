@@ -26,6 +26,10 @@ import { processEventInviteEmail } from "@/lib/jobs/event-invites";
 import type { EventInviteEmailPayload } from "@/lib/jobs/event-invites";
 import { processUploadScan } from "@/domain/file-uploads/scan";
 import type { ScanUploadPayload } from "@/domain/file-uploads/types";
+import {
+    processAutoCreateVirtualRoom,
+    type AutoCreateVirtualRoomPayload,
+} from "@/lib/jobs/auto-create-virtual-room";
 
 
 export async function processJobQueue() {
@@ -120,6 +124,10 @@ async function processJob(job: any) {
 
         case "VIRTUAL_ROOM_OPENED":
             await processVirtualRoomOpened(payload as VirtualRoomOpenedPayload);
+            break;
+
+        case "AUTO_CREATE_VIRTUAL_ROOM":
+            await processAutoCreateVirtualRoom(payload as AutoCreateVirtualRoomPayload);
             break;
 
         case "GENERATE_REPORT":
