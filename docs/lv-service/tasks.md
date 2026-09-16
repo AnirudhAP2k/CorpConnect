@@ -2,6 +2,8 @@
 
 > Tracks implementation progress for the virtual room microservice.
 > Architecture details: see `docs/lv-service/implementation_plan.md`.
+>
+> **v2 (custom meeting UI + host moderation):** `docs/lv-service/v2_tasks.md`.
 
 ---
 
@@ -110,6 +112,9 @@
 ---
 
 ## Future Enhancements (Post Phase 11)
+
+Custom in-meeting UI, host kick/mute, raise-hand, and reactions moved to **Phase 12**:
+`docs/lv-service/v2_implementation_plan.md`.
 
 - [ ] **Recording** — LiveKit Egress → Cloudinary upload → playback link on event page
 - [ ] **Breakout rooms** — multiple `VirtualRoom` rows per event (already supported by schema)
