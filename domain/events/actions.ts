@@ -10,6 +10,7 @@ import { getEventWithMemberCheck } from "./queries";
 import { setEventTags } from "@/domain/tags/helpers";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
 import { enqueueMatchingRules } from "@/lib/jobs/automation";
+import { scheduleAutoVirtualRoom } from "@/lib/jobs/auto-create-virtual-room";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -77,6 +78,12 @@ export async function createEventAction(data: Record<string, unknown>) {
                 },
             }).catch((err) => console.error("[Reminder] Failed to enqueue SEND_EVENT_REMINDER:", err));
         }
+
+        scheduleAutoVirtualRoom({
+            eventId: event.id,
+            eventType: event.eventType,
+            startDateTime: event.startDateTime,
+        }).catch((err) => console.error("[VirtualRoom] Failed to schedule automatic room:", err));
 
         // Schedule post-event analytics report 24h after event ends (Enterprise orgs only — guarded inside the job)
         if (event.endDateTime && event.endDateTime > new Date()) {
@@ -146,6 +153,14 @@ export async function updateEventAction(
                     },
                 }).catch((err) => console.error("[Reminder] Failed to re-enqueue SEND_EVENT_REMINDER:", err));
             }
+        }
+
+        if (rest.startDateTime || rest.eventType) {
+            scheduleAutoVirtualRoom({
+                eventId,
+                eventType: updatedEvent.eventType,
+                startDateTime: updatedEvent.startDateTime,
+            }).catch((err) => console.error("[VirtualRoom] Failed to re-schedule automatic room:", err));
         }
 
         // Re-schedule the post-event report if endDateTime was changed.

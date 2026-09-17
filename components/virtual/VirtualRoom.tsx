@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import {
     LiveKitRoom,
     VideoConference,
@@ -26,6 +26,8 @@ export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
     const [token, setToken] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [userChoices, setUserChoices] = useState<LocalUserChoices | null>(null);
+    const sessionStartedRef = useRef(false);
+    const sessionClosedRef = useRef(false);
 
     const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL;
 
@@ -62,6 +64,53 @@ export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
         },
         [fetchToken]
     );
+
+    const recordSessionStart = useCallback(async () => {
+        if (sessionStartedRef.current) return;
+        sessionStartedRef.current = true;
+        sessionClosedRef.current = false;
+
+        try {
+            const res = await fetch("/api/virtual/sessions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ roomId }),
+            });
+            if (!res.ok) {
+                sessionStartedRef.current = false;
+                console.error("[VirtualRoom] Failed to record session start");
+            }
+        } catch {
+            sessionStartedRef.current = false;
+            console.error("[VirtualRoom] Failed to record session start");
+        }
+    }, [roomId]);
+
+    const recordSessionEnd = useCallback(() => {
+        if (!sessionStartedRef.current || sessionClosedRef.current) return;
+        sessionClosedRef.current = true;
+
+        const payload = JSON.stringify({ roomId, action: "leave" });
+        if (navigator.sendBeacon) {
+            navigator.sendBeacon(
+                "/api/virtual/sessions",
+                new Blob([payload], { type: "application/json" }),
+            );
+            return;
+        }
+
+        void fetch("/api/virtual/sessions", {
+            method: "DELETE",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ roomId }),
+            keepalive: true,
+        });
+    }, [roomId]);
+
+    useEffect(() => {
+        window.addEventListener("pagehide", recordSessionEnd);
+        return () => window.removeEventListener("pagehide", recordSessionEnd);
+    }, [recordSessionEnd]);
 
     if (!livekitUrl) {
         return (
@@ -149,8 +198,11 @@ export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
                 serverUrl={livekitUrl}
                 video={userChoices?.videoEnabled ?? true}
                 audio={userChoices?.audioEnabled ?? true}
+                onConnected={() => {
+                    void recordSessionStart();
+                }}
                 onDisconnected={() => {
-                    // Redirect back to the event page when the user leaves
+                    recordSessionEnd();
                     window.location.href = `/events/${eventId}`;
                 }}
                 style={{ height: "100dvh" }}

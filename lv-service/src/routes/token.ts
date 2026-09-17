@@ -21,7 +21,7 @@ interface TokenRequestBody {
  */
 router.post("/", async (req: Request, res: Response) => {
     const { roomId } = req.body as TokenRequestBody;
-    const { userId, activeOrgId } = req.auth!;
+    const { userId } = req.auth!;
 
     if (!roomId) {
         return res.status(400).json({ error: "MISSING_ROOM_ID" });
@@ -134,14 +134,6 @@ router.post("/", async (req: Request, res: Response) => {
             canPublish: true,
             canSubscribe: true,
         });
-
-        // ── 5. Log session start ───────────────────────────────────────────────
-        await pool.query(
-            `INSERT INTO "VirtualSession" (id, "roomId", "userId", "organizationId", "joinedAt")
-             VALUES (gen_random_uuid(), $1, $2, $3, NOW())
-             ON CONFLICT DO NOTHING`,
-            [roomId, userId, activeOrgId || null]
-        );
 
         return res.json({
             token,

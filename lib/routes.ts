@@ -38,6 +38,7 @@ export const apiAuthRoutePrefix = "/api/auth";
 export const publicApiRoutes = [
     "/api/health",
     "/api/jobs/trigger",
+    "/api/webhooks/livekit",
     "/api/webhooks/n8n-callback",
     "/api/webhooks/org-verification",
     "/api/webhooks/razorpay",
