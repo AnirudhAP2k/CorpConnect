@@ -1,3 +1,37 @@
+# [1.36.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.2...v1.36.0) (2026-09-17)
+
+
+### Features
+
+* **api:** proxy virtual session join and leave requests to lv-service ([629762e](https://github.com/AnirudhAP2k/CorpConnect/commit/629762e1a63edc4ee381dca1feb1964491187cf3))
+* **api:** validate event virtual status before room creation ([be6cf96](https://github.com/AnirudhAP2k/CorpConnect/commit/be6cf96d7c00ba7c565854e01c161585cc63647c))
+* **api:** verify and forward livekit webhooks to lv-service ([254f6d4](https://github.com/AnirudhAP2k/CorpConnect/commit/254f6d4fe0c3e6a32dd55f2d3b83e45f228ed3eb))
+* **docs:** add v2 implementation plan for virtual meetings ([5896bdd](https://github.com/AnirudhAP2k/CorpConnect/commit/5896bdd5d27a670d2cf32398aa3082122a9fbcd4))
+* **docs:** add v2 tasks document for virtual meetings ([8af98eb](https://github.com/AnirudhAP2k/CorpConnect/commit/8af98eb91bda9dd2c96bac78e8f98f0c41adb836))
+* **docs:** update lv-service implementation plan ([b776f9b](https://github.com/AnirudhAP2k/CorpConnect/commit/b776f9b905f02785321ebab76b4219c72b71d4ae))
+* **docs:** update lv-service task list ([a0d26cd](https://github.com/AnirudhAP2k/CorpConnect/commit/a0d26cdf0b14ef8b3b205b358165d0240847d7c4))
+* **events:** pass event start and end time to VirtualRoomList ([4089282](https://github.com/AnirudhAP2k/CorpConnect/commit/4089282f73f443eacb119a2b5a9b084fa8e43794))
+* **events:** schedule auto virtual room creation on event create and update ([637158f](https://github.com/AnirudhAP2k/CorpConnect/commit/637158f2d237763dd6533d632625693290075268))
+* **jobs:** implement auto create virtual room job handler ([b624379](https://github.com/AnirudhAP2k/CorpConnect/commit/b6243798fe1005efbb75f06e6a458b170ce8ba92))
+* **jobs:** register AUTO_CREATE_VIRTUAL_ROOM job in processor ([91d8857](https://github.com/AnirudhAP2k/CorpConnect/commit/91d885781ed132b425971dd9b7de5ec36e0c4fb1))
+* **lv-service:** add internal endpoints for joining and leaving sessions ([d4030ee](https://github.com/AnirudhAP2k/CorpConnect/commit/d4030ee3f1fd0996a025454b368cd146828aae35))
+* **lv-service:** add webhook secret and port settings to env example ([d2d750b](https://github.com/AnirudhAP2k/CorpConnect/commit/d2d750b04a28737191c4e6d1f7792808f8f25108))
+* **lv-service:** decouple token generation from immediate session start ([9d0c2a3](https://github.com/AnirudhAP2k/CorpConnect/commit/9d0c2a324a4c146f7efcc870539a9ac0651efffd))
+* **lv-service:** enforce event window checks and active room verification ([4008b96](https://github.com/AnirudhAP2k/CorpConnect/commit/4008b96271721816172e461f65148b29350614d8))
+* **lv-service:** handle livekit participant join and leave webhook events ([d4c8787](https://github.com/AnirudhAP2k/CorpConnect/commit/d4c8787e3b64f67cc8fcf95f54691dc7bc567b76))
+* **lv-service:** mount webhooks and sessions routers in express app ([62615f8](https://github.com/AnirudhAP2k/CorpConnect/commit/62615f83198ee1778aa86bedc129a41fbaa60da8))
+* **prisma:** add AUTO_CREATE_VIRTUAL_ROOM to JobType enum ([c204a27](https://github.com/AnirudhAP2k/CorpConnect/commit/c204a2757bc3c9963c07fbd26bbd9d522d361023))
+* **prisma:** add migration for AUTO_CREATE_VIRTUAL_ROOM job type ([b151ae1](https://github.com/AnirudhAP2k/CorpConnect/commit/b151ae144e6b122249e24870d07dbdab53254a83))
+* **prisma:** add migration to backfill auto virtual room jobs ([22e3130](https://github.com/AnirudhAP2k/CorpConnect/commit/22e3130bd86c1438e74f53bcbc1c035fc1e55622))
+* **prisma:** add partial unique index for open virtual sessions ([5d70814](https://github.com/AnirudhAP2k/CorpConnect/commit/5d7081430e15e6e2771d7cb0b2b059edad6bf6ed))
+* **routes:** mark livekit webhook route as public ([db9acb6](https://github.com/AnirudhAP2k/CorpConnect/commit/db9acb6aa2802e22e867eaa30b173f38d5672ed6))
+* **tests:** add test suite for virtual meetings lifecycle and jobs ([a326849](https://github.com/AnirudhAP2k/CorpConnect/commit/a326849c31fa1813b8c4bd7bbbd3734bd24f5eb8))
+* **tests:** test livekit webhook public route in middleware policy ([9c069cb](https://github.com/AnirudhAP2k/CorpConnect/commit/9c069cb8aac34782d5f16cfa9541add64e739425))
+* **tests:** update events actions tests for auto virtual room job scheduling ([eaa1f3e](https://github.com/AnirudhAP2k/CorpConnect/commit/eaa1f3e0a198f122d8bb1b25e918fadafddcb284))
+* **ui:** add live polling and auto-room display in VirtualRoomList ([54ebe67](https://github.com/AnirudhAP2k/CorpConnect/commit/54ebe6715e08ab02abedd866adba783072cf1e67))
+* **ui:** record session leave on disconnect in VirtualRoom ([145ebb5](https://github.com/AnirudhAP2k/CorpConnect/commit/145ebb562a851bc5cf6f8ba3c1d4c856eae83c93))
+* **ui:** update JoinVirtualButton event window checks and styling ([4beba23](https://github.com/AnirudhAP2k/CorpConnect/commit/4beba2360cfa6cb5186744fce870f5b689d8234d))
+
 ## [1.35.2](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.1...v1.35.2) (2026-09-15)
 
 
