@@ -1,3 +1,19 @@
+# [1.37.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.36.0...v1.37.0) (2026-09-17)
+
+
+### Bug Fixes
+
+* **jobs:** type connection notification recipients and payloads ([0c03a49](https://github.com/AnirudhAP2k/CorpConnect/commit/0c03a494ec609e3373a028e0c195be9305974370))
+* **jobs:** type job queue processor and payload handlers ([eb8e3c5](https://github.com/AnirudhAP2k/CorpConnect/commit/eb8e3c53772803ba1dde46e2a21be08b87276e89))
+* **jobs:** type meeting notification payload and events ([7fb6f78](https://github.com/AnirudhAP2k/CorpConnect/commit/7fb6f78028c7e788d41aff742fa7930bcca71212))
+* **jobs:** use shared types for embedding generation jobs ([44cdc21](https://github.com/AnirudhAP2k/CorpConnect/commit/44cdc212d108c186e881fd49d612344ac8d3a94b))
+* **scheduler:** attach scheduler initialization state to globalThis ([c4c272d](https://github.com/AnirudhAP2k/CorpConnect/commit/c4c272d9a31ec479d488a28d6fe4ee07c829b1e9))
+
+
+### Features
+
+* **types:** add cron and notification job payload interfaces ([bae1d5c](https://github.com/AnirudhAP2k/CorpConnect/commit/bae1d5c0bad2ed75a64222127eac521d2be60fe3))
+
 # [1.36.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.35.2...v1.36.0) (2026-09-17)
 
 
