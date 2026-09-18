@@ -25,7 +25,7 @@ import { processEventReport } from "@/lib/jobs/report-generator";
 import { processGenerateTasklist } from "@/lib/jobs/tasklist-generator";
 import type { EventReminderPayload } from "@/domain/notifications/types";
 import type { VirtualRoomOpenedPayload } from "@/domain/notifications/types";
-import type { GenerateReportPayload } from "@/lib/jobs/report-generator";
+import type { GenerateReportPayload } from "@/lib/types";
 import type { GenerateTasklistPayload } from "@/lib/jobs/tasklist-generator";
 import {
 	expireStalePendingInvites,
