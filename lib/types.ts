@@ -301,4 +301,9 @@ export interface EmbedEventPayload {
 export interface EmbedOrgPayload {
 	orgId: string;
 }
+
+export interface GenerateReportPayload {
+	eventId: string;
+}
+
 // ====== INTERFACE DEFINATIONS - END ====
