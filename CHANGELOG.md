@@ -1,3 +1,16 @@
+# [1.38.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.37.0...v1.38.0) (2026-09-18)
+
+
+### Bug Fixes
+
+* **jobs:** import GenerateReportPayload from types in job processor ([80479b7](https://github.com/AnirudhAP2k/CorpConnect/commit/80479b7950320073b134c12025effd92e338755d))
+* **jobs:** use shared GenerateReportPayload and format report generator ([9d04600](https://github.com/AnirudhAP2k/CorpConnect/commit/9d046002b3480b537f5f5a98666011616a5538be))
+
+
+### Features
+
+* **types:** add GenerateReportPayload interface ([e275d9a](https://github.com/AnirudhAP2k/CorpConnect/commit/e275d9aae987099cd65b5c53b0a8274641732c19))
+
 # [1.37.0](https://github.com/AnirudhAP2k/CorpConnect/compare/v1.36.0...v1.37.0) (2026-09-17)
 
 
