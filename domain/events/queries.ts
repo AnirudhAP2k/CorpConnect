@@ -400,7 +400,11 @@ export async function getActiveVirtualRooms(eventId: string) {
 /**
  * The event and room a join screen needs, fetched together.
  */
-export async function getVirtualRoomJoinContext(eventId: string, roomId: string) {
+export async function getVirtualRoomJoinContext(
+    eventId: string,
+    roomId: string,
+    userId: string,
+) {
     const [event, room] = await Promise.all([
         prisma.events.findUnique({
             where: { id: eventId },
@@ -410,6 +414,18 @@ export async function getVirtualRoomJoinContext(eventId: string, roomId: string)
                 eventType: true,
                 startDateTime: true,
                 endDateTime: true,
+                organization: {
+                    select: {
+                        members: {
+                            where: {
+                                userId,
+                                role: { in: ["OWNER", "ADMIN"] },
+                            },
+                            select: { id: true },
+                            take: 1,
+                        },
+                    },
+                },
             },
         }),
         prisma.virtualRoom.findUnique({
