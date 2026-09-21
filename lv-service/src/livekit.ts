@@ -21,6 +21,8 @@ export interface TokenOptions {
     /** true = can send audio/video; false = view-only attendee */
     canPublish: boolean;
     canSubscribe: boolean;
+    isHost: boolean;
+    metadata: Record<string, string>;
 }
 
 /**
@@ -32,6 +34,7 @@ export async function generateRoomToken(opts: TokenOptions): Promise<string> {
     const at = new AccessToken(LK_KEY, LK_SECRET, {
         identity: opts.participantIdentity,
         name: opts.participantName,
+        metadata: JSON.stringify(opts.metadata),
         ttl: "4h",
     });
 
@@ -41,6 +44,7 @@ export async function generateRoomToken(opts: TokenOptions): Promise<string> {
         canPublish: opts.canPublish,
         canSubscribe: opts.canSubscribe,
         canPublishData: true, // needed for ws-like data messages (Q&A, reactions)
+        ...(opts.isHost ? { roomAdmin: true } : {}),
     });
 
     return at.toJwt();
