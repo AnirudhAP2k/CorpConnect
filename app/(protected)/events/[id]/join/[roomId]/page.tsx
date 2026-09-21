@@ -17,7 +17,11 @@ export default async function JoinRoomPage({ params }: JoinRoomPageProps) {
     const { id: eventId, roomId } = await params;
 
     // Fetch event and room in parallel
-    const { event, room } = await getVirtualRoomJoinContext(eventId, roomId);
+    const { event, room } = await getVirtualRoomJoinContext(
+        eventId,
+        roomId,
+        session.user.id,
+    );
 
     if (!event) notFound();
 
@@ -34,6 +38,8 @@ export default async function JoinRoomPage({ params }: JoinRoomPageProps) {
                 roomId={roomId}
                 eventId={eventId}
                 eventTitle={event.title}
+                isHost={(event.organization?.members.length ?? 0) > 0}
+                displayName={session.user.name?.trim() || "Event attendee"}
             />
         </main>
     );
