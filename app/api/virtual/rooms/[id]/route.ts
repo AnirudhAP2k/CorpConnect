@@ -11,10 +11,6 @@ export async function DELETE(_req: Request, { params }: Params) {
     const ctx = await getLvAuthContext();
     if (!ctx) return NextResponse.json({ error: "UNAUTHORIZED" }, { status: 401 });
 
-    if (!["OWNER", "ADMIN"].includes(ctx.role)) {
-        return NextResponse.json({ error: "INSUFFICIENT_ROLE" }, { status: 403 });
-    }
-
     const { id } = await params;
 
     const lvRes = await lvFetch(`/rooms/${id}`, {
