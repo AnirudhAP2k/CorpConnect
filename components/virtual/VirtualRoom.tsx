@@ -3,8 +3,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import {
     LiveKitRoom,
-    VideoConference,
-    formatChatMessageLinks,
     LocalUserChoices,
     PreJoin,
 } from "@livekit/components-react";
@@ -12,16 +10,25 @@ import "@livekit/components-styles";
 import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { MeetingLayout } from "@/components/virtual/meeting/MeetingLayout";
 
 interface VirtualRoomProps {
     roomId: string;
     eventId: string;
     eventTitle: string;
+    isHost: boolean;
+    displayName: string;
 }
 
 type ConnectionState = "prejoin" | "connecting" | "connected" | "error";
 
-export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
+export function VirtualRoom({
+    roomId,
+    eventId,
+    eventTitle,
+    isHost,
+    displayName,
+}: VirtualRoomProps) {
     const [state, setState] = useState<ConnectionState>("prejoin");
     const [token, setToken] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
@@ -142,7 +149,9 @@ export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
                 <div className="w-full max-w-xl">
                     <div className="mb-6 text-center">
                         <h1 className="text-2xl font-bold text-white mb-1">{eventTitle}</h1>
-                        <p className="text-gray-400 text-sm">Configure your camera and microphone before joining</p>
+                        <p className="text-gray-400 text-sm">
+                            Joining as {displayName}{isHost ? " · Host" : ""}
+                        </p>
                     </div>
                     <PreJoin
                         onSubmit={handlePreJoinSubmit}
@@ -207,8 +216,10 @@ export function VirtualRoom({ roomId, eventId, eventTitle }: VirtualRoomProps) {
                 }}
                 style={{ height: "100dvh" }}
             >
-                <VideoConference
-                    chatMessageFormatter={formatChatMessageLinks}
+                <MeetingLayout
+                    roomId={roomId}
+                    eventTitle={eventTitle}
+                    isHost={isHost}
                 />
             </LiveKitRoom>
         </div>
