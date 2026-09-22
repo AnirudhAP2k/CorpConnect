@@ -14,12 +14,15 @@ import {
     UserRoundX,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import type { RaisedHand } from "@/hooks/useVirtualRoomSocket";
 
 interface ParticipantListProps {
     roomId: string;
     isHost: boolean;
     raisedHands: RaisedHand[];
+    onLowerHand?: (userId: string) => void;
+    onAskUnmute?: (userId: string, kind: "audio" | "video") => void;
 }
 
 function isParticipantHost(metadata?: string) {
@@ -35,6 +38,8 @@ export function ParticipantList({
     roomId,
     isHost,
     raisedHands,
+    onLowerHand,
+    onAskUnmute,
 }: ParticipantListProps) {
     const participants = useParticipants();
     const { localParticipant } = useLocalParticipant();
@@ -53,19 +58,23 @@ export function ParticipantList({
             }),
         });
         if (!res.ok) {
-            window.alert("Unable to mute this track.");
+            toast.error("Unable to mute this track.");
+        } else {
+            toast.success("Track muted.");
         }
     };
 
-    const kickParticipant = async (participantIdentity: string) => {
-        if (!window.confirm("Remove this participant from the meeting?")) return;
+    const kickParticipant = async (participantIdentity: string, participantName?: string) => {
+        if (!window.confirm(`Remove ${participantName || "this participant"} from the meeting?`)) return;
         const res = await fetch(`/api/virtual/rooms/${roomId}/kick`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ participantIdentity }),
         });
         if (!res.ok) {
-            window.alert("Unable to remove this participant.");
+            toast.error("Unable to remove this participant.");
+        } else {
+            toast.success("Participant removed from meeting.");
         }
     };
 
@@ -77,6 +86,54 @@ export function ParticipantList({
                     {participants.length}
                 </span>
             </div>
+
+            {raisedHands.length > 0 && (
+                <div className="mb-4 rounded-lg border border-blue-500/30 bg-blue-950/20 p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                        <span className="flex items-center gap-1.5 text-xs font-semibold text-blue-300">
+                            <Hand className="h-3.5 w-3.5" /> Raised Hands Queue
+                        </span>
+                        <span className="rounded-full bg-blue-500/20 px-2 py-0.5 text-[10px] font-medium text-blue-200">
+                            {raisedHands.length}
+                        </span>
+                    </div>
+                    <div className="space-y-1.5">
+                        {raisedHands.map((hand, idx) => {
+                            const participant = participants.find((p) => p.identity === hand.userId);
+                            const name =
+                                participant?.name ||
+                                (hand.userId === localParticipant.identity ? "You" : "Attendee");
+                            return (
+                                <div
+                                    key={hand.userId}
+                                    className="flex items-center justify-between rounded-md bg-white/5 px-2.5 py-1.5 text-xs"
+                                >
+                                    <div className="flex min-w-0 items-center gap-2">
+                                        <span className="flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-blue-500/30 text-[10px] font-bold text-blue-200">
+                                            {idx + 1}
+                                        </span>
+                                        <span className="truncate font-medium">{name}</span>
+                                    </div>
+                                    {isHost && onLowerHand && (
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="ghost"
+                                            onClick={() => {
+                                                onLowerHand(hand.userId);
+                                                toast.success(`Lowered hand for ${name}`);
+                                            }}
+                                            className="h-6 px-2 text-[11px] text-blue-300 hover:bg-blue-500/20 hover:text-white"
+                                        >
+                                            Lower
+                                        </Button>
+                                    )}
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
 
             <div className="space-y-2">
                 {participants.map((participant) => {
@@ -109,6 +166,18 @@ export function ParticipantList({
                                         {handRaised && (
                                             <span className="flex items-center gap-1 text-blue-300">
                                                 <Hand className="h-3 w-3" /> Raised hand
+                                                {isHost && onLowerHand && !isLocal && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            onLowerHand(participant.identity);
+                                                            toast.success(`Lowered hand for ${participant.name || "attendee"}`);
+                                                        }}
+                                                        className="ml-1 text-[11px] text-blue-400 underline hover:text-blue-200"
+                                                    >
+                                                        (Lower)
+                                                    </button>
+                                                )}
                                             </span>
                                         )}
                                     </div>
@@ -117,7 +186,7 @@ export function ParticipantList({
 
                             {isHost && !isLocal && (
                                 <div className="mt-3 grid grid-cols-2 gap-2">
-                                    {microphone && !microphone.isMuted && (
+                                    {microphone && !microphone.isMuted ? (
                                         <Button
                                             type="button"
                                             size="sm"
@@ -130,6 +199,21 @@ export function ParticipantList({
                                         >
                                             <MicOff className="h-3 w-3" /> Mute
                                         </Button>
+                                    ) : (
+                                        onAskUnmute && (
+                                            <Button
+                                                type="button"
+                                                size="sm"
+                                                variant="outline"
+                                                onClick={() => {
+                                                    onAskUnmute(participant.identity, "audio");
+                                                    toast.success(`Sent unmute request to ${participant.name || "attendee"}.`);
+                                                }}
+                                                className="gap-1 border-white/20 bg-transparent text-xs text-amber-200 hover:bg-white/10"
+                                            >
+                                                <MicOff className="h-3 w-3 text-amber-400" /> Ask unmute
+                                            </Button>
+                                        )
                                     )}
                                     {camera && !camera.isMuted && (
                                         <Button
@@ -163,7 +247,7 @@ export function ParticipantList({
                                         type="button"
                                         size="sm"
                                         variant="destructive"
-                                        onClick={() => kickParticipant(participant.identity)}
+                                        onClick={() => kickParticipant(participant.identity, participant.name)}
                                         className="gap-1 text-xs"
                                     >
                                         <UserRoundX className="h-3 w-3" /> Kick
