@@ -1,16 +1,18 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import {
     GridLayout,
     ParticipantTile,
     RoomAudioRenderer,
     StartAudio,
     useConnectionState,
+    useLocalParticipant,
     useTracks,
 } from "@livekit/components-react";
 import { ConnectionState, Track } from "livekit-client";
 import { Wifi, WifiOff } from "lucide-react";
+import { toast } from "sonner";
 import { MeetingChat } from "@/components/virtual/meeting/MeetingChat";
 import { MeetingControls } from "@/components/virtual/meeting/MeetingControls";
 import { ParticipantList } from "@/components/virtual/meeting/ParticipantList";
@@ -31,6 +33,28 @@ export function MeetingLayout({
     const [chatOpen, setChatOpen] = useState(false);
     const [participantsOpen, setParticipantsOpen] = useState(false);
     const liveKitConnectionState = useConnectionState();
+    const { localParticipant } = useLocalParticipant();
+
+    const handleAskUnmute = useCallback((kind: "audio" | "video") => {
+        const isAudio = kind === "audio";
+        toast.info(
+            `The host has asked you to unmute your ${isAudio ? "microphone" : "camera"}.`,
+            {
+                action: {
+                    label: isAudio ? "Unmute Mic" : "Start Camera",
+                    onClick: () => {
+                        if (isAudio) {
+                            void localParticipant.setMicrophoneEnabled(true);
+                        } else {
+                            void localParticipant.setCameraEnabled(true);
+                        }
+                    },
+                },
+                duration: 10000,
+            },
+        );
+    }, [localParticipant]);
+
     const tracks = useTracks(
         [
             { source: Track.Source.Camera, withPlaceholder: true },
@@ -44,11 +68,13 @@ export function MeetingLayout({
         reactions,
         isHandRaised,
         toggleHand,
+        lowerHand,
+        askUnmute,
         react,
-    } = useVirtualRoomSocket(
-        roomId,
-        liveKitConnectionState === ConnectionState.Connected,
-    );
+    } = useVirtualRoomSocket(roomId, {
+        enabled: liveKitConnectionState === ConnectionState.Connected,
+        onAskUnmute: handleAskUnmute,
+    });
 
     return (
         <div className="flex h-[100dvh] min-h-0 flex-col overflow-hidden bg-gray-950 text-white">
@@ -96,6 +122,8 @@ export function MeetingLayout({
                             roomId={roomId}
                             isHost={isHost}
                             raisedHands={raisedHands}
+                            onLowerHand={lowerHand}
+                            onAskUnmute={askUnmute}
                         />
                     </div>
                 )}
