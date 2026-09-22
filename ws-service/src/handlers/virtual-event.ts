@@ -30,6 +30,27 @@ async function assertVirtualRoomAccess(roomId: string, userId: string): Promise<
     return result.rows[0]?.ok === true;
 }
 
+/**
+ * Verifies the user is an OWNER or ADMIN of the organization hosting the event
+ * for this virtual room.
+ */
+async function assertVirtualRoomHost(roomId: string, userId: string): Promise<boolean> {
+    const result = await pool.query<{ ok: boolean }>(
+        `SELECT EXISTS (
+             SELECT 1
+             FROM "VirtualRoom" vr
+             JOIN "Events" e ON e.id = vr."eventId"
+             JOIN "OrganizationMember" om
+                    ON om."organizationId" = e."organizationId"
+                   AND om."userId" = $2
+                   AND om.role IN ('OWNER', 'ADMIN')
+             WHERE vr.id = $1
+         ) AS ok`,
+        [roomId, userId]
+    );
+    return result.rows[0]?.ok === true;
+}
+
 export function registerVirtualEventHandlers(io: Server, socket: Socket, userId: string, activeOrgId: string) {
     // Only rooms the socket has been authorized into may receive events from it.
     const authorizedRooms = new Set<string>();
@@ -83,11 +104,30 @@ export function registerVirtualEventHandlers(io: Server, socket: Socket, userId:
         });
     });
 
-    socket.on("lower_hand", (roomId: string) => {
+    socket.on("lower_hand", async (roomId: string, targetUserId?: string) => {
         if (!roomId || !authorizedRooms.has(roomId)) return;
+        let loweredUserId = userId;
+        if (targetUserId && targetUserId !== userId) {
+            const isHost = await assertVirtualRoomHost(roomId, userId);
+            if (!isHost) return;
+            loweredUserId = targetUserId;
+        }
         io.to(virtualRoomPresence(roomId)).emit("hand_lowered", {
-            userId,
+            userId: loweredUserId,
             activeOrgId,
+        });
+    });
+
+    // ─── Moderation: Ask to Unmute ───────────────────────────────────────────────
+    socket.on("ask_unmute", async (roomId: string, targetUserId: string, kind: "audio" | "video") => {
+        if (!roomId || !targetUserId || !authorizedRooms.has(roomId)) return;
+        if (kind !== "audio" && kind !== "video") return;
+        const isHost = await assertVirtualRoomHost(roomId, userId);
+        if (!isHost) return;
+        io.to(virtualRoomPresence(roomId)).emit("ask_unmute_requested", {
+            targetUserId,
+            hostUserId: userId,
+            kind,
         });
     });
 
