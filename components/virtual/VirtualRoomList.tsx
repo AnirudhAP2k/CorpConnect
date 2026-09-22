@@ -5,6 +5,9 @@ import { Plus, Users, Trash2, Loader2, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { JoinVirtualButton } from "@/components/virtual/JoinVirtualButton";
+import { VirtualRoomListSkeleton } from "@/components/virtual/VirtualRoomListSkeleton";
+
+export { VirtualRoomListSkeleton };
 
 interface VirtualRoom {
     id: string;
@@ -24,7 +27,8 @@ interface VirtualRoomListProps {
     eventType: "ONLINE" | "HYBRID";
     startDateTime: string;
     endDateTime: string;
-    initialRooms: VirtualRoom[];
+    initialRooms?: VirtualRoom[];
+    isLoading?: boolean;
 }
 
 export function VirtualRoomList({
@@ -36,7 +40,8 @@ export function VirtualRoomList({
     eventType,
     startDateTime,
     endDateTime,
-    initialRooms,
+    initialRooms = [],
+    isLoading = false,
 }: VirtualRoomListProps) {
     const [rooms, setRooms] = useState<VirtualRoom[]>(initialRooms);
     const [creating, setCreating] = useState(false);
@@ -130,6 +135,10 @@ export function VirtualRoomList({
             setDeletingId(null);
         }
     };
+
+    if (isLoading && rooms.length === 0) {
+        return <VirtualRoomListSkeleton />;
+    }
 
     if (rooms.length === 0 && !isHost) {
         return (
