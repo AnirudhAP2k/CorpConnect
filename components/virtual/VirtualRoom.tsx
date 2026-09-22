@@ -7,7 +7,16 @@ import {
     PreJoin,
 } from "@livekit/components-react";
 import "@livekit/components-styles";
-import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import {
+    Loader2,
+    AlertCircle,
+    ArrowLeft,
+    Clock,
+    CalendarOff,
+    DoorClosed,
+    CreditCard,
+    UserX,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 import { MeetingLayout } from "@/components/virtual/meeting/MeetingLayout";
@@ -22,6 +31,13 @@ interface VirtualRoomProps {
 
 type ConnectionState = "prejoin" | "connecting" | "connected" | "error";
 
+interface ErrorDetails {
+    code?: string;
+    message: string;
+    startsAt?: string;
+    endedAt?: string;
+}
+
 export function VirtualRoom({
     roomId,
     eventId,
@@ -31,7 +47,7 @@ export function VirtualRoom({
 }: VirtualRoomProps) {
     const [state, setState] = useState<ConnectionState>("prejoin");
     const [token, setToken] = useState<string | null>(null);
-    const [error, setError] = useState<string | null>(null);
+    const [errorDetails, setErrorDetails] = useState<ErrorDetails | null>(null);
     const [userChoices, setUserChoices] = useState<LocalUserChoices | null>(null);
     const sessionStartedRef = useRef(false);
     const sessionClosedRef = useRef(false);
@@ -40,7 +56,7 @@ export function VirtualRoom({
 
     const fetchToken = useCallback(async () => {
         setState("connecting");
-        setError(null);
+        setErrorDetails(null);
         try {
             const res = await fetch("/api/virtual/token", {
                 method: "POST",
@@ -51,7 +67,12 @@ export function VirtualRoom({
             const data = await res.json();
 
             if (!res.ok) {
-                setError(data.message ?? "Unable to join this session.");
+                setErrorDetails({
+                    code: data.error,
+                    message: data.message ?? "Unable to join this session.",
+                    startsAt: data.startsAt,
+                    endedAt: data.endedAt,
+                });
                 setState("error");
                 return;
             }
@@ -59,7 +80,10 @@ export function VirtualRoom({
             setToken(data.token);
             setState("connected");
         } catch {
-            setError("Connection error. Please check your network and try again.");
+            setErrorDetails({
+                code: "NETWORK_ERROR",
+                message: "Connection error. Please check your network and try again.",
+            });
             setState("error");
         }
     }, [roomId]);
@@ -156,7 +180,7 @@ export function VirtualRoom({
                     <PreJoin
                         onSubmit={handlePreJoinSubmit}
                         defaults={{ videoEnabled: true, audioEnabled: true }}
-                        onError={(err) => setError(err.message)}
+                        onError={(err) => setErrorDetails({ message: err.message })}
                     />
                 </div>
             </div>
@@ -176,11 +200,127 @@ export function VirtualRoom({
 
     // ── Error ────────────────────────────────────────────────────────────────
     if (state === "error" || !token) {
+        const code = errorDetails?.code;
+        const message = errorDetails?.message || "An unexpected error occurred.";
+
+        if (code === "EVENT_NOT_STARTED") {
+            const formattedTime = errorDetails?.startsAt
+                ? new Date(errorDetails.startsAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+                : null;
+
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
+                    <div className="rounded-full bg-amber-500/10 p-4 border border-amber-500/20">
+                        <Clock className="w-12 h-12 text-amber-400" />
+                    </div>
+                    <p className="text-xl font-semibold">Session Not Live Yet</p>
+                    <p className="text-sm text-gray-400 text-center max-w-sm">
+                        {message}
+                    </p>
+                    {formattedTime && (
+                        <p className="text-xs text-amber-300/80 bg-amber-950/40 border border-amber-800/40 rounded-md px-3 py-1.5">
+                            Event begins at {formattedTime}. Attendees can enter 15 minutes prior.
+                        </p>
+                    )}
+                    <div className="flex gap-3 mt-3">
+                        <Button
+                            onClick={fetchToken}
+                            variant="outline"
+                            className="border-gray-600 text-white hover:bg-gray-800"
+                        >
+                            Check Again
+                        </Button>
+                        <Link href={`/events/${eventId}`}>
+                            <Button variant="ghost" className="text-gray-400 hover:text-white">
+                                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Event
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
+            );
+        }
+
+        if (code === "EVENT_ENDED") {
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
+                    <div className="rounded-full bg-gray-500/10 p-4 border border-gray-500/20">
+                        <CalendarOff className="w-12 h-12 text-gray-400" />
+                    </div>
+                    <p className="text-xl font-semibold">Event Has Ended</p>
+                    <p className="text-sm text-gray-400 text-center max-w-sm">
+                        {message}
+                    </p>
+                    <Link href={`/events/${eventId}`} className="mt-2">
+                        <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Event Details
+                        </Button>
+                    </Link>
+                </div>
+            );
+        }
+
+        if (code === "ROOM_CLOSED") {
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
+                    <div className="rounded-full bg-rose-500/10 p-4 border border-rose-500/20">
+                        <DoorClosed className="w-12 h-12 text-rose-400" />
+                    </div>
+                    <p className="text-xl font-semibold">Virtual Room Closed</p>
+                    <p className="text-sm text-gray-400 text-center max-w-sm">
+                        {message}
+                    </p>
+                    <Link href={`/events/${eventId}`} className="mt-2">
+                        <Button variant="outline" className="border-gray-600 text-white hover:bg-gray-800">
+                            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Event
+                        </Button>
+                    </Link>
+                </div>
+            );
+        }
+
+        if (code === "NOT_REGISTERED") {
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
+                    <div className="rounded-full bg-blue-500/10 p-4 border border-blue-500/20">
+                        <UserX className="w-12 h-12 text-blue-400" />
+                    </div>
+                    <p className="text-xl font-semibold">Registration Required</p>
+                    <p className="text-sm text-gray-400 text-center max-w-sm">
+                        {message}
+                    </p>
+                    <Link href={`/events/${eventId}`} className="mt-2">
+                        <Button className="bg-blue-600 hover:bg-blue-500 text-white">
+                            Register for Event
+                        </Button>
+                    </Link>
+                </div>
+            );
+        }
+
+        if (code === "PAYMENT_REQUIRED") {
+            return (
+                <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
+                    <div className="rounded-full bg-amber-500/10 p-4 border border-amber-500/20">
+                        <CreditCard className="w-12 h-12 text-amber-400" />
+                    </div>
+                    <p className="text-xl font-semibold">Ticket Payment Required</p>
+                    <p className="text-sm text-gray-400 text-center max-w-sm">
+                        {message}
+                    </p>
+                    <Link href={`/events/${eventId}`} className="mt-2">
+                        <Button className="bg-amber-600 hover:bg-amber-500 text-white">
+                            Complete Ticket Purchase
+                        </Button>
+                    </Link>
+                </div>
+            );
+        }
+
         return (
             <div className="flex flex-col items-center justify-center h-screen bg-gray-950 text-white gap-4 p-6">
                 <AlertCircle className="w-12 h-12 text-red-400" />
                 <p className="text-xl font-semibold">Unable to Join</p>
-                <p className="text-sm text-gray-400 text-center max-w-sm">{error}</p>
+                <p className="text-sm text-gray-400 text-center max-w-sm">{message}</p>
                 <div className="flex gap-3 mt-2">
                     <Button
                         onClick={() => setState("prejoin")}
