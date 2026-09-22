@@ -64,7 +64,7 @@
   - [x] `roomService.mutePublishedTrack(...)`
 - [x] `app/api/virtual/rooms/[id]/mute/route.ts` proxy
 - [x] Host menu: Mute audio / Mute video / Stop screen share (use track SIDs)
-- [x] Do **not** offer force-unmute; optional “Ask to unmute” toast later
+- [x] Do **not** offer force-unmute; implemented “Ask to unmute” toast via ws-service
 - [ ] 403 test: attendee calling mute endpoint
 
 ---
@@ -78,7 +78,7 @@
   - [x] `react`
   - [x] Listen: `hand_raised`, `hand_lowered`, `reaction_received`
 - [x] Raise-hand button in the control bar
-- [x] Host sidebar: raised-hand indicators ordered by timestamp
+- [x] Host sidebar: raised-hand indicators ordered by timestamp + host lower-hand control
 - [x] Reactions picker + overlay on grid
 - [x] Use Evently `roomId` (UUID), not LiveKit room name
 
@@ -90,7 +90,7 @@
 - [x] Realtime connection state inside `MeetingLayout`
 - [x] Accessible labels on all control buttons
 - [x] Host/attendee names visible on tiles (token `name`)
-- [ ] Loading skeleton already listed in v1 Phase 11.9 — keep if still open
+- [x] Loading skeleton for `VirtualRoomList` (Phase 11.9 / 12.7)
 
 ---
 
