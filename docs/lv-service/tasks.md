@@ -101,13 +101,13 @@
 
 ## Phase 11.9 — Polish & Testing
 
-- [ ] Loading skeleton for `VirtualRoomList` while rooms fetch
-- [ ] Empty state: "No rooms open yet — the host will start a session soon"
-- [ ] Error state: "Session not live yet" / "Event has ended" (use `EVENT_NOT_LIVE` error code)
-- [ ] Mobile-responsive full-screen layout for `/join/[roomId]` page
+- [x] Loading skeleton for `VirtualRoomList` while rooms fetch
+- [x] Empty state: "No rooms open yet — the host will start a session soon"
+- [x] Error state: "Session not live yet" / "Event has ended" (`EVENT_NOT_STARTED`, `EVENT_ENDED`, `ROOM_CLOSED`)
+- [x] Mobile-responsive full-screen layout for `/join/[roomId]` page
 - [ ] Integration test: host creates room → participant joins → verify LiveKit token flow
 - [ ] Integration test: raise hand → other participants see queue update via ws-service
-- [ ] LiveKit webhook endpoint (`POST /api/webhooks/livekit`) for `participant_left` — write `leftAt` + `durationSecs` to `VirtualSession`
+- [x] LiveKit webhook endpoint (`POST /api/webhooks/livekit`) for `participant_left` — write `leftAt` + `durationSecs` to `VirtualSession`
 
 ---
 

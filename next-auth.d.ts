@@ -18,7 +18,6 @@ declare module "next-auth" {
         id: string
         user: ExtendedUser
         error?: string | null;
-        wsToken?: string;
     }
 
     interface User {

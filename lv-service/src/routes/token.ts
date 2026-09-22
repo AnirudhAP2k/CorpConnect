@@ -89,7 +89,7 @@ router.post("/", async (req: Request, res: Response) => {
         }
 
         // ── 3. Check participant OR host access ────────────────────────────────
-        const [partResult, hostResult] = await Promise.all([
+        const [partResult, hostResult, userResult] = await Promise.all([
             // Registered participant (non-cancelled, payment satisfied)
             pool.query<{ status: string; isPaid: boolean }>(
                 `SELECT status, "isPaid"
@@ -109,11 +109,16 @@ router.post("/", async (req: Request, res: Response) => {
                    AND om.role IN ('OWNER', 'ADMIN')`,
                 [room.eventId, userId]
             ),
+            pool.query<{ name: string | null }>(
+                `SELECT name FROM "User" WHERE id = $1`,
+                [userId],
+            ),
         ]);
 
         const participation = partResult.rows[0];
         const isHost = hostResult.rows.length > 0;
         const isParticipant = partResult.rows.length > 0;
+        const participantName = userResult.rows[0]?.name?.trim() || "Event attendee";
 
         if (!isParticipant && !isHost) {
             return res.status(403).json({ error: "NOT_REGISTERED" });
@@ -130,15 +135,23 @@ router.post("/", async (req: Request, res: Response) => {
         const token = await generateRoomToken({
             roomName: room.livekitRoom,
             participantIdentity: userId,
-            participantName: `user:${userId}`,
+            participantName,
             canPublish: true,
             canSubscribe: true,
+            isHost,
+            metadata: {
+                role: isHost ? "HOST" : "ATTENDEE",
+                eventId: room.eventId,
+                roomId,
+            },
         });
 
         return res.json({
             token,
             livekitUrl: process.env.LIVEKIT_URL,
             roomName: room.livekitRoom,
+            isHost,
+            participantName,
         });
     } catch (err) {
         console.error("[lv-service] POST /token error:", err);

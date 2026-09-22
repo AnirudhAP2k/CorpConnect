@@ -258,4 +258,49 @@ router.post("/:id/kick", async (req: Request, res: Response) => {
     }
 });
 
+// ── POST /rooms/:id/mute ─────────────────────────────────────────────────────
+// Host force-mutes a participant's published audio/video/screen-share track.
+router.post("/:id/mute", async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { participantIdentity, trackSid, muted = true } = req.body as {
+        participantIdentity?: string;
+        trackSid?: string;
+        muted?: boolean;
+    };
+    const { userId } = req.auth!;
+
+    if (!participantIdentity || !trackSid) {
+        return res.status(400).json({ error: "MISSING_FIELDS" });
+    }
+
+    try {
+        const check = await pool.query<{ livekitRoom: string }>(
+            `SELECT vr."livekitRoom"
+             FROM "VirtualRoom" vr
+             JOIN "Events" e ON e.id = vr."eventId"
+             JOIN "OrganizationMember" om ON om."organizationId" = e."organizationId"
+             WHERE vr.id = $1
+               AND om."userId" = $2
+               AND om.role IN ('OWNER', 'ADMIN')
+               AND vr."isActive" = true`,
+            [id, userId],
+        );
+
+        if (!check.rows.length) {
+            return res.status(403).json({ error: "NOT_HOST" });
+        }
+
+        await roomService.mutePublishedTrack(
+            check.rows[0].livekitRoom,
+            participantIdentity,
+            trackSid,
+            Boolean(muted),
+        );
+        return res.json({ ok: true });
+    } catch (err) {
+        console.error("[lv-service] POST /rooms/:id/mute error:", err);
+        return res.status(500).json({ error: "INTERNAL_ERROR" });
+    }
+});
+
 export default router;

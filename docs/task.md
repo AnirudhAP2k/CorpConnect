@@ -290,13 +290,13 @@
 - [x] Scaffolded `ws-service/` directory (package.json, tsconfig.json, Dockerfile)
 - [x] Added `ws-service` service block to `compose.yaml`
 - [x] Added `NEXT_PUBLIC_WS_URL`, `WS_PORT` to `.env.example`
-- [x] Added `wsToken` field to `Session` type in `next-auth.d.ts`
-- [x] Updated `auth.session.ts` — mints short-lived WS token on every session
+- [x] Added protected `POST /api/messaging/ws-token` for on-demand short-lived tokens
+- [x] Socket client refreshes its token on every connection/reconnection
 - [x] Added "Messages" link to `sidebarLinks` in `constants/index.ts`
 
 ### 10.2 WebSocket Service ✅
 - [x] `ws-service/src/index.ts` — HTTP server + Socket.io + Redis adapter + auth middleware
-- [x] `ws-service/src/auth.ts` — JWT verification of WS token using `AUTH_SECRET`
+- [x] `ws-service/src/auth.ts` — issuer/audience verification using `WS_SERVICE_AUTH_SECRET`
 - [x] `ws-service/src/db.ts` — pg pool (same `DATABASE_URL` as Next.js)
 - [x] `ws-service/src/rooms.ts` — room naming helpers (`conv:*`, `org:*`)
 - [x] `ws-service/src/handlers/message.ts` — `join_conversation`, `send_message`, `mark_read`, `leave_conversation`

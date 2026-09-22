@@ -239,6 +239,8 @@ Copy the `.env.example` templates in the root, `ws-service`, `lv-service`, and `
 * **Next.js Core**:
   * `DATABASE_URL`: PostgreSQL connection string.
   * `AUTH_SECRET`: NextAuth session encryption secret.
+  * `WS_SERVICE_AUTH_SECRET`: Dedicated key for short-lived Socket.IO tokens.
+  * `LV_SERVICE_AUTH_SECRET`: Dedicated key for Next.js → lv-service calls.
   * `BASE_URL`: Public app URL (e.g. `http://localhost:3000`).
   * `NEXT_PUBLIC_WS_URL`: WebSocket URL (e.g. `http://localhost:4000`).
   * `AI_SERVICE_URL` & `AI_SERVICE_MASTER_KEY`: AI service endpoint and authorization token.
@@ -252,9 +254,10 @@ Copy the `.env.example` templates in the root, `ws-service`, `lv-service`, and `
 * **ws-service**:
   * `DATABASE_URL`: PostgreSQL connection string.
   * `REDIS_URL`: Redis backend URL.
-  * `AUTH_SECRET`: SHA token matching the Next.js core session secret.
+  * `WS_SERVICE_AUTH_SECRET`: Must match the dedicated key in the Next.js environment.
 * **lv-service**:
   * `DATABASE_URL`: PostgreSQL connection string.
+  * `LV_SERVICE_AUTH_SECRET`: Must match the dedicated key in the Next.js environment.
   * `LIVEKIT_URL`, `LIVEKIT_API_KEY`, `LIVEKIT_API_SECRET`: LiveKit server authorization.
 
 ---
