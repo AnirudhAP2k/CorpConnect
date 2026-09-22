@@ -14,6 +14,7 @@ import {
     Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 interface MeetingControlsProps {
     roomId: string;
@@ -47,7 +48,7 @@ export function MeetingControls({
 
         const res = await fetch(`/api/virtual/rooms/${roomId}`, { method: "DELETE" });
         if (!res.ok) {
-            window.alert("Unable to end the meeting. Please try again.");
+            toast.error("Unable to end the meeting. Please try again.");
         }
     };
 
