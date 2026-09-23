@@ -11,6 +11,7 @@ import { setEventTags } from "@/domain/tags/helpers";
 import { scheduleEventReport } from "@/lib/jobs/scheduleEventReport";
 import { enqueueMatchingRules } from "@/lib/jobs/automation";
 import { scheduleAutoVirtualRoom } from "@/lib/jobs/auto-create-virtual-room";
+import { usdPlatformConnectError } from "@/domain/billing";
 
 // ─── Create ───────────────────────────────────────────────────────────────────
 
@@ -27,7 +28,12 @@ export async function createEventAction(data: Record<string, unknown>) {
         // Verify org exists and is verified before allowing event creation
         const organization = await prisma.organization.findUnique({
             where: { id: organizationId },
-            select: { isVerified: true, name: true },
+            select: {
+                isVerified: true,
+                name: true,
+                stripeConnectedAccountId: true,
+                stripeChargesEnabled: true,
+            },
         });
 
         if (!organization) return { error: "Organization not found." };
@@ -50,6 +56,13 @@ export async function createEventAction(data: Record<string, unknown>) {
                 error: `"${organization.name}" is not yet verified. Complete KYB documents to unlock event creation.`,
                 code: "ORG_NOT_VERIFIED",
             };
+        }
+
+        if (rest.paymentMode === "PLATFORM" && rest.currency === "USD") {
+            const connectError = usdPlatformConnectError(organization);
+            if (connectError) {
+                return { error: connectError, code: "STRIPE_CONNECT_REQUIRED" };
+            }
         }
 
         const event = await prisma.events.create({
@@ -128,6 +141,28 @@ export async function updateEventAction(
     const { imageUrl, tags, organizationId: _, userId: __, ...rest } = parsed.data;
 
     try {
+        const nextPaymentMode = rest.paymentMode ?? event.paymentMode;
+        const nextCurrency = rest.currency ?? event.currency;
+        if (nextPaymentMode === "PLATFORM" && nextCurrency === "USD") {
+            if (!event.organizationId) {
+                return { error: "Event has no host organization." };
+            }
+            const hostOrg = await prisma.organization.findUnique({
+                where: { id: event.organizationId },
+                select: {
+                    stripeConnectedAccountId: true,
+                    stripeChargesEnabled: true,
+                },
+            });
+            const connectError = usdPlatformConnectError({
+                stripeConnectedAccountId: hostOrg?.stripeConnectedAccountId ?? null,
+                stripeChargesEnabled: hostOrg?.stripeChargesEnabled ?? false,
+            });
+            if (connectError) {
+                return { error: connectError, code: "STRIPE_CONNECT_REQUIRED" };
+            }
+        }
+
         const updatedEvent = await prisma.events.update({
             where: { id: eventId },
             data: { ...rest, image: imageUrl },
