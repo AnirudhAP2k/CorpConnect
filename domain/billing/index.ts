@@ -25,6 +25,16 @@ export type {
 export { getBillingAccess, getBillingOverview } from "./queries";
 export type { BillingAccess } from "./queries";
 
+export {
+	createStripeConnectOnboardingLink,
+	createStripeConnectDashboardLink,
+	getStripeConnectStatus,
+	isStripeConnectReady,
+	syncStripeConnectAccount,
+	usdPlatformConnectError,
+} from "./connect";
+export type { StripeConnectStatus } from "./connect";
+
 // Business services
 export {
 	createBillingCheckout,
