@@ -52,7 +52,14 @@ function mockPaidEvent() {
         paymentMode: "PLATFORM",
         price: "29.99",
         currency: "USD",
-        organization: { id: "org-1", name: "Acme", subscriptionPlan: "PRO", isVerified: true },
+        organization: {
+            id: "org-1",
+            name: "Acme",
+            subscriptionPlan: "PRO",
+            isVerified: true,
+            stripeConnectedAccountId: "acct_host",
+            stripeChargesEnabled: true,
+        },
     });
     (prisma.user.findUnique as jest.Mock).mockResolvedValue({ activeOrganizationId: "org-1" });
     (prisma.eventParticipation.findUnique as jest.Mock).mockResolvedValue({ id: PARTICIPATION_ID });
@@ -80,9 +87,39 @@ describe("POST /api/events/[id]/checkout", () => {
 
         expect(res.status).toBe(200);
         expect(sessionsCreate).toHaveBeenCalledWith(
-            expect.objectContaining({ mode: "payment" }),
+            expect.objectContaining({
+                mode: "payment",
+                payment_intent_data: expect.objectContaining({
+                    application_fee_amount: 60,
+                    transfer_data: { destination: "acct_host" },
+                }),
+            }),
             { idempotencyKey: `evt:stripe:${PARTICIPATION_ID}` }
         );
+    });
+
+    it("returns 409 when the host org has not finished Stripe Connect", async () => {
+        (prisma.events.findUnique as jest.Mock).mockResolvedValue({
+            id: EVENT_ID,
+            title: "Paid Meetup",
+            paymentMode: "PLATFORM",
+            price: "29.99",
+            currency: "USD",
+            organization: {
+                id: "org-1",
+                name: "Acme",
+                subscriptionPlan: "PRO",
+                isVerified: true,
+                stripeConnectedAccountId: null,
+                stripeChargesEnabled: false,
+            },
+        });
+
+        const { POST } = await import("@/app/api/events/[id]/checkout/route");
+        const res = await POST(checkoutRequest("stripe"), { params: Promise.resolve({ id: EVENT_ID }) });
+
+        expect(res.status).toBe(409);
+        expect(getStripe).not.toHaveBeenCalled();
     });
 
     it("uses the client Idempotency-Key on Stripe event checkout when present", async () => {
@@ -101,7 +138,12 @@ describe("POST /api/events/[id]/checkout", () => {
         });
 
         expect(sessionsCreate).toHaveBeenCalledWith(
-            expect.objectContaining({ mode: "payment" }),
+            expect.objectContaining({
+                mode: "payment",
+                payment_intent_data: expect.objectContaining({
+                    transfer_data: { destination: "acct_host" },
+                }),
+            }),
             { idempotencyKey: "mobile-evt-key-1" }
         );
     });
@@ -113,7 +155,14 @@ describe("POST /api/events/[id]/checkout", () => {
             paymentMode: "PLATFORM",
             price: "29.99",
             currency: "INR",
-            organization: { id: "org-1", name: "Acme", subscriptionPlan: "PRO", isVerified: true },
+            organization: {
+            id: "org-1",
+            name: "Acme",
+            subscriptionPlan: "PRO",
+            isVerified: true,
+            stripeConnectedAccountId: "acct_host",
+            stripeChargesEnabled: true,
+        },
         });
         (razorpayIdempotentPost as jest.Mock).mockResolvedValue({ id: "order_rzp_1" });
 
@@ -135,7 +184,14 @@ describe("POST /api/events/[id]/checkout", () => {
             paymentMode: "PLATFORM",
             price: "29.99",
             currency: "INR",
-            organization: { id: "org-1", name: "Acme", subscriptionPlan: "PRO", isVerified: true },
+            organization: {
+            id: "org-1",
+            name: "Acme",
+            subscriptionPlan: "PRO",
+            isVerified: true,
+            stripeConnectedAccountId: "acct_host",
+            stripeChargesEnabled: true,
+        },
         });
         (razorpayIdempotentPost as jest.Mock).mockResolvedValue({ id: "order_rzp_1" });
 
@@ -156,7 +212,14 @@ describe("POST /api/events/[id]/checkout", () => {
             paymentMode: "PLATFORM",
             price: "29.99",
             currency: "INR",
-            organization: { id: "org-1", name: "Acme", subscriptionPlan: "PRO", isVerified: true },
+            organization: {
+            id: "org-1",
+            name: "Acme",
+            subscriptionPlan: "PRO",
+            isVerified: true,
+            stripeConnectedAccountId: "acct_host",
+            stripeChargesEnabled: true,
+        },
         });
 
         const { POST } = await import("@/app/api/events/[id]/checkout/route");
