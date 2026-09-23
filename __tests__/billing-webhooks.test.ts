@@ -12,9 +12,9 @@ import { ensureCredential, syncCredentialTier } from "@/domain/api-credentials";
 import { PLAN_API_LIMITS } from "@/constants";
 import type { NormalizedBillingEvent } from "@/domain/billing/gateway/types";
 
-jest.mock("@/lib/db", () => {
+        jest.mock("@/lib/db", () => {
     const prismaMock: Record<string, any> = {
-        organization: { update: jest.fn() },
+        organization: { update: jest.fn(), updateMany: jest.fn() },
         orgSubscription: { upsert: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
         eventPayment: { findFirst: jest.fn(), update: jest.fn(), updateMany: jest.fn() },
         eventParticipation: { update: jest.fn() },
@@ -329,5 +329,49 @@ describe("handleBillingEvent", () => {
 
         expect(prisma.$transaction).not.toHaveBeenCalled();
         expect(prisma.organization.update).not.toHaveBeenCalled();
+    });
+
+    describe("connect.account.updated", () => {
+        it("persists Connect flags by org metadata id", async () => {
+            (prisma.organization.updateMany as jest.Mock).mockResolvedValue({ count: 1 });
+
+            await handleBillingEvent({
+                kind: "connect.account.updated",
+                connectedAccountId: "acct_1",
+                orgId: ORG_ID,
+                chargesEnabled: true,
+                payoutsEnabled: true,
+                detailsSubmitted: true,
+            });
+
+            expect(prisma.organization.updateMany).toHaveBeenCalledWith({
+                where: { id: ORG_ID },
+                data: {
+                    stripeConnectedAccountId: "acct_1",
+                    stripeChargesEnabled: true,
+                    stripePayoutsEnabled: true,
+                    stripeDetailsSubmitted: true,
+                },
+            });
+        });
+    });
+
+    describe("connect.account.deauthorized", () => {
+        it("clears the connected account on the org", async () => {
+            await handleBillingEvent({
+                kind: "connect.account.deauthorized",
+                connectedAccountId: "acct_1",
+            });
+
+            expect(prisma.organization.updateMany).toHaveBeenCalledWith({
+                where: { stripeConnectedAccountId: "acct_1" },
+                data: {
+                    stripeConnectedAccountId: null,
+                    stripeChargesEnabled: false,
+                    stripePayoutsEnabled: false,
+                    stripeDetailsSubmitted: false,
+                },
+            });
+        });
     });
 });
