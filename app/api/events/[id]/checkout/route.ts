@@ -24,6 +24,7 @@ import {
     readIdempotencyKeyHeader,
     resolveIdempotencyKey,
 } from "@/lib/payment/idempotency";
+import { usdPlatformConnectError } from "@/domain/billing";
 import { NextRequest, NextResponse } from "next/server";
 
 export const POST = async (
@@ -52,7 +53,8 @@ export const POST = async (
                         name: true,
                         subscriptionPlan: true,
                         isVerified: true,
-                        stripeCustomerId: true,
+                        stripeConnectedAccountId: true,
+                        stripeChargesEnabled: true,
                     },
                 },
             },
@@ -123,6 +125,15 @@ export const POST = async (
 
         // ── Stripe ──────────────────────────────────────────────────────────────
         if (provider === "stripe") {
+            const connectError = usdPlatformConnectError({
+                stripeConnectedAccountId: event.organization?.stripeConnectedAccountId ?? null,
+                stripeChargesEnabled: event.organization?.stripeChargesEnabled ?? false,
+            });
+            if (connectError) {
+                return NextResponse.json({ error: connectError, code: "STRIPE_CONNECT_REQUIRED" }, { status: 409 });
+            }
+
+            const destination = event.organization!.stripeConnectedAccountId!;
             const stripe = getStripe();
 
             const checkoutSession = await stripe.checkout.sessions.create(
@@ -139,12 +150,10 @@ export const POST = async (
                         },
                     ],
                     payment_intent_data: {
-                        // TODO: add this after implementing stripe connect with the organization hosting event
-                        // application_fee_amount: platformFee,
-                        // transfer_data: {
-                        //     destination: event.organization.stripeId, // The Org's account
-                        // },
-
+                        application_fee_amount: platformFee,
+                        transfer_data: {
+                            destination,
+                        },
                         metadata: { participationId, eventId, userId },
                     },
                     success_url: `${appUrl}/events/${eventId}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
@@ -170,8 +179,14 @@ export const POST = async (
                     amount: amountPaise,
                     currency,
                     status: "PENDING",
+                    applicationFeeAmount: platformFee,
+                    destinationAccountId: destination,
                 },
-                update: { status: "PENDING" },
+                update: {
+                    status: "PENDING",
+                    applicationFeeAmount: platformFee,
+                    destinationAccountId: destination,
+                },
             });
 
             return NextResponse.json(
