@@ -37,6 +37,12 @@ export async function handleBillingEvent(event: NormalizedBillingEvent): Promise
         case "event_payment.succeeded":
             await confirmEventPayment(event);
             break;
+        case "connect.account.updated":
+            await persistConnectAccount(event);
+            break;
+        case "connect.account.deauthorized":
+            await clearConnectAccount(event.connectedAccountId);
+            break;
         case "ignored":
             break;
     }
@@ -238,4 +244,45 @@ async function confirmEventPayment(
     await prisma.jobQueue.createMany({ data: jobs });
 
     console.log(`[billing] ✓ Payment confirmed for participation ${event.participationId}`);
+}
+
+async function persistConnectAccount(
+    event: Extract<NormalizedBillingEvent, { kind: "connect.account.updated" }>
+): Promise<void> {
+    const data = {
+        stripeConnectedAccountId: event.connectedAccountId,
+        stripeChargesEnabled: event.chargesEnabled,
+        stripePayoutsEnabled: event.payoutsEnabled,
+        stripeDetailsSubmitted: event.detailsSubmitted,
+    };
+
+    const updated = event.orgId
+        ? await prisma.organization.updateMany({
+              where: { id: event.orgId },
+              data,
+          })
+        : await prisma.organization.updateMany({
+              where: { stripeConnectedAccountId: event.connectedAccountId },
+              data,
+          });
+
+    if (updated.count === 0 && event.orgId) {
+        await prisma.organization.updateMany({
+            where: { stripeConnectedAccountId: event.connectedAccountId },
+            data,
+        });
+    }
+}
+
+async function clearConnectAccount(connectedAccountId: string): Promise<void> {
+    await prisma.organization.updateMany({
+        where: { stripeConnectedAccountId: connectedAccountId },
+        data: {
+            stripeConnectedAccountId: null,
+            stripeChargesEnabled: false,
+            stripePayoutsEnabled: false,
+            stripeDetailsSubmitted: false,
+        },
+    });
+    console.warn(`[billing] Stripe Connect deauthorized for ${connectedAccountId}`);
 }
