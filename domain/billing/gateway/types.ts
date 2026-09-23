@@ -77,6 +77,18 @@ export type NormalizedBillingEvent =
 			/** Mark the payment succeeded even if no EventPayment row is found (Stripe). */
 			markSucceededIfMissing: boolean;
 	  }
+	| {
+			kind: "connect.account.updated";
+			connectedAccountId: string;
+			orgId?: string;
+			chargesEnabled: boolean;
+			payoutsEnabled: boolean;
+			detailsSubmitted: boolean;
+	  }
+	| {
+			kind: "connect.account.deauthorized";
+			connectedAccountId: string;
+	  }
 	/** Recognized-but-unhandled or irrelevant provider event — safely ignored. */
 	| { kind: "ignored" };
 
@@ -114,4 +126,12 @@ export interface PaymentGateway {
 		rawBody: string,
 		signature: string,
 	): Promise<NormalizedBillingEvent[]>;
+}
+
+export interface StripeConnectAccountSnapshot {
+	id: string;
+	chargesEnabled: boolean;
+	payoutsEnabled: boolean;
+	detailsSubmitted: boolean;
+	metadataOrgId?: string;
 }
