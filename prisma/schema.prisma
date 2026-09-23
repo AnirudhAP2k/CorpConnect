@@ -214,8 +214,12 @@ model Organization {
   services                String[]                     @default([])
   technologies            String[]                     @default([])
   twitterUrl              String?
-  stripeCustomerId        String?
-  razorpayCustomerId      String?
+  stripeCustomerId         String?
+  stripeConnectedAccountId String?                      @unique
+  stripeChargesEnabled     Boolean                      @default(false)
+  stripePayoutsEnabled     Boolean                      @default(false)
+  stripeDetailsSubmitted   Boolean                      @default(false)
+  razorpayCustomerId       String?
   subscriptionPlan        SubscriptionPlan             @default(FREE)
   subscriptionStatus      SubscriptionStatus           @default(ACTIVE)
   subscriptionExpiresAt   DateTime?
@@ -585,10 +589,12 @@ model EventPayment {
   eventId           String             @db.Uuid
   provider          PaymentProvider
   providerPaymentId String             @unique
-  amount            Int
-  currency          String
-  status            PaymentStatus      @default(PENDING)
-  receiptUrl        String?
+  amount               Int
+  currency             String
+  status               PaymentStatus      @default(PENDING)
+  receiptUrl           String?
+  applicationFeeAmount Int?
+  destinationAccountId String?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   participation     EventParticipation @relation(fields: [participationId], references: [id], onDelete: Cascade)
