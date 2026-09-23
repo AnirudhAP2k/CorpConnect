@@ -190,6 +190,49 @@ describe("Stripe adapter", () => {
         expect(events).toEqual([{ kind: "ignored" }]);
     });
 
+    it("normalizes account.updated into connect.account.updated", async () => {
+        constructEvent.mockReturnValue({
+            type: "account.updated",
+            account: "acct_1",
+            data: {
+                object: {
+                    id: "acct_1",
+                    charges_enabled: true,
+                    payouts_enabled: true,
+                    details_submitted: true,
+                    metadata: { orgId: ORG_ID },
+                },
+            },
+        });
+
+        const events = await stripeGateway.verifyWebhook("raw", "sig");
+
+        expect(events).toEqual([
+            {
+                kind: "connect.account.updated",
+                connectedAccountId: "acct_1",
+                orgId: ORG_ID,
+                chargesEnabled: true,
+                payoutsEnabled: true,
+                detailsSubmitted: true,
+            },
+        ]);
+    });
+
+    it("normalizes account.application.deauthorized", async () => {
+        constructEvent.mockReturnValue({
+            type: "account.application.deauthorized",
+            account: "acct_1",
+            data: { object: {} },
+        });
+
+        const events = await stripeGateway.verifyWebhook("raw", "sig");
+
+        expect(events).toEqual([
+            { kind: "connect.account.deauthorized", connectedAccountId: "acct_1" },
+        ]);
+    });
+
     it("createPortalSession requires an existing Stripe customer", async () => {
         await expect(
             stripeGateway.createPortalSession(
