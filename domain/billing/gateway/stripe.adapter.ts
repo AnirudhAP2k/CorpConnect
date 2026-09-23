@@ -19,6 +19,7 @@ import type {
 	PortalSession,
 	SubscriptionCheckout,
 	BillingPlan,
+	StripeConnectAccountSnapshot,
 } from "./types";
 
 const periodDate = (
@@ -233,8 +234,123 @@ export const stripeGateway: PaymentGateway = {
 				];
 			}
 
+			case "account.updated": {
+				const account = event.data.object as any;
+				const connectedAccountId =
+					(typeof account?.id === "string" && account.id) ||
+					(typeof event.account === "string" ? event.account : "");
+				if (!connectedAccountId) return [{ kind: "ignored" }];
+				const orgId =
+					typeof account?.metadata?.orgId === "string"
+						? account.metadata.orgId
+						: undefined;
+				return [
+					{
+						kind: "connect.account.updated",
+						connectedAccountId,
+						orgId,
+						chargesEnabled: Boolean(account?.charges_enabled),
+						payoutsEnabled: Boolean(account?.payouts_enabled),
+						detailsSubmitted: Boolean(account?.details_submitted),
+					},
+				];
+			}
+
+			case "account.application.deauthorized": {
+				const connectedAccountId =
+					typeof event.account === "string" ? event.account : "";
+				if (!connectedAccountId) return [{ kind: "ignored" }];
+				return [
+					{
+						kind: "connect.account.deauthorized",
+						connectedAccountId,
+					},
+				];
+			}
+
 			default:
 				return [{ kind: "ignored" }];
 		}
 	},
 };
+
+export async function createExpressConnectedAccount(input: {
+	orgId: string;
+	name: string;
+	country: string;
+	idempotencyKey?: string;
+}): Promise<{ id: string }> {
+	const stripe = getStripe();
+	const account = await stripe.accounts.create(
+		{
+			type: "express",
+			country: input.country,
+			business_profile: { name: input.name },
+			capabilities: {
+				card_payments: { requested: true },
+				transfers: { requested: true },
+			},
+			metadata: { orgId: input.orgId },
+		},
+		{
+			idempotencyKey: resolveIdempotencyKey(
+				input.idempotencyKey,
+				paymentIdempotencyKey("connect", "stripe", input.orgId),
+			),
+		},
+	);
+	return { id: account.id };
+}
+
+export async function createConnectAccountOnboardingLink(input: {
+	accountId: string;
+	refreshUrl: string;
+	returnUrl: string;
+}): Promise<{ url: string }> {
+	const stripe = getStripe();
+	const link = await stripe.accountLinks.create({
+		account: input.accountId,
+		refresh_url: input.refreshUrl,
+		return_url: input.returnUrl,
+		type: "account_onboarding",
+	});
+	if (!link.url) {
+		throw new BillingError(
+			500,
+			"Stripe did not return a Connect onboarding URL",
+		);
+	}
+	return { url: link.url };
+}
+
+export async function retrieveConnectAccount(
+	accountId: string,
+): Promise<StripeConnectAccountSnapshot> {
+	const stripe = getStripe();
+	const account = await stripe.accounts.retrieve(accountId);
+	const metadataOrgId =
+		typeof account.metadata?.orgId === "string"
+			? account.metadata.orgId
+			: undefined;
+	return {
+		id: account.id,
+		chargesEnabled: Boolean(account.charges_enabled),
+		payoutsEnabled: Boolean(account.payouts_enabled),
+		detailsSubmitted: Boolean(account.details_submitted),
+		metadataOrgId,
+	};
+}
+
+export async function createConnectExpressLoginLink(
+	accountId: string,
+): Promise<{ url: string }> {
+	const stripe = getStripe();
+	const link = await stripe.accounts.createLoginLink(accountId);
+	if (!link.url) {
+		throw new BillingError(
+			500,
+			"Stripe did not return a Connect dashboard URL",
+		);
+	}
+	return { url: link.url };
+}
