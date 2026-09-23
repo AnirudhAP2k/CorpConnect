@@ -11,6 +11,7 @@ import { auth } from "@/auth";
 import { redirect } from "next/navigation";
 import { PricingPlans } from "@/components/billing/PricingPlans";
 import { SubscriptionManage } from "@/components/billing/SubscriptionManage";
+import { StripeConnectCard } from "@/components/billing/StripeConnectCard";
 import { getAiUsageStats } from "@/domain/ai";
 import { getBillingAccess, getBillingOverview } from "@/domain/billing";
 import { isCurrencyLocked, isInrEligible } from "@/domain/billing/pricing";
@@ -23,7 +24,11 @@ export const metadata = {
     description: "Manage your organization's subscription plan and payments.",
 };
 
-export default async function BillingPage() {
+export default async function BillingPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ connect?: string }>;
+}) {
     const session = await auth();
     if (!session?.user?.id) redirect("/login");
 
@@ -43,6 +48,9 @@ export default async function BillingPage() {
     if (!overview) redirect("/dashboard");
 
     const { org, eventPayments, subscriptions, totalRevenue } = overview;
+    const query = await searchParams;
+    const connectLanding =
+        query.connect === "return" || query.connect === "refresh" ? query.connect : null;
 
     const planTone = PLAN_COLORS[org.subscriptionPlan];
     const statusClass = STATUS_COLORS[org.subscriptionStatus];
@@ -112,6 +120,17 @@ export default async function BillingPage() {
                         <SubscriptionManage provider={activeSub.provider} />
                     )}
                 </div>
+
+                <StripeConnectCard
+                    connectedAccountId={org.stripeConnectedAccountId}
+                    chargesEnabled={org.stripeChargesEnabled}
+                    payoutsEnabled={org.stripePayoutsEnabled}
+                    detailsSubmitted={org.stripeDetailsSubmitted}
+                    readyForUsdPayouts={Boolean(
+                        org.stripeConnectedAccountId && org.stripeChargesEnabled,
+                    )}
+                    connectLanding={connectLanding}
+                />
 
                 {/* Usage Metrics */}
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
